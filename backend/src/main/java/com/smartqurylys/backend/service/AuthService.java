@@ -28,6 +28,13 @@ public class AuthService {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Пользователь с этой почтой уже существует");
         }
+        if (userRepository.findByIinBin(request.getIinBin()).isPresent()) {
+            throw new IllegalArgumentException("Пользователь с этим ИИН или БИН уже существует");
+        }
+
+        if (userRepository.findByPhone(request.getPhone()).isPresent()) {
+            throw new IllegalArgumentException("Пользователь с этим телефоном уже существует");
+        }
 
         if (!mailService.isEmailVerified(request.getEmail())) {
             throw new IllegalArgumentException("Почта не потдверждена");

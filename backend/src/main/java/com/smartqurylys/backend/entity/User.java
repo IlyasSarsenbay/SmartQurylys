@@ -22,10 +22,12 @@ public class User {
 
     private String password;
 
+    @Column(unique = true, nullable = false)
     private String phone;
 
     private String organization;
 
+    @Column(unique = true, nullable = false)
     private String iinBin;
 
     @ManyToOne

@@ -58,6 +58,17 @@ public class UserService {
         if (!emailService.isEmailVerified(updateRequest.getEmail())&&!updateRequest.getEmail().equals(user.getEmail())) {
             throw new IllegalArgumentException("Почта не подтверждена");
         }
+        userRepository.findByIinBin(updateRequest.getIinBin()).ifPresent(otherUser -> {
+            if (!otherUser.getId().equals(userId)) {
+                throw new IllegalArgumentException("ИИН/БИН уже используется другим пользователем");
+            }
+        });
+
+        userRepository.findByPhone(updateRequest.getPhone()).ifPresent(otherUser -> {
+            if (!otherUser.getId().equals(userId)) {
+                throw new IllegalArgumentException("Телефон уже используется другим пользователем");
+            }
+        });
 
         user.setFullName(updateRequest.getFullName());
         user.setPhone(updateRequest.getPhone());
@@ -137,6 +148,12 @@ public class UserService {
             return principal.toString();
         }
 
+    }
+
+    public User getCurrentUserEntity() {
+        String email = getAuthenticatedEmail();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
     }
 
 
