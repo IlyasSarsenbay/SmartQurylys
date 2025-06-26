@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleOtherExceptions(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("Unexpected error occurred"));
+                .body(new ErrorResponse("Unexpected error occurred: " + ex.getMessage()));
     }
 
     record ErrorResponse(String error) {}

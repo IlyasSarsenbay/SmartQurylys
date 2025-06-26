@@ -5,13 +5,16 @@ import com.smartqurylys.backend.dto.project.ProjectResponse;
 import com.smartqurylys.backend.dto.project.UpdateProjectRequest;
 import com.smartqurylys.backend.dto.project.participant.CreateInvitationRequest;
 import com.smartqurylys.backend.dto.project.participant.InvitationResponse;
+import com.smartqurylys.backend.entity.File;
 import com.smartqurylys.backend.service.ParticipantInvitationService;
 import com.smartqurylys.backend.service.ProjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -63,6 +66,21 @@ public class ProjectController {
     ) {
         return ResponseEntity.ok(invitationService.sendInvitation(id, request));
     }
+
+    @PostMapping("/{projectId}/files")
+    public ResponseEntity<Void> uploadProjectFile(
+            @PathVariable Long projectId,
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+        projectService.addFileToProject(projectId, file);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/files")
+    public ResponseEntity<List<File>> getProjectFiles(@PathVariable Long id) {
+        return ResponseEntity.ok(projectService.getFilesByProject(id));
+    }
+
 
 
 }

@@ -4,6 +4,7 @@ import com.smartqurylys.backend.shared.enums.ProjectStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "projects")
@@ -35,17 +36,21 @@ public class Project {
     @JoinColumn(name = "city_id")
     private City city;
 
-//    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-//    private List<Participant> participants;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Participant> participants;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ParticipantInvitation> invitations;
 //
 //    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
 //    private List<Document> documents;
 //
-//    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-//    private List<File> files;
+      @OneToMany(cascade = CascadeType.ALL)
+      @JoinColumn(name = "project_id")
+      private List<File> files;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User owner;
+      @ManyToOne
+      @JoinColumn(name = "user_id")
+      private User owner;
 }
 

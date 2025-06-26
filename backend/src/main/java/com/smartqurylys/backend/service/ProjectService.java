@@ -4,6 +4,7 @@ import com.smartqurylys.backend.dto.project.CreateProjectRequest;
 import com.smartqurylys.backend.dto.project.ProjectResponse;
 import com.smartqurylys.backend.dto.project.UpdateProjectRequest;
 import com.smartqurylys.backend.entity.City;
+import com.smartqurylys.backend.entity.File;
 import com.smartqurylys.backend.entity.Project;
 import com.smartqurylys.backend.entity.User;
 import com.smartqurylys.backend.repository.CityRepository;
@@ -14,7 +15,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +29,8 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final CityRepository cityRepository;
+    private final FileService fileService;
+
 
     public ProjectResponse createProject(CreateProjectRequest request) {
         User owner = getAuthenticatedUser();
@@ -41,6 +47,9 @@ public class ProjectService {
         project.setStatus(ProjectStatus.DRAFT);
         project.setOwner(owner);
         project.setCity(city);
+        project.setFiles(new ArrayList<>());
+        project.setInvitations(new ArrayList<>());
+
 
         Project saved = projectRepository.save(project);
 
@@ -122,6 +131,29 @@ public class ProjectService {
         } else {
             return principal.toString();
         }
+    }
+
+    public void addFileToProject(Long projectId, MultipartFile file) throws IOException {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
+
+        User currentUser = getAuthenticatedUser();
+
+        File savedFile = fileService.prepareFile(file, currentUser);
+
+        if (project.getFiles() == null) {
+            project.setFiles(new ArrayList<>());
+        }
+
+        project.getFiles().add(savedFile);
+        projectRepository.save(project);
+    }
+
+    public List<File> getFilesByProject(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
+
+        return project.getFiles();
     }
 
     private ProjectResponse mapToResponse(Project project) {
