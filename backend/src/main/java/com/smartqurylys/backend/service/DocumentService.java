@@ -1,7 +1,7 @@
-package com.smartqurylys.service;
+package com.smartqurylys.backend.service;
 
-import com.smartqurylys.entity.Document;
-import com.smartqurylys.repository.DocumentRepository;
+import com.smartqurylys.backend.entity.Document;
+import com.smartqurylys.backend.repository.DocumentRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

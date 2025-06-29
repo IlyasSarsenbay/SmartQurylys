@@ -52,5 +52,8 @@ public class Project {
       @ManyToOne
       @JoinColumn(name = "user_id")
       private User owner;
+
+      @OneToOne(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+      private Schedule schedule;
 }
 

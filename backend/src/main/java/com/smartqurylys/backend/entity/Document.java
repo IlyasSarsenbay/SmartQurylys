@@ -1,9 +1,17 @@
-package com.smartqurylys.entity;
+package com.smartqurylys.backend.entity;
 
+import com.smartqurylys.backend.shared.enums.DocumentStatus;
 import jakarta.persistence.*;
 import java.util.Date;
 
+import lombok.*;
+
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Table(name = "documents")
 public class Document {
 
     @Id
@@ -19,5 +27,4 @@ public class Document {
     @Enumerated(EnumType.STRING)
     private DocumentStatus status;
 
-    // Getters and Setters (click Right-click > Generate > Getter/Setter)
 }

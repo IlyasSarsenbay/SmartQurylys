@@ -1,7 +1,7 @@
-package com.smartqurylys.controller;
+package com.smartqurylys.backend.controller;
 
-import com.smartqurylys.entity.Document;
-import com.smartqurylys.service.DocumentService;
+import com.smartqurylys.backend.entity.Document;
+import com.smartqurylys.backend.service.DocumentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
