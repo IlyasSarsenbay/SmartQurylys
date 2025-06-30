@@ -184,6 +184,12 @@ public class TaskService {
     }
 
     private TaskResponse mapToResponse(Task task) {
+
+        String participantName = null;
+        if (task.getResponsiblePerson() != null && task.getResponsiblePerson().getUser() != null) {
+            participantName = task.getResponsiblePerson().getUser().getFullName();
+        }
+
         return TaskResponse.builder()
                 .id(task.getId())
                 .name(task.getName())
@@ -191,7 +197,7 @@ public class TaskService {
                 .startDate(task.getStartDate())
                 .endDate(task.getEndDate())
                 .info(task.getInfo())
-                .participantName(task.getResponsiblePerson().getUser().getFullName())
+                .participantName(participantName)
                 .isPriority(task.isPriority())
                 .executionRequested(task.isExecutionRequested())
                 .executionConfirmed(task.isExecuted()) // <-- ключевая замена здесь

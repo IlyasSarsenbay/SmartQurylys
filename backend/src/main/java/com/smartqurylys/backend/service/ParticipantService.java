@@ -3,9 +3,11 @@ package com.smartqurylys.backend.service;
 import com.smartqurylys.backend.dto.project.participant.ParticipantResponse;
 import com.smartqurylys.backend.entity.Participant;
 import com.smartqurylys.backend.entity.Project;
+import com.smartqurylys.backend.entity.Task;
 import com.smartqurylys.backend.entity.User;
 import com.smartqurylys.backend.repository.ParticipantRepository;
 import com.smartqurylys.backend.repository.ProjectRepository;
+import com.smartqurylys.backend.repository.TaskRepository;
 import com.smartqurylys.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +24,7 @@ public class ParticipantService {
     private final ParticipantRepository participantRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
 
     public List<ParticipantResponse> getParticipantsByProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
@@ -52,6 +55,13 @@ public class ParticipantService {
         if (!project.getOwner().getId().equals(currentUser.getId())) {
             throw new SecurityException("Доступ запрещён: только владелец проекта может удалять участников");
         }
+        List<Task> tasks = taskRepository.findByResponsiblePerson(participant);
+
+        for (Task task : tasks) {
+            task.setResponsiblePerson(null);
+        }
+
+        taskRepository.saveAll(tasks);
 
         participantRepository.delete(participant);
     }
