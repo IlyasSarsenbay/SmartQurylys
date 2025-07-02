@@ -41,19 +41,21 @@ public class Project {
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ParticipantInvitation> invitations;
-//
-//    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-//    private List<Document> documents;
-//
-      @OneToMany(cascade = CascadeType.ALL)
-      @JoinColumn(name = "project_id")
-      private List<File> files;
 
-      @ManyToOne
-      @JoinColumn(name = "user_id")
-      private User owner;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    private List<Document> documents;
 
-      @OneToOne(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-      private Schedule schedule;
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "project_id")
+    private List<File> files;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User owner;
+
+    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Schedule schedule;
+
+
 }
 

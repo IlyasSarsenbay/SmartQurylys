@@ -2,18 +2,16 @@ package com.smartqurylys.backend.dto.project.document;
 
 import lombok.*;
 
-import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EstimateResponse {
+public class EstimateItemDto {
     private Long id;
     private String name;
-//    private boolean includeNDS;
+    private String unit;
+    private float unitPrice;
+    private float quantity;
     private float totalCost;
-    private float totalCostWithoutNDS;
-    private List<EstimateItemDto> items;
 }

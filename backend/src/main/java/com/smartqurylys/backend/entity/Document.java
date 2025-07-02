@@ -3,20 +3,27 @@ package com.smartqurylys.backend.entity;
 import com.smartqurylys.backend.shared.enums.DocumentStatus;
 import jakarta.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
+@Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "documents")
 public class Document {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @ManyToOne
+    @JoinColumn(name = "project_id")
+    private Project project;
 
     private String name;
     private String filePath;
@@ -27,4 +34,23 @@ public class Document {
     @Enumerated(EnumType.STRING)
     private DocumentStatus status;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "document_id")
+    private List<File> files;
+
+    @ManyToMany
+    @JoinTable(
+            name = "document_have_to_sign",
+            joinColumns = @JoinColumn(name = "document_id"),
+            inverseJoinColumns = @JoinColumn(name = "participant_id")
+    )
+    private List<Participant> haveToSign;
+
+    @ManyToMany
+    @JoinTable(
+            name = "document_signed",
+            joinColumns = @JoinColumn(name = "document_id"),
+            inverseJoinColumns = @JoinColumn(name = "participant_id")
+    )
+    private List<Participant> signed;
 }
