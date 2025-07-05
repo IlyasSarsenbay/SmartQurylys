@@ -1,0 +1,183 @@
+<div class="form-container">
+  <div class="form-card form-card-lg">
+    <div class="form-header">
+      <h1>SQ</h1>
+      <p>SMARTQURYLYS</p>
+      <h2>Регистрация</h2>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-5">
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email">Email</label>
+        <div class="email-verification-group">
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            class="form-input email-verification-input"
+            placeholder="Ваш email"
+            [readonly]="emailVerified"
+          />
+          <button
+            type="button"
+            (click)="sendVerificationCode()"
+            [disabled]="registerForm.get('email')?.invalid || emailSent"
+            class="email-verification-button send"
+          >
+            {{ emailSent ? 'Отправлено' : 'Отправить код' }}
+          </button>
+        </div>
+        <div *ngIf="registerForm.get('email')?.invalid && (registerForm.get('email')?.dirty || registerForm.get('email')?.touched)" class="form-input-error">
+          <div *ngIf="registerForm.get('email')?.errors?.['required']">Email обязателен.</div>
+          <div *ngIf="registerForm.get('email')?.errors?.['email']">Некорректный формат email.</div>
+        </div>
+      </div>
+
+      <!-- Поле для кода верификации -->
+      <div *ngIf="emailSent" class="form-group">
+        <label for="verificationCode">Код подтверждения</label>
+        <div class="email-verification-group">
+          <input
+            type="text"
+            id="verificationCode"
+            formControlName="verificationCode"
+            class="form-input email-verification-input"
+            placeholder="Введите код из письма"
+            [readonly]="emailVerified"
+          />
+          <button
+            type="button"
+            (click)="verifyCode()"
+            [disabled]="registerForm.get('verificationCode')?.invalid || emailVerified"
+            class="email-verification-button verify"
+          >
+            {{ emailVerified ? 'Подтверждено' : 'Подтвердить' }}
+          </button>
+        </div>
+        <div *ngIf="registerForm.get('verificationCode')?.invalid && (registerForm.get('verificationCode')?.dirty || registerForm.get('verificationCode')?.touched)" class="form-input-error">
+          <div *ngIf="registerForm.get('verificationCode')?.errors?.['required']">Код обязателен.</div>
+        </div>
+      </div>
+
+      <!-- Сообщение об успешной отправке/проверке кода -->
+      <div *ngIf="successMessage && !errorMessage" class="message-box success">
+        {{ successMessage }}
+      </div>
+
+      <!-- Остальные поля формы (появляются после подтверждения email) -->
+      <ng-container *ngIf="emailVerified">
+        <div class="form-group">
+          <label for="fullName">Полное имя</label>
+          <input
+            type="text"
+            id="fullName"
+            formControlName="fullName"
+            class="form-input"
+            placeholder="Ваше полное имя"
+          />
+          <div *ngIf="registerForm.get('fullName')?.invalid && (registerForm.get('fullName')?.dirty || registerForm.get('fullName')?.touched)" class="form-input-error">
+            <div *ngIf="registerForm.get('fullName')?.errors?.['required']">Полное имя обязательно.</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Пароль</label>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            class="form-input"
+            placeholder="Ваш пароль (минимум 8 символов)"
+          />
+          <div *ngIf="registerForm.get('password')?.invalid && (registerForm.get('password')?.dirty || registerForm.get('password')?.touched)" class="form-input-error">
+            <div *ngIf="registerForm.get('password')?.errors?.['required']">Пароль обязателен.</div>
+            <div *ngIf="registerForm.get('password')?.errors?.['minlength']">Пароль должен содержать не менее 8 символов.</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Номер телефона</label>
+          <input
+            type="tel"
+            id="phone"
+            formControlName="phone"
+            class="form-input"
+            placeholder="+77001234567"
+          />
+          <div *ngIf="registerForm.get('phone')?.invalid && (registerForm.get('phone')?.dirty || registerForm.get('phone')?.touched)" class="form-input-error">
+            <div *ngIf="registerForm.get('phone')?.errors?.['required']">Номер телефона обязателен.</div>
+            <div *ngIf="registerForm.get('phone')?.errors?.['pattern']">Некорректный формат номера телефона.</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="organization">Организация</label>
+          <input
+            type="text"
+            id="organization"
+            formControlName="organization"
+            class="form-input"
+            placeholder="Название вашей организации"
+          />
+          <div *ngIf="registerForm.get('organization')?.invalid && (registerForm.get('organization')?.dirty || registerForm.get('organization')?.touched)" class="form-input-error">
+            <div *ngIf="registerForm.get('organization')?.errors?.['required']">Организация обязательна.</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="iinBin">ИИН/БИН</label>
+          <input
+            type="text"
+            id="iinBin"
+            formControlName="iinBin"
+            class="form-input"
+            placeholder="12-значный ИИН/БИН"
+          />
+          <div *ngIf="registerForm.get('iinBin')?.invalid && (registerForm.get('iinBin')?.dirty || registerForm.get('iinBin')?.touched)" class="form-input-error">
+            <div *ngIf="registerForm.get('iinBin')?.errors?.['required']">ИИН/БИН обязателен.</div>
+            <div *ngIf="registerForm.get('iinBin')?.errors?.['pattern']">ИИН/БИН должен состоять из 12 цифр.</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="city">Город</label>
+          <select
+            id="city"
+            formControlName="cityId"
+            class="form-input"
+          >
+            <option [ngValue]="null" disabled>Выберите город</option>
+            <option *ngFor="let city of cities$ | async" [ngValue]="city.id">{{ city.name }}</option>
+          </select>
+          <div *ngIf="registerForm.get('cityId')?.invalid && (registerForm.get('cityId')?.dirty || registerForm.get('cityId')?.touched)" class="form-input-error">
+            <div *ngIf="registerForm.get('cityId')?.errors?.['required']">Город обязателен.</div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Сообщение об ошибке -->
+      <div *ngIf="errorMessage" class="message-box error">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Кнопка Регистрации -->
+      <div>
+        <button
+          type="submit"
+          [disabled]="!emailVerified || registerForm.invalid"
+          class="form-button"
+        >
+          Зарегистрироваться
+        </button>
+      </div>
+    </form>
+
+    <div class="form-link-group">
+      <p>
+        Уже есть аккаунт?
+        <a routerLink="/login" class="form-link">Войти</a>
+      </p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,69 @@
+<div class="form-container">
+  <div class="form-card">
+    <div class="form-header">
+      <h1>SQ</h1>
+      <p>SMARTQURYLYS</p>
+      <h2>Вход</h2>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5">
+      <!-- Поле для Email -->
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          class="form-input"
+          placeholder="Ваш email"
+        />
+        <div *ngIf="loginForm.get('email')?.invalid && (loginForm.get('email')?.dirty || loginForm.get('email')?.touched)" class="form-input-error">
+          <div *ngIf="loginForm.get('email')?.errors?.['required']">Email обязателен.</div>
+          <div *ngIf="loginForm.get('email')?.errors?.['email']">Некорректный формат email.</div>
+        </div>
+      </div>
+
+      <!-- Поле для Пароля -->
+      <div class="form-group">
+        <label for="password">Пароль</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          class="form-input"
+          placeholder="Ваш пароль"
+        />
+        <div *ngIf="loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)" class="form-input-error">
+          <div *ngIf="loginForm.get('password')?.errors?.['required']">Пароль обязателен.</div>
+          <div *ngIf="loginForm.get('password')?.errors?.['minlength']">Пароль должен содержать не менее 8 символов.</div>
+        </div>
+      </div>
+
+      <!-- Сообщение об ошибке -->
+      <div *ngIf="errorMessage" class="message-box error">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Кнопка Входа -->
+      <div>
+        <button
+          type="submit"
+          [disabled]="loginForm.invalid"
+          class="form-button"
+        >
+          Войти
+        </button>
+      </div>
+    </form>
+
+    <div class="form-link-group">
+      <p>
+        Нет аккаунта?
+        <a routerLink="/register" class="form-link">Зарегистрироваться</a>
+      </p>
+      <p>
+        <a routerLink="/forgot-password" class="form-link">Забыли пароль?</a>
+      </p>
+    </div>
+  </div>
+</div>

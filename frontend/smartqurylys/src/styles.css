@@ -1,0 +1,256 @@
+/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Определение CSS переменных для цветов из презентации */
+:root {
+  --color-primary-dark: #2C3E50; /* Темно-сине-серый для текста, заголовков */
+  --color-accent-blue-light: #1A4D8D; /* Основной акцентный синий */
+  --color-accent-blue-dark: #153F75; /* Темный акцентный синий для градиентов */
+  --color-background-light: #F8F8F8; /* Светлый фон страницы */
+  --color-card-background: #FFFFFF; /* Фон для карточек/форм */
+  --color-border-light: #E0E0E0; /* Светлая граница */
+  --color-shadow: rgba(0, 0, 0, 0.1); /* Тень */
+  --color-success: #28A745; /* Зеленый для успеха */
+  --color-success-bg: #E6F7ED; /* Светло-зеленый фон для успеха */
+  --color-success-border: #A3D9B6; /* Граница для успеха */
+  --color-error: #DC3545; /* Красный для ошибок */
+  --color-error-bg: #FDE7EA; /* Светло-красный фон для ошибок */
+  --color-error-border: #F5B0B7; /* Граница для ошибок */
+}
+
+/* Базовые стили для всего документа */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-background-light);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  line-height: 1.5;
+  color: var(--color-primary-dark);
+}
+
+/* Общие стили для контейнеров форм (min-h-screen flex items-center justify-center p-4) */
+.form-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem; /* 16px */
+}
+
+/* Общие стили для карточек форм (bg-white p-8 rounded-lg shadow-xl w-full max-w-md border border-gray-200) */
+.form-card {
+  background-color: var(--color-card-background);
+  padding: 2rem; /* 32px */
+  border-radius: 0.5rem; /* 8px */
+  box-shadow: 0 10px 15px -3px var(--color-shadow), 0 4px 6px -2px var(--color-shadow);
+  border: 1px solid var(--color-border-light);
+  width: 100%;
+  max-width: 28rem; /* 448px */
+}
+
+/* Для больших форм (регистрация) (max-w-lg) */
+.form-card-lg {
+  max-width: 32rem; /* 512px */
+}
+
+/* Стили для заголовка формы (text-center mb-6) */
+.form-header {
+  text-align: center;
+  margin-bottom: 1.5rem; /* 24px */
+}
+
+/* Стиль для главного заголовка SQ (text-4xl font-extrabold text-gray-800) */
+.form-header h1 {
+  font-size: 2.25rem; /* 36px */
+  font-weight: 800; /* Extra bold */
+  color: var(--color-primary-dark);
+  margin-bottom: 0.5rem; /* 8px */
+}
+
+/* Стиль для подзаголовка SMARTQURYLYS (text-lg text-gray-600) */
+.form-header p {
+  font-size: 1.125rem; /* 18px */
+  color: #6B7280; /* gray-600 */
+}
+
+/* Стиль для заголовка формы (Вход, Регистрация, Забыли пароль?) (text-2xl font-bold text-gray-800) */
+.form-header h2 {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 700; /* Bold */
+  color: var(--color-primary-dark);
+  margin-top: 1.5rem; /* 24px */
+}
+
+/* Общие стили для группы полей формы (space-y-5) */
+.form-group {
+  margin-bottom: 1.25rem; /* 20px - имитация space-y-5 */
+}
+
+/* Стили для лейблов полей (block text-sm font-semibold text-gray-700 mb-1) */
+.form-group label {
+  display: block;
+  font-size: 0.875rem; /* 14px */
+  font-weight: 600; /* Semi-bold */
+  color: #4B5563; /* gray-700 */
+  margin-bottom: 0.25rem; /* 4px */
+}
+
+/* Стили для полей ввода (input, select) (block w-full px-4 py-2.5 border border-gray-300 rounded-md shadow-sm) */
+.form-input {
+  display: block;
+  width: 100%;
+  padding: 0.625rem 1rem; /* 10px 16px */
+  border: 1px solid var(--color-border-light);
+  border-radius: 0.375rem; /* 6px */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  outline: none;
+  font-size: 1rem; /* 16px */
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* Стили для фокуса полей ввода (focus:ring-blue-500 focus:border-blue-500) */
+.form-input:focus {
+  border-color: var(--color-accent-blue-light);
+  box-shadow: 0 0 0 3px rgba(26, 77, 141, 0.2); /* Имитация ring с прозрачностью */
+}
+
+/* Стили для сообщений об ошибках под полями (text-red-500 text-xs mt-1) */
+.form-input-error {
+  color: var(--color-error);
+  font-size: 0.75rem; /* 12px */
+  margin-top: 0.25rem; /* 4px */
+}
+
+/* Общие стили для кнопок (w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-base font-semibold text-white) */
+.form-button {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0.625rem 1rem; /* 10px 16px */
+  border: 1px solid transparent;
+  border-radius: 0.375rem; /* 6px */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  font-size: 1rem; /* 16px */
+  font-weight: 600; /* Semi-bold */
+  color: #FFFFFF;
+  background-image: linear-gradient(to right, var(--color-accent-blue-light), var(--color-accent-blue-dark));
+  transition: background-color 0.15s ease-in-out, transform 0.15s ease-in-out;
+  cursor: pointer;
+}
+
+/* Стили для наведения на кнопки (hover:from-blue-700 hover:to-blue-900 focus:ring-blue-500) */
+.form-button:hover {
+  background-image: linear-gradient(to right, var(--color-accent-blue-dark), var(--color-accent-blue-light));
+  transform: scale(1.02);
+}
+
+.form-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(26, 77, 141, 0.5);
+}
+
+/* Стили для отключенных кнопок (disabled:opacity-50) */
+.form-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none; /* Отменяем transform для отключенных кнопок */
+}
+
+/* Стили для группы ссылок (mt-8 text-center space-y-2) */
+.form-link-group {
+  margin-top: 2rem; /* 32px */
+  text-align: center;
+  line-height: 1.5;
+}
+
+.form-link-group p {
+  font-size: 0.875rem; /* 14px */
+  color: #4B5563; /* gray-600 */
+}
+
+/* Стили для ссылок (font-medium text-blue-600 hover:text-blue-800 hover:underline) */
+.form-link {
+  font-weight: 500; /* Medium */
+  color: var(--color-accent-blue-light);
+  text-decoration: none;
+  transition: color 0.15s ease-in-out, text-decoration 0.15s ease-in-out;
+}
+
+.form-link:hover {
+  color: var(--color-accent-blue-dark);
+  text-decoration: underline;
+}
+
+/* Стили для сообщений об успехе/ошибке (p-2 bg-red-50 rounded-md border border-red-200) */
+.message-box {
+  padding: 0.75rem; /* 12px */
+  border-radius: 0.375rem; /* 6px */
+  border: 1px solid;
+  text-align: center;
+  font-size: 0.875rem; /* 14px */
+  margin-top: 1.25rem; /* 20px - имитация space-y-5 */
+}
+
+.message-box.success {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+  border-color: var(--color-success-border);
+}
+
+.message-box.error {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+  border-color: var(--color-error-border);
+}
+
+/* Стили для кнопок верификации email (flex) */
+.email-verification-group {
+  display: flex;
+  margin-top: 0.25rem; /* 4px - mt-1 */
+}
+
+.email-verification-input {
+  flex-grow: 1;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.email-verification-button {
+  padding: 0.625rem 1rem; /* 10px 16px */
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500; /* Medium */
+  color: #FFFFFF;
+  transition: background-color 0.15s ease-in-out, transform 0.15s ease-in-out;
+  cursor: pointer;
+  border: 1px solid transparent; /* Добавлено для консистентности */
+}
+
+.email-verification-button.send {
+  background-color: var(--color-accent-blue-light);
+}
+
+.email-verification-button.send:hover:not(:disabled) {
+  background-color: var(--color-accent-blue-dark);
+}
+
+.email-verification-button.verify {
+  background-color: var(--color-success);
+}
+
+.email-verification-button.verify:hover:not(:disabled) {
+  background-color: #218838; /* Более темный зеленый */
+}
+
+.email-verification-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Медиа-запросы для адаптивности (если нужны специфичные breakpoint-стили) */
+@media (min-width: 640px) { /* sm breakpoint */
+  /* .form-input { font-size: 1rem; } */
+}
