@@ -1,5 +1,6 @@
 package com.smartqurylys.backend.controller;
 
+import com.smartqurylys.backend.entity.Comment;
 import com.smartqurylys.backend.entity.Document;
 import com.smartqurylys.backend.service.DocumentService;
 import org.springframework.http.ResponseEntity;
@@ -43,5 +44,27 @@ public class DocumentController {
     public ResponseEntity<Void> delete(@PathVariable int id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // ✅ Add comment to document
+    @PostMapping("/{id}/comment")
+    public ResponseEntity<?> addComment(@PathVariable int id, @RequestBody Comment comment) {
+        boolean success = service.addCommentToDocument(id, comment);
+        if (success) {
+            return ResponseEntity.ok("Comment added");
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // ✅ Sign a document by participant
+    @PostMapping("/{id}/sign")
+    public ResponseEntity<?> signDocument(@PathVariable int id, @RequestParam int participantId) {
+        String result = service.signDocument(id, participantId);
+        if (result.equals("OK")) {
+            return ResponseEntity.ok("Document signed");
+        } else {
+            return ResponseEntity.badRequest().body(result);
+        }
     }
 }
