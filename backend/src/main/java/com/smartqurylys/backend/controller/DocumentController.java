@@ -46,7 +46,7 @@ public class DocumentController {
         return ResponseEntity.noContent().build();
     }
 
-    // ✅ Add comment to document
+    
     @PostMapping("/{id}/comment")
     public ResponseEntity<?> addComment(@PathVariable int id, @RequestBody Comment comment) {
         boolean success = service.addCommentToDocument(id, comment);
@@ -57,7 +57,7 @@ public class DocumentController {
         }
     }
 
-    // ✅ Sign a document by participant
+   
     @PostMapping("/{id}/sign")
     public ResponseEntity<?> signDocument(@PathVariable int id, @RequestParam int participantId) {
         String result = service.signDocument(id, participantId);
