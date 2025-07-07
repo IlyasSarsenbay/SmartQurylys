@@ -1,3 +1,10 @@
+<div class="app-wrapper">
+<app-header *ngIf="showAppHeader()"></app-header>
 
 
-<router-outlet />
+    <div [class.content-with-header]="showAppHeader()" class="router-outlet-wrapper">
+    
+    <router-outlet></router-outlet>
+  </div>
+</div>
+

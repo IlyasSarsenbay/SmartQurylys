@@ -1,0 +1,222 @@
+<div class="gpr-container">
+  <div *ngIf="loading && !error" class="loading-spinner"></div>
+  <div *ngIf="error" class="error-message">{{ error }}</div>
+
+  <div *ngIf="!loading && !error">
+    <div *ngIf="!schedule; else gprContent" class="no-schedule-message">
+      <p>Для этого проекта еще не создано расписание ГПР.</p>
+      <div class="form-group mb-4">
+        <label for="newGprName">Название нового расписания ГПР:</label>
+        <input
+          type="text"
+          id="newGprName"
+          class="form-input"
+          [(ngModel)]="initialGprName"
+          placeholder="Введите название расписания (например, 'Основной график')"
+        >
+      </div>
+      <button class="action-button large-button" (click)="createInitialSchedule()"
+              [disabled]="!initialGprName.trim()">
+        Создать расписание ГПР
+      </button>
+    </div>
+
+    <ng-template #gprContent>
+      <div class="gpr-header-section">
+        <div class="gpr-name-input">
+          <label for="gprName">Название ГПР:</label>
+          <input type="text" id="gprName" class="form-input" [(ngModel)]="schedule!.name" readonly>
+        </div>
+        <div class="gpr-actions">
+          <button class="gpr-action-button" (click)="importExcel()">
+            <i class="fas fa-file-excel"></i> Импортировать таблицу excel
+          </button>
+          <button class="gpr-action-button" (click)="linkWorks()">
+            <i class="fas fa-link"></i> Связать работы
+          </button>
+          <button class="gpr-action-button" (click)="togglePriorityMarking()">
+            <i class="fas fa-exclamation-circle"></i> Отметить как приоритет
+          </button>
+        </div>
+      </div>
+
+      <div class="gpr-table-container">
+        <table class="gpr-table">
+          <thead>
+            <tr>
+              <th>Название работы:</th>
+              <th>Этап</th>
+              <th>Описание</th>
+              <th>Сроки</th>
+              <th>Исполнитель</th>
+              <th>Ресурсы</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let stage of schedule!.stages">
+              <!-- Строка этапа -->
+              <tr class="gpr-stage-row" (click)="toggleStageExpansion(stage)">
+                <td colspan="7">
+                  <div class="stage-row-content">
+                    <span class="stage-name-display">{{ stage.name }}</span>
+                    <span class="stage-dates-display" *ngIf="stage.startDate && stage.endDate">
+                      {{ stage.startDate | date:'dd.MM.yyyy' }} - {{ stage.endDate | date:'dd.MM.yyyy' }}
+                    </span>
+                    <span class="stage-status-display" [ngClass]="stage.status.toLowerCase()">{{ stage.status }}</span>
+                    <i class="fas fa-chevron-down stage-arrow-display" [class.rotated]="stage.expanded"></i>
+                  </div>
+                </td>
+              </tr>
+              <!-- Строки задач для этого этапа -->
+              <ng-container *ngIf="stage.expanded">
+                <tr *ngFor="let task of stage.tasks" class="gpr-task-row">
+                  <td>{{ task.name }}</td>
+                  <td>{{ stage.name }}</td>
+                  <td>{{ task.description || 'N/A' }}</td>
+                  <td>{{ task.startDate | date:'dd.MM.yyyy' }} - {{ task.endDate | date:'dd.MM.yyyy' }}</td>
+                  <td>{{ task.responsiblePerson?.fullName || 'Не назначен' }}</td>
+                  <td>{{ stage.resources || 'N/A' }}</td>
+                  <td class="task-actions-cell">
+                    <button class="action-button small-button" (click)="markAsPriority(task)">
+                      <i class="fas fa-star" [class.priority]="task.isPriority"></i>
+                    </button>
+                    <!-- Другие действия для задачи -->
+                  </td>
+                </tr>
+                <!-- Кнопка "Добавить задачу" внутри развернутого этапа -->
+                <tr *ngIf="stage.expanded">
+                  <td colspan="7" class="add-task-cell">
+                    <button class="add-item-button small-button" (click)="openAddTaskModal(stage.id!)">
+                      <i class="fas fa-plus"></i> Добавить задачу
+                    </button>
+                  </td>
+                </tr>
+              </ng-container>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Кнопки "Добавить строку" и "Добавить этап" -->
+      <div class="gpr-bottom-actions">
+        <button class="add-item-button" (click)="openAddTaskModal(schedule!.stages[0].id || 0)"
+                [disabled]="!schedule || schedule.stages.length === 0">
+          <i class="fas fa-plus"></i> Добавить строку
+        </button>
+        <button class="add-item-button large-button" (click)="openAddStageModal()">
+          <i class="fas fa-plus"></i> Добавить этап
+        </button>
+      </div>
+    </ng-template>
+  </div>
+</div>
+
+
+<!-- Модальное окно для добавления этапа -->
+<div class="modal-overlay" *ngIf="showAddStageModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4>Добавить новый этап</h4>
+      <button class="close-button" (click)="closeAddStageModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="addStageForm">
+        <div class="form-group">
+          <label for="stageName">Название этапа</label>
+          <input type="text" id="stageName" class="form-input" formControlName="name">
+          <div *ngIf="addStageForm.get('name')?.invalid && (addStageForm.get('name')?.dirty || addStageForm.get('name')?.touched)" class="form-input-error">
+            Название этапа обязательно.
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="stageDescription">Описание</label>
+          <textarea id="stageDescription" class="form-input" formControlName="description"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="stageStartDate">Дата начала</label>
+          <input type="date" id="stageStartDate" class="form-input" formControlName="startDate">
+        </div>
+        <div class="form-group">
+          <label for="stageEndDate">Дата окончания</label>
+          <input type="date" id="stageEndDate" class="form-input" formControlName="endDate">
+        </div>
+        <div class="form-group">
+          <label for="stageContractors">Подрядчики</label>
+          <input type="text" id="stageContractors" class="form-input" formControlName="contractors">
+        </div>
+        <div class="form-group">
+          <label for="stageResources">Ресурсы</label>
+          <input type="text" id="stageResources" class="form-input" formControlName="resources">
+        </div>
+        <div class="form-group">
+          <label for="stageStatus">Статус</label>
+          <select id="stageStatus" class="form-input" formControlName="status">
+            <option *ngFor="let status of StageStatus | keyvalue" [value]="status.value">{{ status.value }}</option>
+          </select>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="secondary-button" (click)="closeAddStageModal()">Отмена</button>
+      <button class="action-button" (click)="addStage()" [disabled]="addStageForm.invalid">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для добавления задачи -->
+<div class="modal-overlay" *ngIf="showAddTaskModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4>Добавить новую задачу</h4>
+      <button class="close-button" (click)="closeAddTaskModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="addTaskForm">
+        <div class="form-group">
+          <label for="taskName">Название задачи</label>
+          <input type="text" id="taskName" class="form-input" formControlName="name">
+          <div *ngIf="addTaskForm.get('name')?.invalid && (addTaskForm.get('name')?.dirty || addTaskForm.get('name')?.touched)" class="form-input-error">
+            Название задачи обязательно.
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="taskDescription">Описание</label>
+          <textarea id="taskDescription" class="form-input" formControlName="description"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="taskStartDate">Дата начала</label>
+          <input type="date" id="taskStartDate" class="form-input" formControlName="startDate">
+        </div>
+        <div class="form-group">
+          <label for="taskEndDate">Дата окончания</label>
+          <input type="date" id="taskEndDate" class="form-input" formControlName="endDate">
+        </div>
+        <div class="form-group">
+          <label for="taskResponsiblePerson">Ответственный</label>
+          <input type="number" id="taskResponsiblePerson" class="form-input" formControlName="responsiblePersonId" placeholder="ID участника">
+        </div>
+        <div class="form-group">
+          <label for="taskInfo">Информация</label>
+          <textarea id="taskInfo" class="form-input" formControlName="info"></textarea>
+        </div>
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="taskIsPriority" formControlName="isPriority" class="form-checkbox">
+          <label for="taskIsPriority">Приоритетная задача</label>
+        </div>
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="taskExecutionRequested" formControlName="executionRequested" class="form-checkbox">
+          <label for="taskExecutionRequested">Запрошено выполнение</label>
+        </div>
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="taskExecuted" formControlName="executed" class="form-checkbox">
+          <label for="taskExecuted">Выполнено</label>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="secondary-button" (click)="closeAddTaskModal()">Отмена</button>
+      <button class="action-button" (click)="addTask()" [disabled]="addTaskForm.invalid">Сохранить</button>
+    </div>
+  </div>
+</div>

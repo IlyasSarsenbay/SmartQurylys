@@ -1,0 +1,68 @@
+
+.dashboard-container {
+  flex-grow: 1; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4rem; 
+  padding: 2rem;
+  background-image: url('https://placehold.co/1920x1080/F8F8F8/F8F8F8?text=Background'); 
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.dashboard-card {
+  background-color: var(--color-card-background);
+  padding: 2rem;
+  border-radius: 0.75rem; 
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 250px; 
+  height: 250px; 
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border: 1px solid var(--color-border-light);
+}
+
+.dashboard-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.card-icon {
+  width: 120px; 
+  height: 120px;
+  margin-bottom: 1rem;
+  object-fit: contain; 
+}
+
+.card-title {
+  font-size: 1.25rem; 
+  font-weight: 600;
+  color: var(--color-primary-dark);
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+    gap: 2rem;
+    padding: 1rem;
+  }
+  .dashboard-card {
+    width: 200px;
+    height: 200px;
+    padding: 1.5rem;
+  }
+  .card-icon {
+    width: 100px;
+    height: 100px;
+  }
+  .card-title {
+    font-size: 1.1rem;
+  }
+}

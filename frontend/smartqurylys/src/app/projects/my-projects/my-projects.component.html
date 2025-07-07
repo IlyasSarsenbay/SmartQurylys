@@ -1,0 +1,31 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Мои Проекты</h2>
+  </div>
+
+  <div *ngIf="errorMessage" class="message-box error">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="(projects$ | async)?.length === 0 && !errorMessage" class="info-message">
+    <p>У вас пока нет проектов. <a routerLink="/create-project" class="action-link">Создайте свой первый проект!</a></p>
+  </div>
+
+  <div class="project-list">
+    <div *ngFor="let project of projects$ | async" class="project-card">
+      <h3>{{ project.name }}</h3>
+      <p class="project-description">{{ project.description }}</p>
+      <div class="project-details">
+        <span><strong>Тип:</strong> {{ project.type }}</span>
+        <span><strong>Статус:</strong> {{ project.status }}</span>
+        <span><strong>Город:</strong> {{ project.cityName }}</span>
+        <span><strong>Владелец:</strong> {{ project.ownerFullName }}</span>
+        <span><strong>Начало:</strong> {{ project.startDate }}</span>
+        <span><strong>Окончание:</strong> {{ project.endDate }}</span>
+      </div>
+      <div class="project-actions">
+        <button class="view-button" [routerLink]="['/projects', project.id]">Подробнее</button>
+      </div>
+    </div>
+  </div>
+</div>

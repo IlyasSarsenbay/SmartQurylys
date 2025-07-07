@@ -1,0 +1,162 @@
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--color-background-light);
+}
+
+
+.form-container {
+  flex-grow: 1; 
+  display: flex;
+  align-items: flex-start; 
+  justify-content: center;
+  padding: 2rem 1rem; 
+  margin-top: 1rem; 
+}
+
+.project-create-card {
+  padding: 1.5rem 2.5rem; 
+  max-width: 50rem; 
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08); 
+  border: none; 
+}
+
+.form-header {
+  display: none; 
+}
+
+.project-form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem; 
+}
+
+.project-form-group {
+  display: flex;
+  flex-direction: column;
+  background-color: #F0F4F7; 
+  border-radius: 0.5rem; 
+  padding: 0.75rem 1.25rem;
+  border: 1px solid #D0D7DE;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); 
+}
+
+.project-form-group.textarea-group {
+  padding-bottom: 0.75rem; 
+}
+
+.project-label {
+  font-size: 0.9rem; 
+  font-weight: 600;
+  color: var(--color-accent-blue-light); 
+  margin-bottom: 0.5rem; 
+  text-transform: uppercase; 
+  letter-spacing: 0.03em;
+}
+
+.project-input {
+  width: 100%;
+  padding: 0.25rem 0; 
+  border: none; 
+  background-color: transparent; 
+  font-size: 1rem;
+  color: var(--color-primary-dark);
+  outline: none; 
+}
+
+.project-input::placeholder {
+  color: #9AA7B3; 
+  opacity: 1; 
+}
+
+
+.project-input select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231A4D8D%22%20d%3D%22M287%2C197.3L159.9%2C69.8c-2.4-2.4-5.8-4.2-9.2-4.2s-6.8%2C1.8-9.2%2C4.2L5.4%2C197.3c-4.8%2C4.8-4.8%2C12.5%2C0%2C17.3c4.8%2C4.8%2C12.5%2C4.8%2C17.3%2C0L145.5%2C94.3c2.4-2.4%2C5.8-4.2%2C9.2-4.2s6.8%2C1.8%2C9.2%2C4.2l122.8%2C122.8c4.8%2C4.8%2C12.5%2C4.8%2C17.3%2C0C291.8%2C209.8%2C291.8%2C202.1%2C287%2C197.3z%22%2F%3E%3C%2Fsvg%3E');
+  background-repeat: no-repeat;
+  background-position: right 0.7em center; 
+  background-size: 0.65em auto;
+  padding-right: 2rem; 
+}
+
+.project-section-header {
+  background-color: var(--color-accent-blue-light); 
+  color: var(--color-nav-tab-text); 
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer; 
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.project-section-arrow {
+  font-size: 0.8rem;
+  transition: transform 0.2s ease-in-out;
+}
+
+.project-actions-bottom {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.project-actions-bottom .action-button {
+  min-width: 120px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 0.375rem;
+}
+
+.project-actions-bottom .secondary-button {
+  background-image: none;
+  background-color: #E0E0E0;
+  color: var(--color-primary-dark);
+  border: 1px solid #B0B0B0;
+}
+
+.project-actions-bottom .secondary-button:hover {
+  background-color: #D0D0D0;
+}
+
+.full-width-message {
+  width: 100%; 
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .form-container {
+    padding: 1rem;
+  }
+  .project-create-card {
+    padding: 1rem 1.5rem;
+  }
+  .project-form-group {
+    padding: 0.5rem 0.75rem;
+  }
+  .project-label {
+    font-size: 0.8rem;
+  }
+  .project-input {
+    font-size: 0.9rem;
+  }
+  .project-actions-bottom {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .project-actions-bottom .action-button {
+    width: 100%;
+  }
+  .project-section-header {
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+  }
+}

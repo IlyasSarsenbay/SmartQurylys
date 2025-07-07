@@ -5,12 +5,123 @@
   font-family: 'Segoe UI', sans-serif;
 }
 
-.header {
+.app-header {
+  background-color: var(--color-card-background); /* Белый фон */
+  padding: 0.5rem 1.5rem; /* Отступы */
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 20px 40px;
-  background-color: white;
+  justify-content: space-between;
+  color: var(--color-primary-dark);
+}
+
+.app-header .logo-section {
+  display: flex;
+  align-items: baseline; /* Выравнивание по базовой линии текста */
+  gap: 0.25rem; /* Меньший отступ между SQ и SMARTQURYLYS */
+}
+
+.app-header .logo-sq {
+  font-size: 2.2rem; /* Больший размер для "SQ" */
+  font-weight: 800; /* Очень жирный */
+  color: var(--color-primary-dark);
+  line-height: 1;
+}
+
+.app-header .logo-smartqurylys {
+  font-size: 0.8rem; /* Меньший размер для "SMARTQURYLYS" */
+  font-weight: 500;
+  color: #6B7280; /* Серый цвет текста */
+  line-height: 1;
+  margin-left: 0.2rem; /* Дополнительный отступ */
+}
+
+.header-right-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem; /* Отступ между элементами справа */
+}
+
+.header-right-nav .nav-link {
+  color: var(--color-accent-blue-light); /* Синий цвет для "Инструкция" */
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.2s ease-in-out;
+}
+
+.header-right-nav .nav-link:hover {
+  color: var(--color-accent-blue-dark);
+}
+
+.icon-button-wrapper {
+  position: relative;
+  display: inline-block;
+  /* Добавим небольшой отступ справа, чтобы колокольчик не сливался с профилем */
+  margin-right: 0.5rem;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  color: #6B7280; /* Серый цвет иконок, как на скриншоте */
+  font-size: 1.3rem; /* Размер иконок */
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.icon-button:hover {
+  background-color: #F0F0F0; /* Светлый фон при наведении */
+  color: var(--color-primary-dark); /* Темнее при наведении */
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0px; /* Смещение вверх */
+  right: 0px; /* Смещение вправо */
+  background-color: var(--color-accent-blue-light); /* НОВОЕ: Синий цвет, как на скриншоте */
+  color: white;
+  border-radius: 50%;
+  padding: 0.2em 0.5em; /* Отступы для круга */
+  font-size: 0.7em;
+  line-height: 1;
+  min-width: 1em; /* Минимальная ширина для одной цифры */
+  text-align: center;
+  transform: translate(50%, -50%); /* Центрирование значка относительно угла */
+  border: 1px solid var(--color-card-background); /* НОВОЕ: Белая обводка для бейджа */
+}
+
+.logout-button {
+  color: #6B7280; /* НОВОЕ: Серый цвет, как у других иконок, для единообразия */
+  margin-left: 0.5rem; /* Добавим отступ от иконки пользователя */
+}
+
+.logout-button:hover {
+  background-color: #F0F0F0;
+  color: var(--color-primary-dark);
+}
+
+/* Тонкая серая линия под глобальной шапкой */
+.header-bottom-line {
+  height: 2px;
+  background-color: #E0E0E0;
+  width: 100%;
+}
+
+/* Медиа-запросы для адаптивности глобальной шапки */
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.5rem 1rem;
+  }
+  .header-right-nav {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
 }
 
 .logo {

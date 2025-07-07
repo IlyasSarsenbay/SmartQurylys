@@ -1,0 +1,119 @@
+<div class="page-container-with-tabs">
+
+  <div class="form-container">
+    <div class="form-card form-card-lg project-create-card">
+      <div class="form-header">
+        <h2>Создать новый проект</h2>
+      </div>
+
+      <form [formGroup]="createProjectForm" (ngSubmit)="onSubmit()" class="project-form-layout">
+        <div class="project-form-group">
+          <label for="name" class="project-label">Название проекта:</label>
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            class="project-input"
+            placeholder="Например, Жилой Комплекс 'Эко-Град'"
+          />
+          <div *ngIf="createProjectForm.get('name')?.invalid && (createProjectForm.get('name')?.dirty || createProjectForm.get('name')?.touched)" class="form-input-error">
+            <div *ngIf="createProjectForm.get('name')?.errors?.['required']">Название обязательно.</div>
+          </div>
+        </div>
+
+        <div class="project-form-group textarea-group">
+          <label for="description" class="project-label">Описание проекта:</label>
+          <textarea
+            id="description"
+            formControlName="description"
+            class="project-input"
+            rows="6"
+            placeholder="Подробное описание проекта..."
+          ></textarea>
+          <div *ngIf="createProjectForm.get('description')?.invalid && (createProjectForm.get('description')?.dirty || createProjectForm.get('description')?.touched)" class="form-input-error">
+            <div *ngIf="createProjectForm.get('description')?.errors?.['required']">Описание обязательно.</div>
+          </div>
+        </div>
+
+        <div class="project-form-group">
+          <label for="type" class="project-label">Тип проекта:</label>
+          <input
+            type="text"
+            id="type"
+            formControlName="type"
+            class="project-input"
+            placeholder="Например, Строительство жилого комплекса"
+          />
+          <div *ngIf="createProjectForm.get('type')?.invalid && (createProjectForm.get('type')?.dirty || createProjectForm.get('type')?.touched)" class="form-input-error">
+            <div *ngIf="createProjectForm.get('type')?.errors?.['required']">Тип обязателен.</div>
+          </div>
+        </div>
+
+        <div class="project-form-group">
+          <label for="city" class="project-label">Город:</label>
+          <select
+            id="city"
+            formControlName="cityId"
+            class="project-input"
+          >
+            <option [ngValue]="null" disabled>Выберите город</option>
+            <option *ngFor="let city of cities$ | async" [ngValue]="city.id">{{ city.name }}</option>
+          </select>
+          <div *ngIf="createProjectForm.get('cityId')?.invalid && (createProjectForm.get('cityId')?.dirty || createProjectForm.get('cityId')?.touched)" class="form-input-error">
+            <div *ngIf="createProjectForm.get('cityId')?.errors?.['required']">Город обязателен.</div>
+          </div>
+        </div>
+
+        <div class="project-form-group">
+          <label for="startDate" class="project-label">Планируемый срок начала:</label>
+          <input
+            type="date"
+            id="startDate"
+            formControlName="startDate"
+            class="project-input"
+          />
+          <div *ngIf="createProjectForm.get('startDate')?.invalid && (createProjectForm.get('startDate')?.dirty || createProjectForm.get('startDate')?.touched)" class="form-input-error">
+            <div *ngIf="createProjectForm.get('startDate')?.errors?.['required']">Срок начала обязателен.</div>
+          </div>
+        </div>
+
+        <div class="project-form-group">
+          <label for="endDate" class="project-label">Планируемый срок окончания:</label>
+          <input
+            type="date"
+            id="endDate"
+            formControlName="endDate"
+            class="project-input"
+          />
+          <div *ngIf="createProjectForm.get('endDate')?.invalid && (createProjectForm.get('endDate')?.dirty || createProjectForm.get('endDate')?.touched)" class="form-input-error">
+            <div *ngIf="createProjectForm.get('endDate')?.errors?.['required']">Срок окончания обязателен.</div>
+          </div>
+        </div>
+
+        <div *ngIf="successMessage && !errorMessage" class="message-box success full-width-message">
+          {{ successMessage }}
+        </div>
+        <div *ngIf="errorMessage" class="message-box error full-width-message">
+          {{ errorMessage }}
+        </div>
+
+        <div class="project-actions-bottom">
+          <button
+            type="button"
+            (click)="router.navigate(['/dashboard'])"
+            class="action-button secondary-button"
+          >
+            Отменить
+          </button>
+          <button
+            type="submit"
+            [disabled]="createProjectForm.invalid"
+            class="action-button"
+          >
+            Сохранить
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

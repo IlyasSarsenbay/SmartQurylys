@@ -1,0 +1,252 @@
+<div class="page-container-with-tabs" *ngIf="project$ | async as project; else loadingOrError">
+  <!-- Навигационные вкладки проекта -->
+  <ul class="project-nav-tabs">
+    <li class="project-nav-item" [class.active]="activeTab === 'info'" (click)="setActiveTab('info')">Досье проекта</li>
+    <li class="project-nav-item" [class.active]="activeTab === 'contract'" (click)="setActiveTab('contract')">Договор <span class="project-nav-arrow">&#10140;</span></li>
+    <li class="project-nav-item" [class.active]="activeTab === 'estimate'" (click)="setActiveTab('estimate')">Смета <span class="project-nav-arrow">&#10140;</span></li>
+    <li class="project-nav-item" [class.active]="activeTab === 'gpr'" (click)="setActiveTab('gpr')">ГПР <span class="project-nav-arrow">&#10140;</span></li>
+  </ul>
+
+  <div class="page-content-area">
+    <div *ngIf="successMessage && !errorMessage" class="message-box success mb-4">
+      {{ successMessage }}
+    </div>
+    <div *ngIf="errorMessage" class="message-box error mb-4">
+      {{ errorMessage }}
+    </div>
+
+    <div class="tab-content">
+      <!-- Вкладка: Досье проекта (Основная информация, Участники, Файлы) -->
+      <ng-container *ngIf="activeTab === 'info'">
+        <div class="info-form-card">
+          <!-- Блок "Название проекта" -->
+          <div class="info-section-block">
+            <div class="info-block-label">Название проекта</div>
+            <div class="info-block-content">{{ project.name }}</div>
+          </div>
+
+          <!-- Блок "Описание проекта" -->
+          <div class="info-section-block">
+            <div class="info-block-label">Описание проекта</div>
+            <div class="info-block-content">{{ project.description }}</div>
+          </div>
+
+          <!-- Блок "ИИН/БИН заказчика" -->
+          <!-- <div class="info-section-block">
+            <div class="info-block-label">ИИН/БИН заказчика</div>
+            <div class="info-block-content">{{ project.iinBinCustomer }}</div>
+          </div> -->
+
+          <!-- Блок "Тип проекта" -->
+          <div class="info-section-block">
+            <div class="info-block-label">Тип проекта</div>
+            <div class="info-block-content">{{ project.type }}</div>
+          </div>
+
+          <!-- Блок "Планируемый срок окончания" -->
+          <div class="info-section-block">
+            <div class="info-block-label">Планируемый срок окончания</div>
+            <div class="info-block-content">{{ project.endDate }}</div>
+          </div>
+
+          <!-- Секция Участники проекта (Сворачиваемая) -->
+          <div class="project-section-header collapsible-header mt-4" (click)="showInviteForm = !showInviteForm">
+            Участники <span class="project-section-arrow" [class.rotated]="showInviteForm">&#9660;</span>
+          </div>
+          <div class="collapsible-content" [class.expanded]="showInviteForm">
+            <div class="section-content-padding">
+
+              <!-- Форма для добавления участника -->
+              <div class="form-card compact-card mt-4" *ngIf="showInviteForm">
+                <h4>Пригласить участника</h4>
+                <form [formGroup]="invitationForm" (ngSubmit)="inviteParticipant()" class="space-y-4">
+                  <div class="form-group">
+                    <label for="iinBin">ИИН/БИН приглашаемого</label>
+                    <input
+                      type="text"
+                      id="iinBin"
+                      formControlName="iinBin"
+                      class="form-input"
+                      placeholder="12-значный ИИН/БИН"
+                    />
+                    <div *ngIf="invitationForm.get('iinBin')?.invalid && (invitationForm.get('iinBin')?.dirty || invitationForm.get('iinBin')?.touched)" class="form-input-error">
+                      <div *ngIf="invitationForm.get('iinBin')?.errors?.['required']">ИИН/БИН обязателен.</div>
+                      <div *ngIf="invitationForm.get('iinBin')?.errors?.['pattern']">ИИН/БИН должен состоять из 12 цифр.</div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="role">Роль</label>
+                    <input
+                      type="text"
+                      id="role"
+                      formControlName="role"
+                      class="form-input"
+                      placeholder="Например, Подрядчик, Тех. надзор"
+                    />
+                    <div *ngIf="invitationForm.get('role')?.invalid && (invitationForm.get('role')?.dirty || invitationForm.get('role')?.touched)" class="form-input-error">
+                      <div *ngIf="invitationForm.get('role')?.errors?.['required']">Роль обязательна.</div>
+                    </div>
+                  </div>
+
+                  <div class="form-group checkbox-group">
+                    <input type="checkbox" id="canUploadDocuments" formControlName="canUploadDocuments" class="form-checkbox" />
+                    <label for="canUploadDocuments">Может загружать документы</label>
+                  </div>
+
+                  <div class="form-group checkbox-group">
+                    <input type="checkbox" id="canSendNotifications" formControlName="canSendNotifications" class="form-checkbox" />
+                    <label for="canSendNotifications">Может отправлять уведомления</label>
+                  </div>
+
+                  <div *ngIf="invitationSuccessMessage" class="message-box success">
+                    {{ invitationSuccessMessage }}
+                  </div>
+                  <div *ngIf="invitationErrorMessage" class="message-box error">
+                    {{ invitationErrorMessage }}
+                  </div>
+
+                  <div>
+                    <button type="submit" [disabled]="invitationForm.invalid" class="form-button small-button">
+                      Отправить приглашение
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Список участников -->
+              <div class="list-section mt-4">
+                <div *ngIf="participants$ | async as participants">
+                  <div *ngIf="participants.length === 0" class="info-message">
+                    <p>В этом проекте пока нет участников.</p>
+                  </div>
+                  <div *ngIf="participants.length > 0" class="item-list">
+                    <div *ngFor="let participant of participants" class="item-card participant-card">
+                      <div class="item-details">
+                        <strong>{{ participant.fullName }}</strong> ({{ participant.role }})
+                        <div class="item-permissions">
+                          <span *ngIf="participant.canUploadDocuments">Загрузка док.</span>
+                          <span *ngIf="participant.canSendNotifications">Уведомления</span>
+                          <!-- <span *ngIf="participant.status">{{ participant.status }}</span> -->
+                        </div>
+                      </div>
+                      <div class="item-actions">
+                        <button class="delete-button small-button" (click)="confirmRemoveParticipant(participant.id)">Удалить</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Секция Прикрепленные документы (Сворачиваемая) -->
+          <div class="project-section-header collapsible-header mt-4" (click)="showUploadForm = !showUploadForm">
+            Прикрепленные документы: <span class="project-section-arrow" [class.rotated]="showUploadForm">&#9660;</span>
+          </div>
+          <div class="collapsible-content" [class.expanded]="showUploadForm">
+            <div class="section-content-padding">
+
+              <!-- Форма для загрузки файла -->
+              <div class="form-card compact-card mt-4" *ngIf="showUploadForm">
+                <h4>Загрузить новый файл</h4>
+                <form [formGroup]="uploadFileForm" (ngSubmit)="uploadProjectFile()" class="space-y-4">
+                  <div class="form-group">
+                    <label for="projectFile">Выберите файл</label>
+                    <input type="file" id="projectFile" (change)="onFileSelected($event)" class="form-input" />
+                    <div *ngIf="uploadFileForm.get('file')?.invalid && (uploadFileForm.get('file')?.dirty || uploadFileForm.get('file')?.touched)" class="form-input-error">
+                      <div *ngIf="uploadFileForm.get('file')?.errors?.['required']">Файл обязателен.</div>
+                    </div>
+                  </div>
+
+                  <div *ngIf="fileUploadSuccessMessage" class="message-box success">
+                    {{ fileUploadSuccessMessage }}
+                  </div>
+                  <div *ngIf="fileUploadErrorMessage" class="message-box error">
+                    {{ fileUploadErrorMessage }}
+                  </div>
+
+                  <div>
+                    <button type="submit" [disabled]="uploadFileForm.invalid" class="form-button small-button">
+                      Загрузить
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Список файлов -->
+              <div class="list-section mt-4">
+                <div *ngIf="projectFiles$ | async as files">
+                  <div *ngIf="files.length === 0" class="info-message">
+                    <p>В этом проекте пока нет файлов.</p>
+                  </div>
+                  <div *ngIf="files.length > 0" class="item-list">
+                    <div *ngFor="let file of files" class="item-card file-card">
+                      <div class="item-details">
+                        <strong>{{ file.name }}</strong> ({{ file.size / 1024 / 1024 | number:'1.1-1' }} MB)
+                        <p class="file-info">Загружен: {{ file.createdAt | date:'short' }}</p>
+                      </div>
+                      <div class="item-actions">
+                        <button class="view-button small-button" (click)="downloadFile(file.id, file.name)">Скачать</button>
+                        <button class="delete-button small-button" (click)="confirmDeleteFile(file.id)">Удалить</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Вкладка: Договор (будет реализована позже) -->
+      <ng-container *ngIf="activeTab === 'contract'">
+        <div class="info-message">
+          <p>Здесь будет управление договорами проекта.</p>
+        </div>
+      </ng-container>
+
+      <!-- Вкладка: Смета (будет реализована позже) -->
+      <ng-container *ngIf="activeTab === 'estimate'">
+        <div class="info-message">
+          <p>Здесь будет управление сметами проекта.</p>
+        </div>
+      </ng-container>
+
+      <!-- Вкладка: ГПР -->
+      <ng-container *ngIf="activeTab === 'gpr'">
+        <app-gpr-tab [projectId]="project.id"></app-gpr-tab>
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно подтверждения -->
+<div class="modal-overlay" *ngIf="showConfirmModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4>Подтверждение действия</h4>
+      <button class="close-button" (click)="closeConfirmModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>{{ confirmModalMessage }}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="secondary-button" (click)="closeConfirmModal()">Отмена</button>
+      <button class="action-button" (click)="executeConfirmedAction()">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingOrError>
+  <div class="page-container text-center">
+    <div *ngIf="errorMessage; else loading" class="message-box error">
+      {{ errorMessage }}
+      <p class="mt-2"><a routerLink="/my-projects" class="form-link">Вернуться к моим проектам</a></p>
+    </div>
+    <ng-template #loading>
+      <div class="loading-spinner"></div>
+      <p class="text-gray-600 mt-4">Загрузка проекта...</p>
+    </ng-template>
+  </div>
+</ng-template>
