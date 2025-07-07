@@ -16,8 +16,7 @@ public class CreateTaskRequest {
 
     @NotBlank
     private String description;
-
-    @NotNull
+    
     private Long participantId;
 
     @NotNull

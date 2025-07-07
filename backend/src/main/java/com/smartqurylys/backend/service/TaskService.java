@@ -31,8 +31,11 @@ public class TaskService {
         Stage stage = stageRepository.findById(stageId)
                 .orElseThrow(() -> new IllegalArgumentException("Этап не найден"));
 
-        Participant responsible = participantRepository.findById(request.getParticipantId())
-                .orElseThrow(() -> new IllegalArgumentException("Ответственный участник не найден"));
+        Participant responsible = null;
+        if (request.getParticipantId() != null) {
+            responsible = participantRepository.findById(request.getParticipantId())
+                    .orElse(null); 
+        }
 
         Task task = Task.builder()
                 .stage(stage)
