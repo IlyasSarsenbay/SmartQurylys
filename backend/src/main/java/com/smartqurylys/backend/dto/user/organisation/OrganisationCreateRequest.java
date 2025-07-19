@@ -13,6 +13,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -57,7 +59,7 @@ public class OrganisationCreateRequest {
     private String field;
 
     @NotNull(message = "Требуется специализация")
-    private Specialization specialization;
+    private List<String> specialization;
 
     @NotNull(message = "Требуется опыт работы")
     private Long yearsOfExperience;

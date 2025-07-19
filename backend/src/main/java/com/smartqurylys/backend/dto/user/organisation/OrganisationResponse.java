@@ -9,6 +9,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
+
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -22,7 +24,7 @@ public class OrganisationResponse extends UserResponse {
     private String position;
     private OrganistaionType type;
     private String field;
-    private Specialization specialization;
+    private List<String> specialization;
     private Long yearsOfExperience;
 
 }

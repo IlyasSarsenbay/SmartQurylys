@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "organisations")
@@ -33,8 +34,12 @@ public class Organisation extends User{
 
     private String field;
 
-    @Enumerated(EnumType.STRING)
-    private Specialization specialization;
+    @ElementCollection(fetch = FetchType.LAZY) // Ленивая загрузка для производительности
+    @CollectionTable(name = "organisation_specializations", // Имя новой таблицы для специализаций
+            joinColumns = @JoinColumn(name = "organisation_id")) // Внешний ключ к таблице organisations
+    @Column(name = "specialization") // Имя колонки для хранения значения специализации в новой таблице
+    @Enumerated(EnumType.STRING) // Указываем, что значения в колонке - это строки из Enum
+    private Set<Specialization> specialization;
 
     private Long yearsOfExperience;
 

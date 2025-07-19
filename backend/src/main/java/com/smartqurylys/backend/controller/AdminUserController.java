@@ -2,6 +2,9 @@ package com.smartqurylys.backend.controller;
 
 import com.smartqurylys.backend.dto.auth.RegisterRequest;
 import com.smartqurylys.backend.dto.user.UserResponse;
+import com.smartqurylys.backend.dto.user.organisation.OrganisationCreateRequest;
+import com.smartqurylys.backend.dto.user.organisation.OrganisationResponse;
+import com.smartqurylys.backend.service.OrganisationService;
 import com.smartqurylys.backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import java.util.List;
 public class AdminUserController {
 
     private final UserService userService;
+    private final OrganisationService organisationService;
 
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")

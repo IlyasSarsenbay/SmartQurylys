@@ -1,7 +1,6 @@
 package com.smartqurylys.backend.dto.user.organisation;
 
 import com.smartqurylys.backend.shared.enums.OrganistaionType;
-import com.smartqurylys.backend.shared.enums.Specialization;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -9,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+
+import java.util.List;
 
 
 @Data
@@ -32,6 +33,6 @@ public class OrganisationUpdateRequest {
     private String position;
     private OrganistaionType type;
     private String field;
-    private Specialization specialization;
+    private List<String> specialization;
     private Long yearsOfExperience;
 }

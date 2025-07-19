@@ -13,9 +13,11 @@ import com.smartqurylys.backend.repository.LicenseRepository;
 import com.smartqurylys.backend.repository.OrganisationRepository;
 import com.smartqurylys.backend.repository.UserRepository;
 import com.smartqurylys.backend.shared.enums.FileReviewStatus;
+import com.smartqurylys.backend.shared.enums.Specialization;
 import com.smartqurylys.backend.shared.utils.JwtUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +37,7 @@ public class OrganisationService {
     private final LicenseRepository licenseRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final UserService userService;
     private final EmailService mailService;
     private final PhoneService phoneService;
     private final JwtUtils jwtUtils;
@@ -64,6 +65,18 @@ public class OrganisationService {
 
         String hashedPassword = passwordEncoder.encode(request.getPassword());
 
+        Set<Specialization> specializations = request.getSpecialization() != null ?
+                request.getSpecialization().stream()
+                        .map(s -> {
+                            try {
+                                return Specialization.valueOf(s.toUpperCase()); // Преобразуем строку в Enum
+                            } catch (IllegalArgumentException e) {
+                                throw new IllegalArgumentException("Неверное значение специализации: " + s);
+                            }
+                        })
+                        .collect(Collectors.toSet()) :
+                new HashSet<>();
+
         Organisation organisation = Organisation.builder()
                 .fullName(request.getFullName())
                 .email(request.getEmail())
@@ -76,7 +89,7 @@ public class OrganisationService {
                 .position(request.getPosition())
                 .type(request.getType())
                 .field(request.getField())
-                .specialization(request.getSpecialization())
+                .specialization(specializations)
                 .yearsOfExperience(request.getYearsOfExperience())
                 .build();
 
@@ -88,6 +101,74 @@ public class OrganisationService {
         OrganisationResponse organisationResponse = mapToResponse(savedOrganisation);
 
         return new AuthResponse(token, organisationResponse);
+    }
+
+
+    public OrganisationResponse createOrganisationByAdmin(OrganisationCreateRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Пользователь с этой почтой уже существует");
+        }
+        if (userRepository.findByIinBin(request.getIinBin()).isPresent()) {
+            throw new IllegalArgumentException("Пользователь с этим ИИН или БИН уже существует");
+        }
+
+        if (userRepository.findByPhone(request.getPhone()).isPresent()) {
+            throw new IllegalArgumentException("Пользователь с этим телефоном уже существует");
+        }
+
+        if (!mailService.isEmailVerified(request.getEmail())) {
+            throw new IllegalArgumentException("Почта не подтверждена");
+        }
+
+        City city = cityRepository.findById(request.getCityId())
+                .orElseThrow(() -> new EntityNotFoundException("Город не найден с ID: " + request.getCityId()));
+
+        String hashedPassword = passwordEncoder.encode(request.getPassword());
+
+        Set<Specialization> specializations = request.getSpecialization() != null ?
+                request.getSpecialization().stream()
+                        .map(s -> {
+                            try {
+                                return Specialization.valueOf(s.toUpperCase());
+                            } catch (IllegalArgumentException e) {
+                                throw new IllegalArgumentException("Неверное значение специализации: " + s);
+                            }
+                        })
+                        .collect(Collectors.toSet()) :
+                new HashSet<>();
+
+        Organisation organisation = Organisation.builder()
+                .fullName(request.getFullName())
+                .email(request.getEmail())
+                .password(hashedPassword)
+                .phone(request.getPhone())
+                .iinBin(request.getIinBin())
+                .city(city)
+                .judAddress(request.getJudAddress())
+                .organization(request.getOrganization())
+                .position(request.getPosition())
+                .type(request.getType())
+                .field(request.getField())
+                .specialization(specializations)
+                .yearsOfExperience(request.getYearsOfExperience())
+                .build();
+
+        Organisation savedOrganisation = organisationRepository.save(organisation);
+
+        return mapToResponse(savedOrganisation);
+    }
+
+    public OrganisationResponse getOrganisationInfo() {
+        User currentUser = userService.getCurrentUserEntity();
+
+        if (!(currentUser instanceof Organisation organisation)) {
+            throw new AccessDeniedException("Доступ запрещен: Текущий пользователь не является организацией.");
+        }
+
+        Organisation fullOrganisation = organisationRepository.findById(organisation.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Организация не найдена: " + organisation.getId()));
+
+        return mapToResponse(fullOrganisation);
     }
 
     @Transactional(readOnly = true)
@@ -155,7 +236,19 @@ public class OrganisationService {
         Optional.ofNullable(request.getPosition()).ifPresent(organisation::setPosition);
         Optional.ofNullable(request.getType()).ifPresent(organisation::setType);
         Optional.ofNullable(request.getField()).ifPresent(organisation::setField);
-        Optional.ofNullable(request.getSpecialization()).ifPresent(organisation::setSpecialization);
+
+        Optional.ofNullable(request.getSpecialization()).ifPresent(sList -> {
+            Set<Specialization> updatedSpecializations = sList.stream()
+                    .map(s -> {
+                        try {
+                            return Specialization.valueOf(s.toUpperCase());
+                        } catch (IllegalArgumentException e) {
+                            throw new IllegalArgumentException("Неверное значение специализации: " + s);
+                        }
+                    })
+                    .collect(Collectors.toSet());
+            organisation.setSpecialization(updatedSpecializations);
+        });
 
         Organisation updatedOrganisation = organisationRepository.save(organisation);
         return mapToResponse(updatedOrganisation);
@@ -254,8 +347,14 @@ public class OrganisationService {
                 .position(organisation.getPosition())
                 .type(organisation.getType())
                 .field(organisation.getField())
-                .specialization(organisation.getSpecialization())
                 .yearsOfExperience(organisation.getYearsOfExperience());
+        if (organisation.getSpecialization() != null) {
+            builder.specialization(organisation.getSpecialization().stream()
+                    .map(Enum::name)
+                    .collect(Collectors.toList()));
+        } else {
+            builder.specialization(new ArrayList<>());
+        }
 
 
         return builder.build();
