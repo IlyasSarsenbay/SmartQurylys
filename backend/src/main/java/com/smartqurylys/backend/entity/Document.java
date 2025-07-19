@@ -34,12 +34,10 @@ public class Document {
     @Enumerated(EnumType.STRING)
     private DocumentStatus status;
 
-    // 🔹 Files attached to the document
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "document_id")
     private List<File> files;
 
-    // 🔹 Who must sign this document
     @ManyToMany
     @JoinTable(
             name = "document_have_to_sign",
@@ -48,7 +46,6 @@ public class Document {
     )
     private List<Participant> haveToSign;
 
-    // 🔹 Who already signed it
     @ManyToMany
     @JoinTable(
             name = "document_signed",
@@ -57,7 +54,6 @@ public class Document {
     )
     private List<Participant> signed;
 
-    // 🔹 Comments on the document
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;
 }

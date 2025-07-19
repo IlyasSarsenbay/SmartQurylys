@@ -16,35 +16,126 @@
     </div>
 
     <div class="tab-content">
-      <!-- Вкладка: Досье проекта (Основная информация, Участники, Файлы) -->
       <ng-container *ngIf="activeTab === 'info'">
         <div class="info-form-card">
-          <!-- Блок "Название проекта" -->
-          <div class="info-section-block">
+          <div class="project-actions-header">
+            <h3>Информация о проекте</h3>
+            <div>
+              <button class="small-button" (click)="toggleEditProject()">
+                {{ isEditingProject ? 'Отмена' : 'Редактировать проект' }}
+              </button>
+              <button class="delete-button small-button ml-2" (click)="confirmDeleteProject()">
+                Удалить проект
+              </button>
+            </div>
+          </div>
+          <div class="edit-project-form-container" *ngIf="isEditingProject">
+            <form [formGroup]="projectEditForm" (ngSubmit)="saveProjectChanges()" class="space-y-4 mb-4">
+              <div class="form-group">
+                <label for="projectName">Название проекта</label>
+                <input type="text" id="projectName" formControlName="name" class="form-input" />
+                <div *ngIf="projectEditForm.get('name')?.invalid && (projectEditForm.get('name')?.dirty || projectEditForm.get('name')?.touched)" class="form-input-error">
+                  <div *ngIf="projectEditForm.get('name')?.errors?.['required']">Название проекта обязательно.</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="projectDescription">Описание проекта</label>
+                <textarea id="projectDescription" formControlName="description" class="form-input"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="projectType">Тип проекта</label>
+                <input type="text" id="projectType" formControlName="type" class="form-input" />
+                <div *ngIf="projectEditForm.get('type')?.invalid && (projectEditForm.get('type')?.dirty || projectEditForm.get('type')?.touched)" class="form-input-error">
+                  <div *ngIf="projectEditForm.get('type')?.errors?.['required']">Тип проекта обязателен.</div>
+                </div>
+              </div>
+
+              <!-- Поле для выбора города -->
+              <div class="form-group">
+                <label for="projectCity">Город</label>
+                <select id="projectCity" formControlName="cityId" class="form-input">
+                  <option [ngValue]="null" disabled>Выберите город</option>
+                  <ng-container *ngIf="cities$ | async as cities">
+                    <option *ngFor="let city of cities" [ngValue]="city.id">{{ city.name }}</option>
+                  </ng-container>
+                </select>
+                <div *ngIf="projectEditForm.get('cityId')?.invalid && (projectEditForm.get('cityId')?.dirty || projectEditForm.get('cityId')?.touched)" class="form-input-error">
+                  <div *ngIf="projectEditForm.get('cityId')?.errors?.['required']">Город обязателен.</div>
+                </div>
+              </div>
+
+              <!-- Поле для выбора статуса проекта -->
+              <div class="form-group">
+                <label for="projectStatus">Статус проекта</label>
+                <select id="projectStatus" formControlName="status" class="form-input">
+                  <option [ngValue]="null" disabled>Выберите статус</option>
+                  <option *ngFor="let status of projectStatusValues" [ngValue]="status">{{ status }}</option>
+                </select>
+                <div *ngIf="projectEditForm.get('status')?.invalid && (projectEditForm.get('status')?.dirty || projectEditForm.get('status')?.touched)" class="form-input-error">
+                  <div *ngIf="projectEditForm.get('status')?.errors?.['required']">Статус обязателен.</div>
+                </div>
+              </div>
+
+              <!-- Поле для планируемого срока начала -->
+              <div class="form-group">
+                <label for="projectStartDate">Планируемый срок начала</label>
+                <input type="date" id="projectStartDate" formControlName="startDate" class="form-input" />
+                <div *ngIf="projectEditForm.get('startDate')?.invalid && (projectEditForm.get('startDate')?.dirty || projectEditForm.get('startDate')?.touched)" class="form-input-error">
+                  <div *ngIf="projectEditForm.get('startDate')?.errors?.['required']">Срок начала обязателен.</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="projectEndDate">Планируемый срок окончания</label>
+                <input type="date" id="projectEndDate" formControlName="endDate" class="form-input" />
+                <div *ngIf="projectEditForm.get('endDate')?.invalid && (projectEditForm.get('endDate')?.dirty || projectEditForm.get('endDate')?.touched)" class="form-input-error">
+                  <div *ngIf="projectEditForm.get('endDate')?.errors?.['required']">Срок окончания обязателен.</div>
+                </div>
+              </div>
+
+              <button type="submit" [disabled]="projectEditForm.invalid" class="form-button">Сохранить изменения</button>
+            </form>
+          </div>
+          <div class="info-section-block" *ngIf="!isEditingProject">
             <div class="info-block-label">Название проекта</div>
             <div class="info-block-content">{{ project.name }}</div>
           </div>
 
-          <!-- Блок "Описание проекта" -->
-          <div class="info-section-block">
+          <div class="info-section-block" *ngIf="!isEditingProject">
             <div class="info-block-label">Описание проекта</div>
             <div class="info-block-content">{{ project.description }}</div>
           </div>
 
-          <!-- Блок "ИИН/БИН заказчика" -->
-          <!-- <div class="info-section-block">
-            <div class="info-block-label">ИИН/БИН заказчика</div>
-            <div class="info-block-content">{{ project.iinBinCustomer }}</div>
-          </div> -->
+          <div class="info-section-block" *ngIf="!isEditingProject">
+            <div class="info-block-label">ИИН/БИН Заказчика:</div>
+            <div class="info-block-content">{{ project.ownerIinBin }}</div>
+          </div>
 
-          <!-- Блок "Тип проекта" -->
-          <div class="info-section-block">
+          <div class="info-section-block" *ngIf="!isEditingProject">
             <div class="info-block-label">Тип проекта</div>
             <div class="info-block-content">{{ project.type }}</div>
           </div>
 
-          <!-- Блок "Планируемый срок окончания" -->
-          <div class="info-section-block">
+          <div class="info-section-block" *ngIf="!isEditingProject">
+            <div class="info-block-label">Город: </div>
+            <div class="info-block-content">{{ project.cityName }}</div>
+          </div>
+
+          <!-- Блок для отображения статуса проекта -->
+          <div class="info-section-block" *ngIf="!isEditingProject">
+            <div class="info-block-label">Статус проекта</div>
+            <div class="info-block-content">{{ project.status }}</div>
+          </div>
+
+          <!-- Блок для отображения планируемого срока начала -->
+          <div class="info-section-block" *ngIf="!isEditingProject">
+            <div class="info-block-label">Планируемый срок начала</div>
+            <div class="info-block-content">{{ project.startDate }}</div>
+          </div>
+
+          <div class="info-section-block" *ngIf="!isEditingProject">
             <div class="info-block-label">Планируемый срок окончания</div>
             <div class="info-block-content">{{ project.endDate }}</div>
           </div>
@@ -57,7 +148,7 @@
             <div class="section-content-padding">
 
               <!-- Форма для добавления участника -->
-              <div class="form-card compact-card mt-4" *ngIf="showInviteForm">
+              <div class="form-card compact-card mt-4">
                 <h4>Пригласить участника</h4>
                 <form [formGroup]="invitationForm" (ngSubmit)="inviteParticipant()" class="space-y-4">
                   <div class="form-group">
@@ -127,10 +218,11 @@
                         <div class="item-permissions">
                           <span *ngIf="participant.canUploadDocuments">Загрузка док.</span>
                           <span *ngIf="participant.canSendNotifications">Уведомления</span>
-                          <!-- <span *ngIf="participant.status">{{ participant.status }}</span> -->
                         </div>
                       </div>
                       <div class="item-actions">
+                        <!-- Кнопка "Редактировать участника" -->
+                        <button class="secondary-button small-button mr-2" (click)="editParticipant(participant)">Редактировать</button>
                         <button class="delete-button small-button" (click)="confirmRemoveParticipant(participant.id)">Удалить</button>
                       </div>
                     </div>
@@ -148,7 +240,7 @@
             <div class="section-content-padding">
 
               <!-- Форма для загрузки файла -->
-              <div class="form-card compact-card mt-4" *ngIf="showUploadForm">
+              <div class="form-card compact-card mt-4">
                 <h4>Загрузить новый файл</h4>
                 <form [formGroup]="uploadFileForm" (ngSubmit)="uploadProjectFile()" class="space-y-4">
                   <div class="form-group">
@@ -237,6 +329,49 @@
     </div>
   </div>
 </div>
+
+<!-- Модальное окно для редактирования участника -->
+<div class="modal-overlay" *ngIf="showEditParticipantModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4>Редактировать участника</h4>
+      <button class="close-button" (click)="closeEditParticipantModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="editParticipantForm" (ngSubmit)="saveParticipantChanges()" class="space-y-4">
+        <div class="form-group">
+          <label for="editRole">Роль</label>
+          <input type="text" id="editRole" formControlName="role" class="form-input" />
+          <div *ngIf="editParticipantForm.get('role')?.invalid && (editParticipantForm.get('role')?.dirty || editParticipantForm.get('role')?.touched)" class="form-input-error">
+            <div *ngIf="editParticipantForm.get('role')?.errors?.['required']">Роль обязательна.</div>
+          </div>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="editCanUploadDocuments" formControlName="canUploadDocuments" class="form-checkbox" />
+          <label for="editCanUploadDocuments">Может загружать документы</label>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="editCanSendNotifications" formControlName="canSendNotifications" class="form-checkbox" />
+          <label for="editCanSendNotifications">Может отправлять уведомления</label>
+        </div>
+
+        <div *ngIf="editParticipantErrorMessage" class="message-box error">
+          {{ editParticipantErrorMessage }}
+        </div>
+        <div *ngIf="editParticipantSuccessMessage" class="message-box success">
+          {{ editParticipantSuccessMessage }}
+        </div>
+
+        <div>
+          <button type="submit" [disabled]="editParticipantForm.invalid" class="form-button">Сохранить изменения</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 
 <ng-template #loadingOrError>
   <div class="page-container text-center">

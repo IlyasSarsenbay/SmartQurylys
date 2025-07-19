@@ -78,8 +78,11 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Задача не найдена"));
 
-        Participant responsible = participantRepository.findById(request.getParticipantId())
-                .orElseThrow(() -> new IllegalArgumentException("Ответственный участник не найден"));
+        Participant responsible = null;
+        if (request.getParticipantId() != null) {
+            responsible = participantRepository.findById(request.getParticipantId())
+                    .orElse(null);
+        }
 
         task.setName(request.getName());
         task.setStartDate(request.getStartDate());
@@ -100,7 +103,6 @@ public class TaskService {
         taskRepository.deleteById(taskId);
     }
 
-    // ✅ Отметить задачу как приоритетную
     public void markAsPriority(Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Задача не найдена"));
@@ -108,7 +110,6 @@ public class TaskService {
         taskRepository.save(task);
     }
 
-    // ✅ Запросить выполнение задачи
     public void requestExecution(Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Задача не найдена"));
@@ -123,7 +124,6 @@ public class TaskService {
         taskRepository.save(task);
     }
 
-    // ✅ Подтвердить выполнение задачи
     public void confirmExecution(Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Задача не найдена"));
@@ -203,7 +203,7 @@ public class TaskService {
                 .participantName(participantName)
                 .isPriority(task.isPriority())
                 .executionRequested(task.isExecutionRequested())
-                .executionConfirmed(task.isExecuted()) // <-- ключевая замена здесь
+                .executionConfirmed(task.isExecuted())
                 .build();
     }
 }

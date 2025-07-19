@@ -1,6 +1,7 @@
 package com.smartqurylys.backend.service;
 
 import com.smartqurylys.backend.dto.project.participant.ParticipantResponse;
+import com.smartqurylys.backend.dto.project.participant.UpdateParticipantRequest;
 import com.smartqurylys.backend.entity.Participant;
 import com.smartqurylys.backend.entity.Project;
 import com.smartqurylys.backend.entity.Task;
@@ -45,6 +46,38 @@ public class ParticipantService {
                         .build())
                 .collect(Collectors.toList());
     }
+
+    public ParticipantResponse updateParticipant(Long participantId, UpdateParticipantRequest request) {
+        Participant participant = participantRepository.findById(participantId)
+                .orElseThrow(() -> new IllegalArgumentException("Участник не найден"));
+
+        Project project = participant.getProject();
+        User currentUser = getAuthenticatedUser();
+        if (!project.getOwner().getId().equals(currentUser.getId())) {
+            throw new SecurityException("Доступ запрещён: только владелец проекта может обновлять участников");
+        }
+
+        if (request.getRole() != null && !request.getRole().trim().isEmpty()) {
+            participant.setRole(request.getRole().trim());
+        }
+        if (request.getCanUploadDocuments() != null) {
+            participant.setCanUploadDocuments(request.getCanUploadDocuments());
+        }
+        if (request.getCanSendNotifications() != null) {
+            participant.setCanSendNotifications(request.getCanSendNotifications());
+        }
+
+        Participant updatedParticipant = participantRepository.save(participant);
+
+        return ParticipantResponse.builder()
+                .id(updatedParticipant.getId())
+                .fullName(updatedParticipant.getUser().getFullName())
+                .role(updatedParticipant.getRole())
+                .canUploadDocuments(updatedParticipant.isCanUploadDocuments())
+                .canSendNotifications(updatedParticipant.isCanSendNotifications())
+                .build();
+    }
+
 
     public void removeParticipant(Long participantId) {
         Participant participant = participantRepository.findById(participantId)

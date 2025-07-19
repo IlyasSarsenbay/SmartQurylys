@@ -47,24 +47,24 @@ public class DocumentController {
     }
 
     
-    @PostMapping("/{id}/comment")
-    public ResponseEntity<?> addComment(@PathVariable int id, @RequestBody Comment comment) {
-        boolean success = service.addCommentToDocument(id, comment);
-        if (success) {
-            return ResponseEntity.ok("Comment added");
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-   
-    @PostMapping("/{id}/sign")
-    public ResponseEntity<?> signDocument(@PathVariable int id, @RequestParam int participantId) {
-        String result = service.signDocument(id, participantId);
-        if (result.equals("OK")) {
-            return ResponseEntity.ok("Document signed");
-        } else {
-            return ResponseEntity.badRequest().body(result);
-        }
-    }
+//    @PostMapping("/{id}/comment")
+//    public ResponseEntity<?> addComment(@PathVariable int id, @RequestBody Comment comment) {
+//        boolean success = service.addCommentToDocument(id, comment);
+//        if (success) {
+//            return ResponseEntity.ok("Comment added");
+//        } else {
+//            return ResponseEntity.notFound().build();
+//        }
+//    }
+//
+//
+//    @PostMapping("/{id}/sign")
+//    public ResponseEntity<?> signDocument(@PathVariable int id, @RequestParam int participantId) {
+//        String result = service.signDocument(id, participantId);
+//        if (result.equals("OK")) {
+//            return ResponseEntity.ok("Document signed");
+//        } else {
+//            return ResponseEntity.badRequest().body(result);
+//        }
+//    }
 }

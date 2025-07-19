@@ -1,6 +1,7 @@
 package com.smartqurylys.backend.service;
 
 import com.smartqurylys.backend.dto.project.CreateProjectRequest;
+import com.smartqurylys.backend.dto.project.FileResponse;
 import com.smartqurylys.backend.dto.project.ProjectResponse;
 import com.smartqurylys.backend.dto.project.UpdateProjectRequest;
 import com.smartqurylys.backend.entity.City;
@@ -12,6 +13,7 @@ import com.smartqurylys.backend.repository.ProjectRepository;
 import com.smartqurylys.backend.repository.UserRepository;
 import com.smartqurylys.backend.shared.enums.ProjectStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -68,6 +70,19 @@ public class ProjectService {
     public ProjectResponse getProjectById(Long id) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
+
+        User currentUser = getAuthenticatedUser();
+
+
+        boolean isAdmin = currentUser.getRole().equals("ADMIN");
+        boolean isOwner = project.getOwner() != null && project.getOwner().getId().equals(currentUser.getId());
+        boolean isParticipant = project.getParticipants() != null &&
+                project.getParticipants().stream()
+                        .anyMatch(p -> p.getId().equals(currentUser.getId()));
+
+        if (!isAdmin && !isOwner && !isParticipant) {
+            throw new AccessDeniedException("Доступ запрещен: У вас нет прав для просмотра этого проекта.");
+        }
 
         return mapToResponse(project);
     }
@@ -149,11 +164,13 @@ public class ProjectService {
         projectRepository.save(project);
     }
 
-    public List<File> getFilesByProject(Long projectId) {
+    public List<FileResponse> getFilesByProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
 
-        return project.getFiles();
+        return project.getFiles().stream()
+                .map(fileService::mapToFileResponse)
+                .collect(Collectors.toList());
     }
 
     private ProjectResponse mapToResponse(Project project) {
@@ -166,7 +183,7 @@ public class ProjectService {
                 project.getType(),
                 project.getStatus().name(),
                 project.getCity().getName(),
-                project.getOwner().getFullName()
+                project.getOwner().getIinBin()
         );
     }
 }

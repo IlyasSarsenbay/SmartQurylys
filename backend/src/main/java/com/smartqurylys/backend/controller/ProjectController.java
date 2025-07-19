@@ -1,16 +1,17 @@
 package com.smartqurylys.backend.controller;
 
 import com.smartqurylys.backend.dto.project.CreateProjectRequest;
+import com.smartqurylys.backend.dto.project.FileResponse;
 import com.smartqurylys.backend.dto.project.ProjectResponse;
 import com.smartqurylys.backend.dto.project.UpdateProjectRequest;
 import com.smartqurylys.backend.dto.project.participant.CreateInvitationRequest;
 import com.smartqurylys.backend.dto.project.participant.InvitationResponse;
-import com.smartqurylys.backend.entity.File;
 import com.smartqurylys.backend.service.ParticipantInvitationService;
 import com.smartqurylys.backend.service.ProjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,6 +39,7 @@ public class ProjectController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<ProjectResponse>> getAllProjects() {
         List<ProjectResponse> projects = projectService.getAllProjects();
         return ResponseEntity.ok(projects);
@@ -77,7 +79,7 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}/files")
-    public ResponseEntity<List<File>> getProjectFiles(@PathVariable Long id) {
+    public ResponseEntity<List<FileResponse>> getProjectFiles(@PathVariable Long id) {
         return ResponseEntity.ok(projectService.getFilesByProject(id));
     }
 

@@ -1,20 +1,23 @@
-
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { ProjectService } from '../../core/project.service';
 import { ProjectResponse } from '../../core/models/project';
 import { Observable, of, switchMap } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, tap, take } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { CreateInvitationRequest } from '../../core/models/project-requests';
+import { CreateInvitationRequest, UpdateProjectRequest, UpdateParticipantRequest } from '../../core/models/project-requests';
 import { InvitationResponse } from '../../core/models/project-invitation';
 import { FileResponse } from '../../core/models/file';
 import { ParticipantResponse } from '../../core/models/participant';
 import { ParticipantService } from '../../core/participant.service';
 import { environment } from '../../../environments/environment';
-import { GprTabComponent } from './gpr-tab/gpr-tab.component'; 
+import { GprTabComponent } from './gpr-tab/gpr-tab.component';
+import { City } from '../../core/models/city';
+import { CityService } from '../../core/city.service';
+import { ProjectStatus } from "../../core/enums/project-status.enum"; 
+
 
 @Component({
   selector: 'app-project-details',
@@ -23,7 +26,7 @@ import { GprTabComponent } from './gpr-tab/gpr-tab.component';
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    GprTabComponent 
+    GprTabComponent
   ],
   templateUrl: './project-details.component.html',
   styleUrls: ['./project-details.component.css']
@@ -35,6 +38,15 @@ export class ProjectDetailsComponent implements OnInit {
   invitationForm: FormGroup;
   uploadFileForm: FormGroup;
   projectFiles$: Observable<FileResponse[]>;
+
+  projectEditForm: FormGroup;
+  isEditingProject: boolean = false;
+
+  showEditParticipantModal: boolean = false;
+  editParticipantForm: FormGroup;
+  currentParticipantToEdit: ParticipantResponse | null = null;
+  editParticipantErrorMessage: string = '';
+  editParticipantSuccessMessage: string = '';
 
   activeTab: 'info' | 'contract' | 'estimate' | 'gpr' = 'info';
   showInviteForm: boolean = false;
@@ -51,15 +63,30 @@ export class ProjectDetailsComponent implements OnInit {
   confirmModalMessage: string = '';
   confirmAction: (() => void) | null = null;
 
+  cities$: Observable<City[]>;
+  get projectStatusValues(): string[] {
+    return Object.values(ProjectStatus);
+  }
+
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private projectService: ProjectService,
     private participantService: ParticipantService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cityService: CityService
   ) {
     this.project$ = of(null);
     this.participants$ = of([]);
     this.projectFiles$ = of([]);
+
+    this.cities$ = this.cityService.getAllCities().pipe(
+      catchError(error => {
+        console.error('Error fetching cities:', error);
+        this.errorMessage = 'Не удалось загрузить список городов.';
+        return of([]);
+      })
+    );
 
     this.invitationForm = this.fb.group({
       iinBin: ['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
@@ -72,6 +99,24 @@ export class ProjectDetailsComponent implements OnInit {
       file: [null, Validators.required]
     });
 
+    this.projectEditForm = this.fb.group({
+      name: ['', Validators.required],
+      description: [''],
+      type: ['', Validators.required],
+      cityId: ['', Validators.required],
+      status: ['', Validators.required], // <-- Используем ProjectStatus enum
+      startDate: ['', Validators.required], // <-- ДОБАВЛЕНО: Поле даты начала с валидатором
+      endDate: ['', Validators.required]
+    });
+
+
+    this.editParticipantForm = this.fb.group({
+      role: ['', Validators.required],
+      canUploadDocuments: [false],
+      canSendNotifications: [false]
+    });
+
+
     this.project$ = this.route.paramMap.pipe(
       switchMap(params => {
         const id = params.get('id');
@@ -79,6 +124,30 @@ export class ProjectDetailsComponent implements OnInit {
           this.projectId = +id;
           this.loadProjectData();
           return this.projectService.getProjectById(this.projectId).pipe(
+            tap(project => {
+              if (project) {
+                this.projectEditForm.patchValue({
+                  name: project.name,
+                  description: project.description,
+                  type: project.type,
+                  status: project.status, // <-- Заполнение статуса из project
+                  startDate: project.startDate, // <-- Заполнение даты начала из project
+                  endDate: project.endDate
+                });
+
+                this.cities$.pipe(take(1)).subscribe(cities => {
+                    const foundCity = cities.find(city => city.name === project.cityName);
+                    if (foundCity) {
+                        this.projectEditForm.patchValue({
+                            cityId: foundCity.id
+                        });
+                    } else {
+                        console.warn(`City ID not found for city name: "${project.cityName}". Please select a city.`);
+                        this.projectEditForm.patchValue({ cityId: null });
+                    }
+                });
+              }
+            }),
             catchError(error => {
               console.error('Error fetching project details:', error);
               this.errorMessage = 'Не удалось загрузить детали проекта.';
@@ -121,6 +190,94 @@ export class ProjectDetailsComponent implements OnInit {
     this.fileUploadSuccessMessage = '';
     this.showInviteForm = false;
     this.showUploadForm = false;
+    this.isEditingProject = false;
+  }
+
+  toggleEditProject(): void {
+    this.isEditingProject = !this.isEditingProject;
+    if (this.isEditingProject) {
+      this.project$.pipe(take(1)).subscribe(project => {
+        if (project) {
+          this.projectEditForm.patchValue({
+            name: project.name,
+            description: project.description,
+            type: project.type,
+            status: project.status, // <-- Заполнение статуса при открытии формы
+            startDate: project.startDate, // <-- Заполнение даты начала при открытии формы
+            endDate: project.endDate
+          });
+          this.cities$.pipe(take(1)).subscribe(cities => {
+              const foundCity = cities.find(city => city.name === project.cityName);
+              if (foundCity) {
+                  this.projectEditForm.patchValue({
+                      cityId: foundCity.id
+                  });
+              } else {
+                  console.warn(`City ID not found for city name: "${project.cityName}". Please select a city.`);
+                  this.projectEditForm.patchValue({ cityId: null });
+              }
+          });
+        }
+      });
+    }
+  }
+
+  saveProjectChanges(): void {
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    if (!this.projectId) {
+      this.errorMessage = 'ID проекта не найден.';
+      return;
+    }
+
+    if (this.projectEditForm.valid) {
+      const updatedProject: UpdateProjectRequest = this.projectEditForm.value;
+      if (typeof updatedProject.cityId === 'string') {
+        updatedProject.cityId = +updatedProject.cityId;
+      }
+
+      this.projectService.updateProject(this.projectId, updatedProject).subscribe({
+        next: (project: ProjectResponse) => {
+          this.successMessage = 'Данные проекта успешно обновлены!';
+          this.isEditingProject = false;
+          this.project$ = of(project);
+        },
+        error: (err: HttpErrorResponse) => {
+          console.error('Error updating project:', err);
+          this.errorMessage = this.extractErrorMessage(err, 'Ошибка при обновлении проекта.');
+        }
+      });
+    } else {
+      this.errorMessage = 'Пожалуйста, заполните все обязательные поля проекта.';
+      this.projectEditForm.markAllAsTouched();
+    }
+  }
+
+  confirmDeleteProject(): void {
+    this.confirmModalMessage = 'Вы уверены, что хотите безвозвратно удалить этот проект? Это действие нельзя отменить.';
+    this.confirmAction = () => this.executeDeleteProject();
+    this.showConfirmModal = true;
+  }
+
+  private executeDeleteProject(): void {
+    if (!this.projectId) {
+      this.errorMessage = 'ID проекта не найден для удаления.';
+      return;
+    }
+
+    this.projectService.deleteProject(this.projectId).subscribe({
+      next: () => {
+        this.successMessage = 'Проект успешно удален.';
+        this.closeConfirmModal();
+        this.router.navigate(['/my-projects']);
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Error deleting project:', err);
+        this.errorMessage = this.extractErrorMessage(err, 'Ошибка при удалении проекта.');
+        this.closeConfirmModal();
+      }
+    });
   }
 
   inviteParticipant(): void {
@@ -179,6 +336,56 @@ export class ProjectDetailsComponent implements OnInit {
         this.closeConfirmModal();
       }
     });
+  }
+
+
+  editParticipant(participant: ParticipantResponse): void {
+    this.currentParticipantToEdit = participant;
+    this.editParticipantForm.patchValue({
+      role: participant.role,
+      canUploadDocuments: participant.canUploadDocuments,
+      canSendNotifications: participant.canSendNotifications
+    });
+    this.editParticipantErrorMessage = '';
+    this.editParticipantSuccessMessage = '';
+    this.showEditParticipantModal = true;
+  }
+
+  closeEditParticipantModal(): void {
+    this.showEditParticipantModal = false;
+    this.currentParticipantToEdit = null;
+    this.editParticipantForm.reset();
+  }
+
+  saveParticipantChanges(): void {
+    this.editParticipantErrorMessage = '';
+    this.editParticipantSuccessMessage = '';
+
+    if (!this.currentParticipantToEdit || !this.currentParticipantToEdit.id) {
+      this.editParticipantErrorMessage = 'Участник для редактирования не найден.';
+      return;
+    }
+
+    if (this.editParticipantForm.valid) {
+      const updatedParticipantData: UpdateParticipantRequest = this.editParticipantForm.value;
+
+      this.participantService.updateParticipant(this.currentParticipantToEdit.id, updatedParticipantData).subscribe({
+        next: () => {
+          this.editParticipantSuccessMessage = 'Данные участника успешно обновлены!';
+          this.loadProjectData();
+          setTimeout(() => {
+            this.closeEditParticipantModal();
+          }, 1500);
+        },
+        error: (err: HttpErrorResponse) => {
+          console.error('Error updating participant:', err);
+          this.editParticipantErrorMessage = this.extractErrorMessage(err, 'Ошибка при обновлении данных участника.');
+        }
+      });
+    } else {
+      this.editParticipantErrorMessage = 'Пожалуйста, заполните все поля правильно.';
+      this.editParticipantForm.markAllAsTouched();
+    }
   }
 
   onFileSelected(event: Event): void {
@@ -285,3 +492,5 @@ export class ProjectDetailsComponent implements OnInit {
     return defaultMessage;
   }
 }
+
+

@@ -50,9 +50,9 @@ public class AuthService {
                 .email(request.getEmail())
                 .password(hashedPassword)
                 .phone(request.getPhone())
-                .organization(request.getOrganization())
                 .iinBin(request.getIinBin())
                 .city(city)
+                .role("USER")
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -64,7 +64,6 @@ public class AuthService {
                 savedUser.getFullName(),
                 savedUser.getEmail(),
                 savedUser.getPhone(),
-                savedUser.getOrganization(),
                 savedUser.getIinBin(),
                 savedUser.getCity().getName()
         );

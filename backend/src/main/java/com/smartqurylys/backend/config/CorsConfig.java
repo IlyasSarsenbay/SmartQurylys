@@ -13,11 +13,11 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**") // Применяем CORS ко всем путям
-                        .allowedOrigins("http://localhost:4200") // Разрешаем запросы с вашего Angular фронтенда
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS") // Разрешенные HTTP методы
-                        .allowedHeaders("*") // Разрешенные заголовки
-                        .allowCredentials(true); // Разрешаем отправку куки и заголовков авторизации
+                registry.addMapping("/**")
+                        .allowedOrigins("http://localhost:4200")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
             }
         };
     }

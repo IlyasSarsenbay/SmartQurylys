@@ -2,6 +2,7 @@ package com.smartqurylys.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
@@ -11,7 +12,10 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "file_type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorValue("FILE")
 public class File {
 
     @Id
@@ -28,6 +32,6 @@ public class File {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
-
 }

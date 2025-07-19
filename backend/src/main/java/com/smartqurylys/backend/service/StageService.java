@@ -3,8 +3,6 @@ package com.smartqurylys.backend.service;
 import com.smartqurylys.backend.dto.project.stage.CreateStageRequest;
 import com.smartqurylys.backend.dto.project.stage.StageResponse;
 import com.smartqurylys.backend.dto.project.stage.UpdateStageRequest;
-import com.smartqurylys.backend.entity.File;
-import com.smartqurylys.backend.entity.Project;
 import com.smartqurylys.backend.entity.Schedule;
 import com.smartqurylys.backend.entity.Stage;
 import com.smartqurylys.backend.repository.ScheduleRepository;

@@ -1,6 +1,5 @@
 package com.smartqurylys.backend.dto.project.task;
 
-import com.smartqurylys.backend.entity.Participant;
 import lombok.Builder;
 import lombok.Data;
 

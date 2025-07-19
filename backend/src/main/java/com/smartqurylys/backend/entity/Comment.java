@@ -17,5 +17,4 @@ public class Comment {
     @JoinColumn(name = "document_id")
     private Document document;
 
-    // Getters and Setters
 }

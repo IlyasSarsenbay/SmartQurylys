@@ -26,3 +26,9 @@ export interface CreateInvitationRequest {
   canUploadDocuments: boolean;
   canSendNotifications: boolean;
 }
+
+export interface UpdateParticipantRequest {
+  role?: string;
+  canUploadDocuments?: boolean;
+  canSendNotifications?: boolean;
+}

@@ -2,6 +2,16 @@
   <div *ngIf="loading && !error" class="loading-spinner"></div>
   <div *ngIf="error" class="error-message">{{ error }}</div>
 
+  <!-- Сообщения об успешных операциях -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+
+  <!-- Сообщения об ошибках действий -->
+  <div *ngIf="actionError" class="alert alert-danger">
+    {{ actionError }}
+  </div>
+
   <div *ngIf="!loading && !error">
     <div *ngIf="!schedule; else gprContent" class="no-schedule-message">
       <p>Для этого проекта еще не создано расписание ГПР.</p>
@@ -25,17 +35,30 @@
       <div class="gpr-header-section">
         <div class="gpr-name-input">
           <label for="gprName">Название ГПР:</label>
-          <input type="text" id="gprName" class="form-input" [(ngModel)]="schedule!.name" readonly>
+          <ng-container *ngIf="!isEditingGprName">
+            <span class="gpr-display-name">{{ schedule!.name }}</span>
+            <button class="edit-button small-button ml-2" (click)="toggleEditGprName()">
+              <i class="fas fa-edit"></i> Редактировать
+            </button>
+          </ng-container>
+          <ng-container *ngIf="isEditingGprName">
+            <input type="text" id="gprNameEdit" class="form-input inline-input" [(ngModel)]="initialGprName">
+            <button class="action-button small-button ml-2" (click)="saveGprName()" [disabled]="!initialGprName.trim()">
+              <i class="fas fa-save"></i> Сохранить
+            </button>
+            <button class="secondary-button small-button ml-2" (click)="toggleEditGprName()">
+              <i class="fas fa-times"></i> Отмена
+            </button>
+          </ng-container>
         </div>
         <div class="gpr-actions">
           <button class="gpr-action-button" (click)="importExcel()">
             <i class="fas fa-file-excel"></i> Импортировать таблицу excel
           </button>
-          <button class="gpr-action-button" (click)="linkWorks()">
+          <input type="file" #fileInput style="display: none;" (change)="onFileSelected($event)" accept=".xlsx, .xls">
+
+          <button class="gpr-action-button" (click)="openLinkTasksModal()">
             <i class="fas fa-link"></i> Связать работы
-          </button>
-          <button class="gpr-action-button" (click)="togglePriorityMarking()">
-            <i class="fas fa-exclamation-circle"></i> Отметить как приоритет
           </button>
         </div>
       </div>
@@ -50,6 +73,7 @@
               <th>Сроки</th>
               <th>Исполнитель</th>
               <th>Ресурсы</th>
+              <th>Статус</th>
               <th>Действия</th>
             </tr>
           </thead>
@@ -57,14 +81,22 @@
             <ng-container *ngFor="let stage of schedule!.stages">
               <!-- Строка этапа -->
               <tr class="gpr-stage-row" (click)="toggleStageExpansion(stage)">
-                <td colspan="7">
+                <td colspan="8">
                   <div class="stage-row-content">
                     <span class="stage-name-display">{{ stage.name }}</span>
                     <span class="stage-dates-display" *ngIf="stage.startDate && stage.endDate">
                       {{ stage.startDate | date:'dd.MM.yyyy' }} - {{ stage.endDate | date:'dd.MM.yyyy' }}
                     </span>
                     <span class="stage-status-display" [ngClass]="stage.status.toLowerCase()">{{ stage.status }}</span>
-                    <i class="fas fa-chevron-down stage-arrow-display" [class.rotated]="stage.expanded"></i>
+                    <div class="stage-actions">
+                      <button class="edit-button small-button" (click)="$event.stopPropagation(); openEditStageModal(stage)">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="delete-button small-button ml-1" (click)="$event.stopPropagation(); confirmDeleteStage(stage.id!)">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                      <i class="fas fa-chevron-down stage-arrow-display" [class.rotated]="stage.expanded"></i>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -75,18 +107,24 @@
                   <td>{{ stage.name }}</td>
                   <td>{{ task.description || 'N/A' }}</td>
                   <td>{{ task.startDate | date:'dd.MM.yyyy' }} - {{ task.endDate | date:'dd.MM.yyyy' }}</td>
-                  <td>{{ task.responsiblePerson?.fullName || 'Не назначен' }}</td>
+                  <td>{{ task.responsiblePerson?.fullName || 'Не назначен' }}</td> <!-- ИСПРАВЛЕНО -->
                   <td>{{ stage.resources || 'N/A' }}</td>
+                  <td>{{ task.executed ? 'Выполнена' : 'В процессе' }}</td>
                   <td class="task-actions-cell">
                     <button class="action-button small-button" (click)="markAsPriority(task)">
                       <i class="fas fa-star" [class.priority]="task.isPriority"></i>
                     </button>
-                    <!-- Другие действия для задачи -->
+                    <button class="edit-button small-button ml-1" (click)="openEditTaskModal(task, stage.id!)">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="delete-button small-button ml-1" (click)="confirmDeleteTask(task.id!, stage.id!)">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
                   </td>
                 </tr>
                 <!-- Кнопка "Добавить задачу" внутри развернутого этапа -->
                 <tr *ngIf="stage.expanded">
-                  <td colspan="7" class="add-task-cell">
+                  <td colspan="8" class="add-task-cell">
                     <button class="add-item-button small-button" (click)="openAddTaskModal(stage.id!)">
                       <i class="fas fa-plus"></i> Добавить задачу
                     </button>
@@ -100,7 +138,7 @@
 
       <!-- Кнопки "Добавить строку" и "Добавить этап" -->
       <div class="gpr-bottom-actions">
-        <button class="add-item-button" (click)="openAddTaskModal(schedule!.stages[0].id || 0)"
+        <button class="add-item-button" (click)="schedule!.stages.length > 0 && openAddTaskModal(schedule!.stages[0].id!)"
                 [disabled]="!schedule || schedule.stages.length === 0">
           <i class="fas fa-plus"></i> Добавить строку
         </button>
@@ -152,14 +190,73 @@
         <div class="form-group">
           <label for="stageStatus">Статус</label>
           <select id="stageStatus" class="form-input" formControlName="status">
-            <option *ngFor="let status of StageStatus | keyvalue" [value]="status.value">{{ status.value }}</option>
+            <option [ngValue]="null" disabled>Выберите статус</option>
+            <option *ngFor="let status of stageStatusValues" [value]="status">{{ status }}</option>
           </select>
+          <div *ngIf="addStageForm.get('status')?.invalid && (addStageForm.get('status')?.dirty || addStageForm.get('status')?.touched)" class="form-input-error">
+            Статус этапа обязателен.
+          </div>
         </div>
       </form>
     </div>
     <div class="modal-footer">
       <button class="secondary-button" (click)="closeAddStageModal()">Отмена</button>
       <button class="action-button" (click)="addStage()" [disabled]="addStageForm.invalid">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для редактирования этапа -->
+<div class="modal-overlay" *ngIf="showEditStageModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4>Редактировать этап</h4>
+      <button class="close-button" (click)="closeEditStageModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="editStageForm">
+        <div class="form-group">
+          <label for="editStageName">Название этапа</label>
+          <input type="text" id="editStageName" class="form-input" formControlName="name">
+          <div *ngIf="editStageForm.get('name')?.invalid && (editStageForm.get('name')?.dirty || editStageForm.get('name')?.touched)" class="form-input-error">
+            Название этапа обязательно.
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editStageDescription">Описание</label>
+          <textarea id="editStageDescription" class="form-input" formControlName="description"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="editStageStartDate">Дата начала</label>
+          <input type="date" id="editStageStartDate" class="form-input" formControlName="startDate">
+        </div>
+        <div class="form-group">
+          <label for="editStageEndDate">Дата окончания</label>
+          <input type="date" id="editStageEndDate" class="form-input" formControlName="endDate">
+        </div>
+        <div class="form-group">
+          <label for="editStageContractors">Подрядчики</label>
+          <input type="text" id="editStageContractors" class="form-input" formControlName="contractors">
+        </div>
+        <div class="form-group">
+          <label for="editStageResources">Ресурсы</label>
+          <input type="text" id="editStageResources" class="form-input" formControlName="resources">
+        </div>
+        <div class="form-group">
+          <label for="editStageStatus">Статус</label>
+          <select id="editStageStatus" class="form-input" formControlName="status">
+            <option [ngValue]="null" disabled>Выберите статус</option>
+            <option *ngFor="let status of stageStatusValues" [value]="status">{{ status }}</option>
+          </select>
+          <div *ngIf="editStageForm.get('status')?.invalid && (editStageForm.get('status')?.dirty || editStageForm.get('status')?.touched)" class="form-input-error">
+            Статус этапа обязателен.
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="secondary-button" (click)="closeEditStageModal()">Отмена</button>
+      <button class="action-button" (click)="saveStageChanges()" [disabled]="editStageForm.invalid">Сохранить</button>
     </div>
   </div>
 </div>
@@ -194,7 +291,10 @@
         </div>
         <div class="form-group">
           <label for="taskResponsiblePerson">Ответственный</label>
-          <input type="number" id="taskResponsiblePerson" class="form-input" formControlName="responsiblePersonId" placeholder="ID участника">
+          <select id="taskResponsiblePerson" class="form-input" formControlName="responsiblePersonId">
+            <option [ngValue]="null">Не назначен</option>
+            <option *ngFor="let participant of allParticipants" [ngValue]="participant.id">{{ participant.fullName }}</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="taskInfo">Информация</label>
@@ -212,11 +312,161 @@
           <input type="checkbox" id="taskExecuted" formControlName="executed" class="form-checkbox">
           <label for="taskExecuted">Выполнено</label>
         </div>
+        <!-- Зависимости задач - теперь используем метод компонента для обработки строки -->
+        <div class="form-group">
+          <label for="taskDependsOnIds">Зависит от задач (ID через запятую)</label>
+          <input type="text" id="taskDependsOnIds" class="form-input"
+                 [ngModel]="addTaskForm.get('dependsOnTaskIds')?.value?.join(', ')"
+                 (ngModelChange)="addTaskForm.get('dependsOnTaskIds')?.setValue(processDependsOnTaskIds($event))"
+                 name="dependsOnTaskIdsInput">
+        </div>
       </form>
     </div>
     <div class="modal-footer">
       <button class="secondary-button" (click)="closeAddTaskModal()">Отмена</button>
       <button class="action-button" (click)="addTask()" [disabled]="addTaskForm.invalid">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для редактирования задачи -->
+<div class="modal-overlay" *ngIf="showEditTaskModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4>Редактировать задачу</h4>
+      <button class="close-button" (click)="closeEditTaskModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="editTaskForm">
+        <div class="form-group">
+          <label for="editTaskName">Название задачи</label>
+          <input type="text" id="editTaskName" class="form-input" formControlName="name">
+          <div *ngIf="editTaskForm.get('name')?.invalid && (editTaskForm.get('name')?.dirty || editTaskForm.get('name')?.touched)" class="form-input-error">
+            Название задачи обязательно.
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editTaskDescription">Описание</label>
+          <textarea id="editTaskDescription" class="form-input" formControlName="description"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="editTaskStartDate">Дата начала</label>
+          <input type="date" id="editTaskStartDate" class="form-input" formControlName="startDate">
+        </div>
+        <div class="form-group">
+          <label for="editTaskEndDate">Дата окончания</label>
+          <input type="date" id="editTaskEndDate" class="form-input" formControlName="endDate">
+        </div>
+        <div class="form-group">
+          <label for="editTaskResponsiblePerson">Ответственный</label>
+          <select id="editTaskResponsiblePerson" class="form-input" formControlName="responsiblePersonId">
+            <option [ngValue]="null">Не назначен</option>
+            <option *ngFor="let participant of allParticipants" [ngValue]="participant.id">{{ participant.fullName }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="editTaskInfo">Информация</label>
+          <textarea id="editTaskInfo" class="form-input" formControlName="info"></textarea>
+        </div>
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="editTaskIsPriority" formControlName="isPriority" class="form-checkbox">
+          <label for="editTaskIsPriority">Приоритетная задача</label>
+        </div>
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="editTaskExecutionRequested" formControlName="executionRequested" class="form-checkbox">
+          <label for="editTaskExecutionRequested">Запрошено выполнение</label>
+        </div>
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="editTaskExecuted" formControlName="executed" class="form-checkbox">
+          <label for="editTaskExecuted">Выполнено</label>
+        </div>
+        <!-- Зависимости задач - пока остается ручной ввод ID, так как есть отдельная кнопка "Связать работы" -->
+        <div class="form-group">
+          <label for="editTaskDependsOnIds">Зависит от задач (ID через запятую)</label>
+          <input type="text" id="editTaskDependsOnIds" class="form-input"
+                 [ngModel]="editTaskForm.get('dependsOnTaskIds')?.value?.join(', ')"
+                 (ngModelChange)="editTaskForm.get('dependsOnTaskIds')?.setValue(processDependsOnTaskIds($event))"
+                 name="dependsOnTaskIdsInput">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="secondary-button" (click)="closeEditTaskModal()">Отмена</button>
+      <button class="action-button" (click)="saveTaskChanges()" [disabled]="editTaskForm.invalid">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для связывания работ -->
+<div class="modal-overlay" *ngIf="showLinkTasksModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4>Связать задачи</h4>
+      <button class="close-button" (click)="closeLinkTasksModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div *ngIf="linkTaskError" class="alert alert-danger">{{ linkTaskError }}</div>
+      <div *ngIf="linkTaskSuccess" class="alert alert-success">{{ linkTaskSuccess }}</div>
+
+      <form [formGroup]="linkTasksForm">
+        <div class="form-group">
+          <label for="taskToLinkSelect">Выберите задачу, для которой нужно установить зависимости:</label>
+          <select id="taskToLinkSelect" class="form-input" formControlName="taskId" (change)="onTaskToLinkChange($event)">
+            <option [ngValue]="null" disabled>-- Выберите задачу --</option>
+            <optgroup *ngFor="let stage of schedule?.stages" [label]="stage.name">
+              <option *ngFor="let task of stage.tasks" [ngValue]="task.id">
+                {{ task.name }} (ID: {{ task.id }})
+              </option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div *ngIf="selectedTaskToLink" class="dependencies-list">
+          <h5>Зависит от следующих задач (выберите):</h5>
+          <div *ngIf="allTasks.length === 1 && allTasks[0].id === selectedTaskToLink.id" class="no-dependencies-message">
+            В проекте нет других задач, кроме выбранной.
+          </div>
+          <div *ngIf="allTasks.length > 1">
+            <div *ngFor="let depTask of allTasks">
+              <ng-container *ngIf="depTask.id !== selectedTaskToLink.id">
+                <div class="checkbox-group">
+                  <input type="checkbox"
+                         [id]="'dep-' + depTask.id"
+                         [value]="depTask.id"
+                         [checked]="isDependencySelected(depTask.id!)"
+                         (change)="onDependencyCheckboxChange($event, depTask.id!)"
+                         class="form-checkbox">
+                  <label [for]="'dep-' + depTask.id">{{ depTask.name }} (ID: {{ depTask.id }})</label>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!selectedTaskToLink">
+          <p>Пожалуйста, выберите задачу из списка выше, чтобы настроить ее зависимости.</p>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="secondary-button" (click)="closeLinkTasksModal()">Закрыть</button>
+      <button class="action-button" (click)="saveTaskLinks()" [disabled]="!selectedTaskToLink">Сохранить связи</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно подтверждения (универсальное) -->
+<div class="modal-overlay" *ngIf="showConfirmModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4>Подтверждение действия</h4>
+      <button class="close-button" (click)="closeConfirmModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>{{ confirmModalMessage }}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="secondary-button" (click)="closeConfirmModal()">Отмена</button>
+      <button class="action-button" (click)="executeConfirmedAction()">Подтвердить</button>
     </div>
   </div>
 </div>

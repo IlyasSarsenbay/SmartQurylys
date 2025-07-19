@@ -1,15 +1,13 @@
 package com.smartqurylys.backend.controller;
 
-import com.smartqurylys.backend.entity.File;
+import com.smartqurylys.backend.dto.project.FileResponse;
 import com.smartqurylys.backend.service.FileService;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
@@ -21,7 +19,7 @@ public class FileController {
     private final FileService fileService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<File> getFileInfo(@PathVariable Long id) {
+    public ResponseEntity<FileResponse> getFileInfo(@PathVariable Long id) {
         return ResponseEntity.ok(fileService.getFileInfo(id));
     }
 

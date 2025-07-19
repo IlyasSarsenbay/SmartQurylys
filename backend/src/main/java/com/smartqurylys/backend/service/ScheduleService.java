@@ -42,7 +42,6 @@ public class ScheduleService {
             throw new SecurityException("Вы не являетесь владельцем проекта");
         }
 
-        // ❗ если нужен запрет на более одного графика:
         if (!scheduleRepository.findByProject(project).isEmpty()) {
             throw new IllegalArgumentException("ГПР уже существует для этого проекта");
         }

@@ -20,9 +20,6 @@ public class RegisterRequest {
     @NotBlank(message = "Требуется номер телефона")
     private String phone;
 
-    @NotBlank(message = "Требуется организация")
-    private String organization;
-
     @NotBlank(message = "Требуется ИИН/БИН")
     @Pattern(regexp = "\\d{12}", message = "ИИН/БИН должен состоять из 12 цифр")
     private String iinBin;

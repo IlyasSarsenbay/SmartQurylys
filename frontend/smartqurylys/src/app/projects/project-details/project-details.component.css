@@ -181,13 +181,13 @@
   padding: 0 1.25rem 1.25rem;
 }
 .add-item-button {
-  background-color: var(--color-accent-blue-light); 
+  background-color: var(--color-accent-blue-light);
   color: white;
   padding: 0.6rem 1.2rem;
   font-size: 0.9rem;
   border-radius: 0.375rem;
-  display: inline-block; 
-  margin-bottom: 1rem; 
+  display: inline-block;
+  margin-bottom: 1rem;
 }
 
 .add-item-button:hover {
@@ -232,6 +232,7 @@
   outline: none;
   font-size: 1rem;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  box-sizing: border-box; /* Добавлено для правильного расчета ширины */
 }
 
 .form-input:focus {
@@ -299,7 +300,7 @@
 }
 
 .item-card {
-  background-color: var(--color-card-background); 
+  background-color: var(--color-card-background);
   padding: 0.75rem 1rem;
   border-radius: 0.375rem;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
@@ -318,8 +319,8 @@
   font-size: 0.8rem;
   color: #666;
   margin-top: 0.2rem;
-  display: flex; 
-  gap: 0.5rem; 
+  display: flex;
+  gap: 0.5rem;
 }
 
 .item-card .item-permissions span {
@@ -327,12 +328,12 @@
   padding: 0.15rem 0.4rem;
   border-radius: 0.25rem;
   color: #3182CE;
-  white-space: nowrap; 
+  white-space: nowrap;
 }
 
 .item-card.participant-card .item-permissions span {
-  background-color: #FFF3E0; 
-  color: #FB8C00; 
+  background-color: #FFF3E0;
+  color: #FB8C00;
 }
 
 .item-card.file-card .file-info {
@@ -402,8 +403,8 @@
 }
 
 
-.mt-4 { margin-top: 1rem; } 
-.mb-4 { margin-bottom: 1rem; } 
+.mt-4 { margin-top: 1rem; }
+.mb-4 { margin-bottom: 1rem; }
 
 
 .modal-overlay {
@@ -412,11 +413,11 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); 
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; 
+  z-index: 1000;
 }
 
 .modal-content {
@@ -430,6 +431,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  max-height: 90vh; /* Ограничиваем высоту модального окна */
 }
 
 .modal-header {
@@ -481,13 +483,101 @@
   padding: 0.6rem 1.2rem;
   font-size: 0.9rem;
   min-width: 80px;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
 }
 
+.modal-footer .action-button {
+  background-color: var(--color-accent-blue-light);
+  color: white;
+}
+.modal-footer .action-button:hover {
+  background-color: #283693;
+}
+
+.modal-footer .secondary-button {
+  background-color: #EBF0F5;
+  color: var(--color-primary-dark);
+}
+.modal-footer .secondary-button:hover {
+  background-color: #DDE5EC;
+}
+
+/* --- НОВЫЕ И УЛУЧШЕННЫЕ СТИЛИ (ДОБАВЛЕНО/ИЗМЕНЕНО) --- */
+
+/* Стили для заголовка "Информация о проекте" */
+.project-actions-header h3 {
+  color: white; /* Цвет текста "Информация о проекте" */
+}
+
+/* Улучшенные кнопки "Редактировать проект" и "Удалить проект" */
+.project-actions-header .small-button {
+  padding: 0.6rem 1.2rem; /* Увеличенный padding для лучшего внешнего вида */
+  font-size: 0.9rem; /* Увеличенный размер шрифта */
+  border-radius: 0.375rem;
+  font-weight: 600; /* Жирный текст */
+  text-transform: uppercase; /* Заглавные буквы */
+  letter-spacing: 0.02em; /* Небольшой межбуквенный интервал */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Красивая тень */
+  transition: all 0.2s ease-in-out; /* Плавный переход */
+}
+
+.project-actions-header .small-button:hover {
+  transform: translateY(-2px); /* Небольшой подъем при наведении */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3); /* Усиление тени при наведении */
+}
+
+/* Специфичные стили для кнопки "Редактировать проект" */
+.project-actions-header .small-button:not(.delete-button) { /* Применяем к кнопке, которая не является delete-button */
+  background-color: #4CAF50; /* Зеленый цвет для редактирования */
+  color: white;
+}
+
+.project-actions-header .small-button:not(.delete-button):hover {
+  background-color: #388E3C; /* Темнее зеленый при наведении */
+}
+
+/* Специфичные стили для кнопки "Удалить проект" */
+.project-actions-header .delete-button {
+  background-color: #F44336; /* Красный цвет для удаления */
+  color: white;
+}
+
+.project-actions-header .delete-button:hover {
+  background-color: #D32F2F; /* Темнее красный при наведении */
+}
+
+
+/* Контейнер формы редактирования проекта - убедимся, что поля не выходят за рамки */
+.edit-project-form-container {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background-color: #F8F9FA;
+  border: 1px solid #E0E0E0;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Общие стили для input и textarea внутри форм, чтобы они не выходили за рамки */
+.form-input {
+  box-sizing: border-box; /* Это критически важно для предотвращения выхода за рамки */
+  width: 100%; /* Убедимся, что занимает всю доступную ширину */
+}
+
+/* Стили для модального окна редактирования участника - убедимся, что поля не выходят за рамки */
+.modal-content {
+  max-width: 550px; /* Увеличена максимальная ширина для лучшего размещения полей */
+  /* Убедитесь, что здесь нет фиксированной ширины, которая может конфликтовать */
+}
+
+/* Медиа-запросы для адаптивности */
 @media (max-width: 768px) {
   .page-content-area {
     padding: 1rem;
   }
-  .info-form-card { 
+  .info-form-card {
     padding: 1rem;
   }
   .info-section-block {
@@ -505,8 +595,8 @@
   }
   .project-nav-tabs {
     flex-wrap: wrap;
-    justify-content: flex-start; 
-    margin-bottom: -0.5rem; 
+    justify-content: flex-start;
+    margin-bottom: -0.5rem;
   }
   .project-nav-item {
     padding: 0.5rem 0.75rem;
@@ -529,6 +619,7 @@
   }
   .modal-content {
     padding: 1rem;
+    width: 95%; /* Уменьшена ширина для мобильных */
   }
   .modal-header h4 {
     font-size: 1.1rem;
@@ -540,5 +631,27 @@
   .modal-footer .action-button,
   .modal-footer .secondary-button {
     width: 100%;
+  }
+
+  /* Адаптивные стили для новых элементов */
+  .project-actions-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .project-actions-header h3 {
+    font-size: 1.25rem;
+  }
+  .project-actions-header div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .project-actions-header button {
+    margin-left: 0; /* Сброс margin-left для мобильных */
+    width: 100%; /* Кнопки занимают всю ширину */
+  }
+  .edit-project-form-container {
+    padding: 1rem;
   }
 }

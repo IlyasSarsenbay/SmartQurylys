@@ -20,5 +20,5 @@ public class ProjectResponse {
     private String type;
     private String status;
     private String cityName;
-    private String ownerFullName;
+    private String ownerIinBin;
 }

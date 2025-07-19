@@ -14,14 +14,9 @@
   <div class="project-list">
     <div *ngFor="let project of projects$ | async" class="project-card">
       <h3>{{ project.name }}</h3>
-      <p class="project-description">{{ project.description }}</p>
       <div class="project-details">
         <span><strong>Тип:</strong> {{ project.type }}</span>
         <span><strong>Статус:</strong> {{ project.status }}</span>
-        <span><strong>Город:</strong> {{ project.cityName }}</span>
-        <span><strong>Владелец:</strong> {{ project.ownerFullName }}</span>
-        <span><strong>Начало:</strong> {{ project.startDate }}</span>
-        <span><strong>Окончание:</strong> {{ project.endDate }}</span>
       </div>
       <div class="project-actions">
         <button class="view-button" [routerLink]="['/projects', project.id]">Подробнее</button>

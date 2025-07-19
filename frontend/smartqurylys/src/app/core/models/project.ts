@@ -1,4 +1,4 @@
-import { ProjectStatus } from "../enums/project-status.enum"; // Убедитесь, что путь к enum правильный
+import { ProjectStatus } from "../enums/project-status.enum"; 
 
 
 export interface ProjectResponse {
@@ -10,5 +10,5 @@ export interface ProjectResponse {
   type: string;
   status: ProjectStatus; 
   cityName: string;
-  ownerFullName: string;
+  ownerIinBin: string;
 }

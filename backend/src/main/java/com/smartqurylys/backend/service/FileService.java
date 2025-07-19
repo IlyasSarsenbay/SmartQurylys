@@ -1,9 +1,9 @@
 package com.smartqurylys.backend.service;
 
+import com.smartqurylys.backend.dto.project.FileResponse;
 import com.smartqurylys.backend.entity.File;
 import com.smartqurylys.backend.entity.User;
 import com.smartqurylys.backend.repository.FileRepository;
-import com.smartqurylys.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 public class FileService {
 
     private final FileRepository fileRepository;
-    private final UserRepository userRepository;
 
     private final Path rootLocation = Paths.get("uploads");
 
@@ -59,9 +58,10 @@ public class FileService {
         }
     }
 
-    public File getFileInfo(Long id) {
-        return fileRepository.findById(id)
+    public FileResponse getFileInfo(Long id) {
+        File file = fileRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Файл не найден"));
+        return mapToFileResponse(file);
     }
 
     public void deleteFile(Long id) throws IOException {
@@ -70,5 +70,16 @@ public class FileService {
 
         Files.deleteIfExists(Paths.get(file.getFilepath()));
         fileRepository.delete(file);
+    }
+
+    public FileResponse mapToFileResponse(File file) {
+        return FileResponse.builder()
+                .id(file.getId())
+                .name(file.getName())
+                .filepath(file.getFilepath())
+                .size(file.getSize())
+                .createdAt(file.getCreatedAt())
+                .creatorIinBin(file.getUser() != null ? file.getUser().getIinBin() : null)
+                .build();
     }
 }
