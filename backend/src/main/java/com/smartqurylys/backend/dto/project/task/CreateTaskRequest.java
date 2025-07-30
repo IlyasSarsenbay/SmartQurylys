@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class CreateTaskRequest {
@@ -16,12 +17,14 @@ public class CreateTaskRequest {
 
     @NotBlank
     private String description;
-    
-    private Long participantId;
+
+    private List<Long> responsiblePersonIds;
 
     @NotNull
     private LocalDate startDate;
 
     @NotNull
     private LocalDate endDate;
+
+    private List<CreateRequirementRequest> requirements;
 }

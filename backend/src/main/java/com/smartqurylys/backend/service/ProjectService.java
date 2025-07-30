@@ -11,6 +11,8 @@ import com.smartqurylys.backend.entity.User;
 import com.smartqurylys.backend.repository.CityRepository;
 import com.smartqurylys.backend.repository.ProjectRepository;
 import com.smartqurylys.backend.repository.UserRepository;
+import com.smartqurylys.backend.shared.enums.ActivityActionType;
+import com.smartqurylys.backend.shared.enums.ActivityEntityType;
 import com.smartqurylys.backend.shared.enums.ProjectStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -32,6 +34,7 @@ public class ProjectService {
     private final UserRepository userRepository;
     private final CityRepository cityRepository;
     private final FileService fileService;
+    private final ActivityLogService activityLogService;
 
 
     public ProjectResponse createProject(CreateProjectRequest request) {
@@ -116,6 +119,14 @@ public class ProjectService {
         project.setStatus(request.getStatus());
         project.setCity(city);
 
+        activityLogService.recordActivity(
+                project.getId(),
+                ActivityActionType.PROJECT_UPDATED,
+                ActivityEntityType.PROJECT,
+                project.getId(),
+                project.getName()
+        );
+
         Project updated = projectRepository.save(project);
         return mapToResponse(updated);
     }
@@ -159,6 +170,15 @@ public class ProjectService {
         if (project.getFiles() == null) {
             project.setFiles(new ArrayList<>());
         }
+
+        activityLogService.recordActivity(
+                project.getId(),
+                ActivityActionType.FILE_ADDED,
+                ActivityEntityType.FILE,
+                savedFile.getId(),
+                savedFile.getName()
+        );
+
 
         project.getFiles().add(savedFile);
         projectRepository.save(project);

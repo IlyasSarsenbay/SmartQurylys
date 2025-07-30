@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 
 @Entity
@@ -25,9 +26,13 @@ public class Task {
 
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "participant_id", nullable = true)
-    private Participant responsiblePerson;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "task_responsible_persons",
+            joinColumns = @JoinColumn(name = "task_id"),
+            inverseJoinColumns = @JoinColumn(name = "participant_id")
+    )
+    private Set<Participant> responsiblePersons;
 
     private LocalDate startDate;
 
@@ -54,4 +59,7 @@ public class Task {
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "task_id")
     private List<File> files;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Requirement> requirements;
 }

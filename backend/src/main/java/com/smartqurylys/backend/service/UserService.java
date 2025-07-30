@@ -215,7 +215,7 @@ public class UserService {
 
 
 
-    private UserResponse mapToUserResponse(User user) {
+    UserResponse mapToUserResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())
                 .fullName(user.getFullName())

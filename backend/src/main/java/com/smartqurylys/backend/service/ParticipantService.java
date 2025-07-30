@@ -88,10 +88,10 @@ public class ParticipantService {
         if (!project.getOwner().getId().equals(currentUser.getId())) {
             throw new SecurityException("Доступ запрещён: только владелец проекта может удалять участников");
         }
-        List<Task> tasks = taskRepository.findByResponsiblePerson(participant);
+        List<Task> tasks = taskRepository.findByResponsiblePersonsContains(participant);
 
         for (Task task : tasks) {
-            task.setResponsiblePerson(null);
+            task.getResponsiblePersons().remove(participant);
         }
 
         taskRepository.saveAll(tasks);

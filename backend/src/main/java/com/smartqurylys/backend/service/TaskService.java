@@ -1,20 +1,20 @@
 package com.smartqurylys.backend.service;
 
-import com.smartqurylys.backend.dto.project.task.CreateTaskRequest;
-import com.smartqurylys.backend.dto.project.task.TaskResponse;
-import com.smartqurylys.backend.dto.project.task.UpdateTaskRequest;
+import com.smartqurylys.backend.dto.project.FileResponse;
+import com.smartqurylys.backend.dto.project.participant.ParticipantResponse;
+import com.smartqurylys.backend.dto.project.task.*;
 import com.smartqurylys.backend.entity.*;
 import com.smartqurylys.backend.repository.*;
-import jakarta.transaction.Transactional;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,99 +24,164 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final StageRepository stageRepository;
     private final ParticipantRepository participantRepository;
+    private final RequirementRepository requirementRepository;
     private final FileService fileService;
     private final UserRepository userRepository;
 
-    public TaskResponse createTask(Long stageId, CreateTaskRequest request) {
-        Stage stage = stageRepository.findById(stageId)
-                .orElseThrow(() -> new IllegalArgumentException("Этап не найден"));
 
-        Participant responsible = null;
-        if (request.getParticipantId() != null) {
-            responsible = participantRepository.findById(request.getParticipantId())
-                    .orElse(null); 
+    private RequirementResponse mapToRequirementResponse(Requirement requirement) {
+        FileResponse sampleFileResponse = null;
+        if (requirement.getSampleFile() != null) {
+            sampleFileResponse = fileService.mapToFileResponse(requirement.getSampleFile());
+        }
+        return RequirementResponse.builder()
+                .id(requirement.getId())
+                .description(requirement.getDescription())
+                .sampleFile(sampleFileResponse)
+                .build();
+    }
+
+
+    private ParticipantResponse mapToParticipantResponse(Participant participant) {
+        String fullName = (participant.getUser() != null) ? participant.getUser().getFullName() : "Неизвестный участник";
+        return ParticipantResponse.builder()
+                .id(participant.getId())
+                .fullName(fullName)
+                .build();
+    }
+
+    @Transactional
+    public TaskResponse createTask(Long stageId, CreateTaskRequest request, List<MultipartFile> requirementSampleFiles) throws IOException {
+        Stage stage = stageRepository.findById(stageId)
+                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с ID: " + stageId));
+
+        Set<Participant> responsiblePersons = new HashSet<>();
+        if (request.getResponsiblePersonIds() != null && !request.getResponsiblePersonIds().isEmpty()) {
+            responsiblePersons = new HashSet<>(participantRepository.findAllById(request.getResponsiblePersonIds()));
+            if (responsiblePersons.size() != request.getResponsiblePersonIds().size()) {
+                throw new IllegalArgumentException("Один или несколько ответственных лиц не найдены.");
+            }
         }
 
         Task task = Task.builder()
                 .stage(stage)
                 .name(request.getName())
+                .info(request.getInfo())
+                .description(request.getDescription())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
-                .description(request.getDescription())
-                .info(request.getInfo())
-                .responsiblePerson(responsible)
+                .responsiblePersons(responsiblePersons)
+                .isPriority(false)
+                .executionRequested(false)
+                .executed(false)
                 .build();
 
-        taskRepository.save(task);
+        Task savedTask = taskRepository.save(task);
+
+        List<Requirement> requirements = new ArrayList<>();
+        Map<String, MultipartFile> fileMap = requirementSampleFiles != null ?
+                requirementSampleFiles.stream()
+                        .collect(Collectors.toMap(
+                                MultipartFile::getOriginalFilename,
+                                file -> file,
+                                (existing, replacement) -> existing
+                        )) :
+                Collections.emptyMap();
+
+
+        if (request.getRequirements() != null && !request.getRequirements().isEmpty()) {
+            for (CreateRequirementRequest reqDto : request.getRequirements()) {
+                Requirement requirement = Requirement.builder()
+                        .description(reqDto.getDescription())
+                        .task(savedTask)
+                        .build();
+
+                if (reqDto.getTempFileId() != null && fileMap.containsKey(reqDto.getTempFileId())) {
+                    MultipartFile sampleFile = fileMap.get(reqDto.getTempFileId());
+                    if (sampleFile != null && !sampleFile.isEmpty()) {
+                        File savedSampleFile = fileService.prepareFile(sampleFile, getAuthenticatedUser());
+                        requirement.setSampleFile(savedSampleFile);
+                    }
+                }
+                requirements.add(requirement);
+            }
+            requirementRepository.saveAll(requirements);
+            savedTask.setRequirements(requirements);
+        } else {
+            savedTask.setRequirements(new ArrayList<>());
+        }
+
+        return mapToResponse(savedTask);
+    }
+
+
+    @Transactional(readOnly = true)
+    public TaskResponse getTaskById(Long taskId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
         return mapToResponse(task);
     }
 
+    @Transactional(readOnly = true)
     public List<TaskResponse> getTasksByStage(Long stageId) {
         Stage stage = stageRepository.findById(stageId)
-                .orElseThrow(() -> new IllegalArgumentException("Этап не найден"));
+                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с ID: " + stageId));
 
         return taskRepository.findByStage(stage).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    public TaskResponse getTaskById(Long stageId, Long taskId) {
-        Stage stage = stageRepository.findById(stageId)
-                .orElseThrow(() -> new IllegalArgumentException("Этап не найден"));
-
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new IllegalArgumentException("Задача не найдена"));
-
-        if (!task.getStage().getId().equals(stage.getId())) {
-            throw new IllegalArgumentException("Задача не принадлежит указанному этапу");
-        }
-
-        return mapToResponse(task);
-    }
-
+    @Transactional
     public TaskResponse updateTask(Long taskId, UpdateTaskRequest request) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new IllegalArgumentException("Задача не найдена"));
+                .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
 
-        Participant responsible = null;
-        if (request.getParticipantId() != null) {
-            responsible = participantRepository.findById(request.getParticipantId())
-                    .orElse(null);
+        Optional.ofNullable(request.getName()).ifPresent(task::setName);
+        Optional.ofNullable(request.getInfo()).ifPresent(task::setInfo);
+        Optional.ofNullable(request.getDescription()).ifPresent(task::setDescription);
+        Optional.ofNullable(request.getStartDate()).ifPresent(task::setStartDate);
+        Optional.ofNullable(request.getEndDate()).ifPresent(task::setEndDate);
+
+        // Обновление ответственных лиц
+        if (request.getResponsiblePersonIds() != null) {
+            Set<Participant> newResponsiblePersons = new HashSet<>(participantRepository.findAllById(request.getResponsiblePersonIds()));
+            if (newResponsiblePersons.size() != request.getResponsiblePersonIds().size()) {
+                throw new IllegalArgumentException("Один или несколько ответственных лиц не найдены.");
+            }
+            task.setResponsiblePersons(newResponsiblePersons);
         }
 
-        task.setName(request.getName());
-        task.setStartDate(request.getStartDate());
-        task.setEndDate(request.getEndDate());
-        task.setDescription(request.getDescription());
-        task.setInfo(request.getInfo());
-        task.setResponsiblePerson(responsible);
-
-        taskRepository.save(task);
-        return mapToResponse(task);
+        Task updatedTask = taskRepository.save(task);
+        return mapToResponse(updatedTask);
     }
 
     @Transactional
     public void deleteTask(Long taskId) {
         if (!taskRepository.existsById(taskId)) {
-            throw new IllegalArgumentException("Задача не найдена");
+            throw new EntityNotFoundException("Задача не найдена с ID: " + taskId);
         }
         taskRepository.deleteById(taskId);
     }
 
+    @Transactional
     public void markAsPriority(Long taskId) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new IllegalArgumentException("Задача не найдена"));
+                .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
         task.setPriority(true);
         taskRepository.save(task);
     }
 
+    @Transactional
     public void requestExecution(Long taskId) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new IllegalArgumentException("Задача не найдена"));
+                .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
 
-        for (Task dependency : task.getDependsOn()) {
-            if (!dependency.isExecuted()) {
-                throw new IllegalStateException("Нельзя запросить исполнение, пока не завершена первая задача");
+        if (task.getDependsOn() != null) {
+            for (Task dependency : task.getDependsOn()) {
+                if (!dependency.isExecuted()) {
+                    throw new IllegalStateException("Нельзя запросить исполнение, пока не завершена зависимая задача: " + dependency.getName());
+                }
             }
         }
 
@@ -124,16 +189,17 @@ public class TaskService {
         taskRepository.save(task);
     }
 
+    @Transactional
     public void confirmExecution(Long taskId) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new IllegalArgumentException("Задача не найдена"));
-        task.setExecuted(true);
+                .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
         taskRepository.save(task);
     }
 
-    public void addFileToTask(Long taskId, MultipartFile file) throws IOException {
+    @Transactional
+    public FileResponse addFileToTask(Long taskId, MultipartFile file) throws IOException {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new IllegalArgumentException("Задача не найдена"));
+                .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
 
         User currentUser = getAuthenticatedUser();
         File savedFile = fileService.prepareFile(file, currentUser);
@@ -144,21 +210,26 @@ public class TaskService {
 
         task.getFiles().add(savedFile);
         taskRepository.save(task);
+        return fileService.mapToFileResponse(savedFile);
     }
 
-    public List<File> getFilesByTask(Long taskId) {
+    @Transactional(readOnly = true)
+    public List<FileResponse> getFilesByTask(Long taskId) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new IllegalArgumentException("Задача не найдена"));
+                .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
 
-        return task.getFiles();
+        return task.getFiles().stream()
+                .map(fileService::mapToFileResponse)
+                .collect(Collectors.toList());
     }
 
+    @Transactional
     public void addDependency(Long taskId, Long dependencyTaskId) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new IllegalArgumentException("Задача не найдена"));
+                .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
 
         Task dependency = taskRepository.findById(dependencyTaskId)
-                .orElseThrow(() -> new IllegalArgumentException("Зависимая задача не найдена"));
+                .orElseThrow(() -> new EntityNotFoundException("Зависимая задача не найдена с ID: " + dependencyTaskId));
 
         if (task.equals(dependency)) {
             throw new IllegalArgumentException("Задача не может зависеть от самой себя");
@@ -176,6 +247,86 @@ public class TaskService {
         taskRepository.save(task);
     }
 
+    @Transactional
+    public RequirementResponse createRequirement(Long taskId, CreateRequirementRequest request, MultipartFile sampleFile) throws IOException {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
+
+        Requirement requirement = Requirement.builder()
+                .description(request.getDescription())
+                .task(task)
+                .build();
+
+        if (sampleFile != null && !sampleFile.isEmpty()) {
+            File savedSampleFile = fileService.prepareFile(sampleFile, getAuthenticatedUser());
+            requirement.setSampleFile(savedSampleFile);
+        }
+
+        Requirement savedRequirement = requirementRepository.save(requirement);
+
+        if (task.getRequirements() == null) {
+            task.setRequirements(new ArrayList<>());
+        }
+        task.getRequirements().add(savedRequirement);
+        taskRepository.save(task);
+
+        return mapToRequirementResponse(savedRequirement);
+    }
+
+    @Transactional
+    public RequirementResponse updateRequirement(Long requirementId, UpdateRequirementRequest request, MultipartFile newSampleFile) throws IOException {
+        Requirement requirement = requirementRepository.findById(requirementId)
+                .orElseThrow(() -> new EntityNotFoundException("Требование не найдено с ID: " + requirementId));
+
+        Optional.ofNullable(request.getDescription()).ifPresent(requirement::setDescription);
+
+        if (Boolean.TRUE.equals(request.getRemoveSampleFile())) {
+            if (requirement.getSampleFile() != null) {
+                fileService.deleteFile(requirement.getSampleFile().getId());
+                requirement.setSampleFile(null);
+            }
+        }
+
+        if (newSampleFile != null && !newSampleFile.isEmpty()) {
+            if (requirement.getSampleFile() != null) {
+                fileService.deleteFile(requirement.getSampleFile().getId());
+            }
+            File savedFile = fileService.prepareFile(newSampleFile, getAuthenticatedUser());
+            requirement.setSampleFile(savedFile);
+        }
+
+        Requirement updatedRequirement = requirementRepository.save(requirement);
+        return mapToRequirementResponse(updatedRequirement);
+    }
+
+    @Transactional
+    public void deleteRequirement(Long requirementId) throws IOException {
+        Requirement requirementToDelete = requirementRepository.findById(requirementId)
+                .orElseThrow(() -> new EntityNotFoundException("Requirement not found with ID: " + requirementId));
+
+        if (requirementToDelete.getSampleFile() != null) {
+            fileService.deleteFile(requirementToDelete.getSampleFile().getId());
+        }
+
+        if (requirementToDelete.getTask() != null) {
+            Task task = requirementToDelete.getTask();
+            task.getRequirements().remove(requirementToDelete);
+            taskRepository.save(task);
+        }
+
+        requirementRepository.delete(requirementToDelete);
+    }
+
+    @Transactional(readOnly = true)
+    public List<RequirementResponse> getRequirementsByTaskId(Long taskId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
+        return task.getRequirements().stream()
+                .map(this::mapToRequirementResponse)
+                .collect(Collectors.toList());
+    }
+
+
     private User getAuthenticatedUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email = (principal instanceof UserDetails userDetails)
@@ -183,27 +334,46 @@ public class TaskService {
                 : principal.toString();
 
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
     }
 
     private TaskResponse mapToResponse(Task task) {
+        List<ParticipantResponse> responsiblePersons = task.getResponsiblePersons() != null ?
+                task.getResponsiblePersons().stream()
+                        .map(this::mapToParticipantResponse)
+                        .collect(Collectors.toList()) :
+                new ArrayList<>();
 
-        String participantName = null;
-        if (task.getResponsiblePerson() != null && task.getResponsiblePerson().getUser() != null) {
-            participantName = task.getResponsiblePerson().getUser().getFullName();
-        }
+        List<RequirementResponse> requirements = task.getRequirements() != null ?
+                task.getRequirements().stream()
+                        .map(this::mapToRequirementResponse)
+                        .collect(Collectors.toList()) :
+                new ArrayList<>();
+
+        List<FileResponse> files = task.getFiles() != null ?
+                task.getFiles().stream()
+                        .map(fileService::mapToFileResponse)
+                        .collect(Collectors.toList()) :
+                new ArrayList<>();
+
+        List<Long> dependsOnTaskIds = task.getDependsOn() != null ?
+                task.getDependsOn().stream()
+                        .map(Task::getId)
+                        .collect(Collectors.toList()) :
+                new ArrayList<>();
 
         return TaskResponse.builder()
                 .id(task.getId())
                 .name(task.getName())
                 .description(task.getDescription())
+                .info(task.getInfo())
+                .responsiblePersons(responsiblePersons)
                 .startDate(task.getStartDate())
                 .endDate(task.getEndDate())
-                .info(task.getInfo())
-                .participantName(participantName)
                 .isPriority(task.isPriority())
                 .executionRequested(task.isExecutionRequested())
-                .executionConfirmed(task.isExecuted())
+                .dependsOnTaskIds(dependsOnTaskIds)
+                .requirements(requirements)
                 .build();
     }
 }

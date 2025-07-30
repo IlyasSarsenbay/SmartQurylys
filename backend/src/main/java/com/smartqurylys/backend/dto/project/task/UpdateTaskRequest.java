@@ -3,6 +3,7 @@ package com.smartqurylys.backend.dto.project.task;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class UpdateTaskRequest {
@@ -11,5 +12,5 @@ public class UpdateTaskRequest {
     private String description;
     private LocalDate startDate;
     private LocalDate endDate;
-    private Long participantId;
+    private List<Long> responsiblePersonIds;
 }

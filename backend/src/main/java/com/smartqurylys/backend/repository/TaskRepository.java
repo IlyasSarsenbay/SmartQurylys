@@ -4,6 +4,8 @@ import com.smartqurylys.backend.entity.Participant;
 import com.smartqurylys.backend.entity.Stage;
 import com.smartqurylys.backend.entity.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -14,6 +16,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     boolean existsById(Long id);
 
 
-    List<Task> findByResponsiblePerson(Participant participant);
-
+    @Query("SELECT t FROM Task t JOIN t.responsiblePersons p WHERE p = :participant")
+    List<Task> findByResponsiblePersonsContains(@Param("participant") Participant participant);
 }
