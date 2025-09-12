@@ -1,2 +1,46 @@
 
  
+.app-header {
+  background-color: var(--color-card-background); 
+  padding: 0.5rem 1.5rem; 
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-primary-dark);
+}
+
+.app-header .logo-section {
+  display: flex;
+  align-items: baseline; 
+  gap: 0.25rem; 
+}
+
+.app-header .logo-sq {
+  font-size: 2.2rem; 
+  font-weight: 800; 
+  color: var(--color-primary-dark);
+  line-height: 1;
+}
+
+.app-header .logo-smartqurylys {
+  font-size: 0.8rem; 
+  font-weight: 500;
+  color: #6B7280; 
+  line-height: 1;
+  margin-left: 0.2rem; 
+}
+
+
+.header-bottom-line {
+  height: 2px;
+  background-color: #E0E0E0;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.5rem 1rem;
+  }
+}

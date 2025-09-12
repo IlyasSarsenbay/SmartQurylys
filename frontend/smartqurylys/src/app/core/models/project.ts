@@ -1,5 +1,5 @@
 import { ProjectStatus } from "../enums/project-status.enum"; 
-
+import { ScheduleResponse } from "./schedule";
 
 export interface ProjectResponse {
   id: number;
@@ -11,4 +11,6 @@ export interface ProjectResponse {
   status: ProjectStatus; 
   cityName: string;
   ownerIinBin: string;
+  ownerName: string;
+  schedule: ScheduleResponse;
 }

@@ -13,6 +13,6 @@ public class StageResponse {
     private LocalDate startDate;
     private LocalDate endDate;
     private String contractors;
-    private String resources;
+//    private String resources;
     private StageStatus status;
 }

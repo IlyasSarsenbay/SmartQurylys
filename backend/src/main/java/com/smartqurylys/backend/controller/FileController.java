@@ -1,9 +1,9 @@
 package com.smartqurylys.backend.controller;
 
 import com.smartqurylys.backend.dto.project.FileResponse;
+import com.smartqurylys.backend.entity.File;
 import com.smartqurylys.backend.service.FileService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +24,25 @@ public class FileController {
     }
 
     @GetMapping("/download/{id}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable Long id) throws IOException {
-        Resource file = fileService.loadAsResource(id);
+    public ResponseEntity<byte[]> downloadFile(@PathVariable Long id) throws IOException {
+        // Получаем объект File из базы данных, чтобы иметь доступ к полному пути
+        File fileEntity = fileService.getFileEntity(id);
+
+        // Читаем весь файл в массив байтов
+        byte[] fileBytes = fileService.loadFileAsByteArray(fileEntity);
+
+        // Определяем MIME-тип
+        String contentType = fileService.getContentTypeByFilename(fileEntity.getFilepath());
+        if (contentType == null) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+
+        // Возвращаем файл в виде массива байтов
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(file);
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileEntity.getName() + "\"")
+                .contentLength(fileBytes.length) // Устанавливаем размер файла
+                .body(fileBytes);
     }
 
     @DeleteMapping("/{id}")

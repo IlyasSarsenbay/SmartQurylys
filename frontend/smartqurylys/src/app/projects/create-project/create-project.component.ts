@@ -68,7 +68,7 @@ export class CreateProjectComponent implements OnInit {
           this.successMessage = `Проект "${project.name}" успешно создан!`;
           this.createProjectForm.reset();
           setTimeout(() => {
-            this.router.navigate(['/projects', project.id]);
+            this.router.navigate(['/project', project.id]);
           }, 1500); 
         },
         error: (err: HttpErrorResponse) => {

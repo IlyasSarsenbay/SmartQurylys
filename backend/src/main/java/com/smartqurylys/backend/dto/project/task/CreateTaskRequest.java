@@ -12,7 +12,6 @@ public class CreateTaskRequest {
     @NotBlank
     private String name;
 
-    @NotBlank
     private String info;
 
     @NotBlank

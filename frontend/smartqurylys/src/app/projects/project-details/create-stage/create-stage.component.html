@@ -1,0 +1,50 @@
+<div class="main-content-area">
+  <div class="content-header">
+    <h2 class="content-title">Создание нового этапа</h2>
+  </div>
+
+  <form [formGroup]="stageForm" (ngSubmit)="onSubmit()" class="stage-form">
+
+    <div class="form-group">
+      <label for="name">Название этапа:</label>
+      <input id="name" type="text" formControlName="name" class="form-control" placeholder="Введите название этапа">
+      <div *ngIf="stageForm.get('name')?.invalid && stageForm.get('name')?.touched" class="error-message">
+        Название обязательно.
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="description">Описание:</label>
+      <textarea id="description" formControlName="description" class="form-control" placeholder="Введите описание этапа"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="startDate">Дата начала:</label>
+      <input id="startDate" type="date" formControlName="startDate" class="form-control">
+      <div *ngIf="stageForm.get('startDate')?.invalid && stageForm.get('startDate')?.touched" class="error-message">
+        Дата начала обязательна.
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="endDate">Дата окончания:</label>
+      <input id="endDate" type="date" formControlName="endDate" class="form-control">
+      <div *ngIf="stageForm.get('endDate')?.invalid && stageForm.get('endDate')?.touched" class="error-message">
+        Дата окончания обязательна.
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" [disabled]="stageForm.invalid" class="btn btn-primary">Сохранить</button>
+      <button type="button" (click)="onCancel()" class="btn btn-secondary">Отмена</button>
+    </div>
+  </form>
+
+  <div *ngIf="errorMessage" class="alert alert-danger mt-3">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success mt-3">
+    {{ successMessage }}
+  </div>
+</div>

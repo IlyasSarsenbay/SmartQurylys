@@ -1,4 +1,3 @@
-// src/app/shared/models/schedule.model.ts
 import { FileResponse } from "./file";
 import { StageResponse } from "./stage";
 export interface ScheduleResponse {

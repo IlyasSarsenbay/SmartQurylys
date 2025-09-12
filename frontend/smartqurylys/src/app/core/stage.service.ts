@@ -31,4 +31,13 @@ export class StageService {
   deleteStage(scheduleId: number, stageId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${scheduleId}/stages/${stageId}`);
   }
+
+  completeStage(scheduleId: number, stageId: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${scheduleId}/stages/${stageId}/complete`, {});
+  }
+
+  // Метод для возврата этапа в активный статус
+  returnStageToActive(scheduleId: number, stageId: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${scheduleId}/stages/${stageId}/return-to-active`, {});
+  }
 }

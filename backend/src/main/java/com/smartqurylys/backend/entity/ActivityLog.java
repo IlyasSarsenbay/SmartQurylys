@@ -47,8 +47,6 @@ public class ActivityLog {
     @Column(nullable = false)
     private String entityName;
 
-
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;

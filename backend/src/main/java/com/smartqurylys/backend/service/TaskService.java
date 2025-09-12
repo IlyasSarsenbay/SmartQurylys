@@ -5,6 +5,8 @@ import com.smartqurylys.backend.dto.project.participant.ParticipantResponse;
 import com.smartqurylys.backend.dto.project.task.*;
 import com.smartqurylys.backend.entity.*;
 import com.smartqurylys.backend.repository.*;
+import com.smartqurylys.backend.shared.enums.ActivityActionType;
+import com.smartqurylys.backend.shared.enums.ActivityEntityType;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,6 +28,7 @@ public class TaskService {
     private final ParticipantRepository participantRepository;
     private final RequirementRepository requirementRepository;
     private final FileService fileService;
+    private final ActivityLogService activityLogService;
     private final UserRepository userRepository;
 
 
@@ -43,10 +46,13 @@ public class TaskService {
 
 
     private ParticipantResponse mapToParticipantResponse(Participant participant) {
-        String fullName = (participant.getUser() != null) ? participant.getUser().getFullName() : "Неизвестный участник";
         return ParticipantResponse.builder()
                 .id(participant.getId())
-                .fullName(fullName)
+                .fullName(participant.getUser().getFullName())
+                .iinBin(participant.getUser().getIinBin())
+                .role(participant.getRole())
+                .canUploadDocuments(participant.isCanUploadDocuments())
+                .canSendNotifications(participant.isCanSendNotifications())
                 .build();
     }
 
@@ -57,12 +63,25 @@ public class TaskService {
 
         Set<Participant> responsiblePersons = new HashSet<>();
         if (request.getResponsiblePersonIds() != null && !request.getResponsiblePersonIds().isEmpty()) {
-            responsiblePersons = new HashSet<>(participantRepository.findAllById(request.getResponsiblePersonIds()));
+            System.out.println("[DEBUG] Received responsiblePersonIds: " + request.getResponsiblePersonIds());
+
+            List<Participant> foundParticipants = participantRepository.findAllById(request.getResponsiblePersonIds());
+            System.out.println("[DEBUG] Found participants in DB: " + foundParticipants.stream()
+                    .map(p -> p.getId() + ":" + (p.getUser() != null ? p.getUser().getFullName() : "null"))
+                    .collect(Collectors.toList()));
+
+            responsiblePersons = new HashSet<>(foundParticipants);
+            System.out.println("[DEBUG] Responsible persons set size: " + responsiblePersons.size() +
+                    ", requested size: " + request.getResponsiblePersonIds().size());
+
             if (responsiblePersons.size() != request.getResponsiblePersonIds().size()) {
+                System.out.println("[ERROR] Mismatch in responsible persons count. Expected: " +
+                        request.getResponsiblePersonIds().size() + ", found: " + responsiblePersons.size());
                 throw new IllegalArgumentException("Один или несколько ответственных лиц не найдены.");
             }
+        } else {
+            System.out.println("[DEBUG] No responsiblePersonIds provided in request");
         }
-
         Task task = Task.builder()
                 .stage(stage)
                 .name(request.getName())
@@ -127,7 +146,7 @@ public class TaskService {
         Stage stage = stageRepository.findById(stageId)
                 .orElseThrow(() -> new EntityNotFoundException("Этап не найден с ID: " + stageId));
 
-        return taskRepository.findByStage(stage).stream()
+        return taskRepository.findByStageWithFullDetails(stage).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -184,17 +203,55 @@ public class TaskService {
                 }
             }
         }
+        activityLogService.recordActivity(
+                task.getStage().getSchedule().getProject().getId(),
+                ActivityActionType.REQUEST_ACCEPTANCE,
+                ActivityEntityType.PROJECT,
+                task.getId(),
+                task.getName()
+        );
 
         task.setExecutionRequested(true);
         taskRepository.save(task);
     }
 
     @Transactional
-    public void confirmExecution(Long taskId) {
+    public TaskResponse confirmExecution(Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
+        task.setExecuted(true);
         taskRepository.save(task);
+
+        activityLogService.recordActivity(
+                task.getStage().getSchedule().getProject().getId(),
+                ActivityActionType.ACCEPTED_ACCEPTANCE,
+                ActivityEntityType.PROJECT,
+                task.getId(),
+                task.getName()
+        );
+
+        return mapToResponse(task);
     }
+
+    @Transactional
+    public TaskResponse declineExecution(Long taskId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
+        task.setExecuted(false);
+        task.setExecutionRequested(false);
+        taskRepository.save(task);
+        System.out.println("project id: " + task.getStage().getSchedule().getId());
+        activityLogService.recordActivity(
+                task.getStage().getSchedule().getProject().getId(),
+                ActivityActionType.REJECTED_ACCEPTANCE,
+                ActivityEntityType.PROJECT,
+                task.getId(),
+                task.getName()
+        );
+
+        return mapToResponse(task);
+    }
+
 
     @Transactional
     public FileResponse addFileToTask(Long taskId, MultipartFile file) throws IOException {
@@ -337,12 +394,16 @@ public class TaskService {
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
     }
 
+
     private TaskResponse mapToResponse(Task task) {
+
         List<ParticipantResponse> responsiblePersons = task.getResponsiblePersons() != null ?
                 task.getResponsiblePersons().stream()
                         .map(this::mapToParticipantResponse)
                         .collect(Collectors.toList()) :
                 new ArrayList<>();
+
+
 
         List<RequirementResponse> requirements = task.getRequirements() != null ?
                 task.getRequirements().stream()
@@ -353,7 +414,7 @@ public class TaskService {
         List<FileResponse> files = task.getFiles() != null ?
                 task.getFiles().stream()
                         .map(fileService::mapToFileResponse)
-                        .collect(Collectors.toList()) :
+                        .toList() :
                 new ArrayList<>();
 
         List<Long> dependsOnTaskIds = task.getDependsOn() != null ?
@@ -372,6 +433,7 @@ public class TaskService {
                 .endDate(task.getEndDate())
                 .isPriority(task.isPriority())
                 .executionRequested(task.isExecutionRequested())
+                .executionConfirmed(task.isExecuted())
                 .dependsOnTaskIds(dependsOnTaskIds)
                 .requirements(requirements)
                 .build();

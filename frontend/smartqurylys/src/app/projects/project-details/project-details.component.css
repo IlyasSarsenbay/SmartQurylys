@@ -571,6 +571,44 @@
   max-width: 550px; /* Увеличена максимальная ширина для лучшего размещения полей */
   /* Убедитесь, что здесь нет фиксированной ширины, которая может конфликтовать */
 }
+.project-page-button-container {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 2rem;
+  margin-top: 1rem;
+}
+
+.project-page-button {
+  padding: 0.6rem 1.2rem;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.project-page-button:hover {
+  background-color: #388E3C;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+  .project-page-button-container {
+    padding: 0 1rem;
+    justify-content: center;
+  }
+  .project-page-button {
+    width: 100%;
+    padding: 0.75rem;
+  }
+}
 
 /* Медиа-запросы для адаптивности */
 @media (max-width: 768px) {

@@ -1,0 +1,97 @@
+<div class="main-content-area">
+  <div class="content-header">
+    <h2 class="content-title">Этапы проекта</h2>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+
+  <div class="stage-container">
+    
+    <ng-container *ngIf="!showCreateOrEditStageForm">
+      <div class="add-stage-bar">
+        <button class="add-stage-button" (click)="onCreateStage()">Добавить этап</button>
+      </div>
+
+      <div *ngIf="isLoading" class="info-message">
+        <p>Загрузка этапов...</p>
+      </div>
+
+      <ng-container *ngIf="!isLoading && stages.length > 0">
+        <div class="stage-block" *ngFor="let stage of stages">
+          <div class="stage-header">
+            <h3 (click)="openTasksModal(stage)">{{ stage.name }}</h3>
+            <div class="task-count">
+              КОЛИЧЕСТВО РАБОТ: {{ stage.tasks.length || 0 }}
+            </div>
+          </div>
+          <div class="stage-details" (click)="openTasksModal(stage)">
+            <p>Начало этапа: {{ stage.startDate | date: 'dd.MM.yyyy' }}</p>
+            <p>Конец этапа: {{ stage.endDate | date: 'dd.MM.yyyy' }}</p>
+          </div>
+          <div class="stage-actions">
+            <button class="btn btn-sm btn-outline-primary" (click)="onEditStage(stage)">Редактировать</button>
+            <button class="btn btn-sm btn-outline-danger" (click)="deleteStage(stage.id!)">Удалить</button>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="!isLoading && stages.length === 0">
+        <div class="info-message">
+          <p>Для этого проекта пока нет этапов. Нажмите "Добавить этап", чтобы создать его.</p>
+        </div>
+      </ng-container>
+    </ng-container>
+    
+    <ng-container *ngIf="showCreateOrEditStageForm">
+      <div class="content-header">
+        <h2 class="content-title">{{ editingStageId ? 'Редактирование этапа' : 'Создание нового этапа' }}</h2>
+      </div>
+
+      <form [formGroup]="stageForm" (ngSubmit)="onSaveStage()" class="stage-form">
+        <div class="form-group">
+          <label for="name">Название этапа:</label>
+          <input id="name" type="text" formControlName="name" class="form-control" placeholder="Введите название этапа">
+          <div *ngIf="stageForm.get('name')?.invalid && stageForm.get('name')?.touched" class="error-message">
+            Название обязательно.
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="description">Описание:</label>
+          <textarea id="description" formControlName="description" class="form-control" placeholder="Введите описание этапа"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="startDate">Дата начала:</label>
+          <input id="startDate" type="date" formControlName="startDate" class="form-control">
+          <div *ngIf="stageForm.get('startDate')?.invalid && stageForm.get('startDate')?.touched" class="error-message">
+            Дата начала обязательна.
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="endDate">Дата окончания:</label>
+          <input id="endDate" type="date" formControlName="endDate" class="form-control">
+          <div *ngIf="stageForm.get('endDate')?.invalid && stageForm.get('endDate')?.touched" class="error-message">
+            Дата окончания обязательна.
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" [disabled]="stageForm.invalid || isCreatingOrUpdatingStage" class="btn btn-primary">
+            {{ isCreatingOrUpdatingStage ? 'Сохранение...' : 'Сохранить' }}
+          </button>
+          <button type="button" (click)="onCancelForm()" class="btn btn-secondary">Отмена</button>
+        </div>
+      </form>
+    </ng-container>
+  </div>
+</div>
+
+<!-- Модальное окно для отображения задач этапа -->
+<div *ngIf="showTasksModal" class="modal-overlay">
+  <div class="modal-content large-modal-content">
+    <app-tasks-list
+      [stageId]="currentStageForTasks?.id!"
+      [stageName]="currentStageForTasks?.name ?? ''"
+      [projectId]="projectId"        (close)="closeTasksModal()"
+    ></app-tasks-list>
+  </div>
+</div>

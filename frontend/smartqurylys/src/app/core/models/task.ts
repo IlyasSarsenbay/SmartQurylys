@@ -1,28 +1,21 @@
 import { ParticipantResponse } from "../models/participant";
 import { FileResponse } from "../models/file";
-export interface TaskDependency {
-  id: number;
-  name: string;
-}
-
+import { RequirementResponse, CreateRequirementRequest, UpdateRequirementRequest} from "../models/requirement";
 export interface TaskResponse {
   id: number;
-  stageId: number;
+  stageId: number; 
   name: string;
-  responsiblePerson?: ParticipantResponse; // Объект участника
-  startDate?: string; // ISO date string
-  endDate?: string;   // ISO date string
-  info?: string;
   description?: string;
+  info?: string;
+  responsiblePersons: ParticipantResponse[]; 
+  startDate?: string;
+  endDate?: string;
   isPriority: boolean;
   executionRequested: boolean;
-  executed: boolean;
-  dependsOn?: TaskResponse[]; 
+  executionConfirmed: boolean; 
+  dependsOnTaskIds?: number[];
   files?: FileResponse[];
-  
-
-  responsiblePersonId?: number | null; 
-  dependsOnTaskIds?: number[]; 
+  requirements?: RequirementResponse[];
 }
 
 export interface CreateTaskRequest {
@@ -30,12 +23,13 @@ export interface CreateTaskRequest {
   description?: string;
   startDate: string;
   endDate: string;
-  responsiblePersonId?: number | null; 
+  responsiblePersonIds?: number[]; 
   info?: string;
   isPriority?: boolean;
   executionRequested?: boolean;
   executed?: boolean;
-  dependsOnTaskIds?: number[]; 
+  dependsOnTaskIds?: number[];
+  requirements: CreateRequirementRequest[];
 }
 
 export interface UpdateTaskRequest {
@@ -43,10 +37,11 @@ export interface UpdateTaskRequest {
   description?: string;
   startDate?: string;
   endDate?: string;
-  responsiblePersonId?: number | null; 
+  responsiblePersonIds?: number[]; 
   info?: string;
   isPriority?: boolean;
   executionRequested?: boolean;
-  executed?: boolean;
-  dependsOnTaskIds?: number[]; 
+  executed?: boolean; 
+  dependsOnTaskIds?: number[];
+  requirements?: UpdateRequirementRequest[];
 }

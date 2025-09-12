@@ -95,13 +95,23 @@ public class TaskController {
     }
 
     @PostMapping("/{taskId}/confirm-execution")
-    public ResponseEntity<Void> confirmExecution(
+    public ResponseEntity<TaskResponse> confirmExecution(
             @PathVariable Long stageId,
             @PathVariable Long taskId
     ) {
-            taskService.confirmExecution(taskId);
-            return ResponseEntity.ok().build();
+        TaskResponse response = taskService.confirmExecution(taskId);
+            return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/{taskId}/decline-execution")
+    public ResponseEntity<TaskResponse> declineExecution(
+            @PathVariable Long stageId,
+            @PathVariable Long taskId
+    ) {
+        TaskResponse response = taskService.declineExecution(taskId);
+        return ResponseEntity.ok(response);
+    }
+
 
     @PostMapping("/{taskId}/files")
     public ResponseEntity<FileResponse> addFileToTask(

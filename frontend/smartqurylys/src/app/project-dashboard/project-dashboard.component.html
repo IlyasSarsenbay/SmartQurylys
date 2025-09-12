@@ -1,0 +1,364 @@
+<div class="flex flex-col md:flex-row h-screen bg-gray-100 font-sans">
+    <div class="w-full md:w-64 bg-white shadow-lg p-6 flex flex-col justify-between">
+        <div>
+            <nav class="space-y-2">
+                <button
+                    *ngFor="let item of navItems"
+                    (click)="onNavItemClick(item)"
+                    [ngClass]="{'bg-gray-200 text-gray-900 font-medium': item.active}"
+                    [routerLink]="item.view === 'project' ? ['/project', projectId] : null"
+                    [routerLinkActive]="item.view === 'project' ? 'bg-gray-200 text-gray-900 font-medium' : ''"
+                    class="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-200 transition-colors w-full text-left">
+                    <svg *ngIf="item.icon === 'list'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <svg *ngIf="item.icon === 'document'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 000-2H7zm3 0a1 1 0 000 2h.01a1 1 0 000-2H10zm3 0a1 1 0 000 2h.01a1 1 0 000-2H13zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H10z" clip-rule="evenodd" />
+                    </svg>
+                    <svg *ngIf="item.icon === 'notification'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                    </svg>
+                    <svg *ngIf="item.icon === 'users'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 15.094A5.972 5.972 0 004 18v3H1v-3a5.972 5.972 0 013.75-2.906z" />
+                    </svg>
+                    <svg *ngIf="item.icon === 'chat'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.492 12.11 2 10.536 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
+                    </svg>
+                    <svg *ngIf="item.icon === 'project'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M2 7a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V7zm2-2.5a.5.5 0 00-.5.5v12a.5.5 0 00.5.5h12a.5.5 0 00.5-.5V7a2 2 0 00-2-2h-2.586a1 1 0 01-.707-.293l-.867-.867A2 2 0 008.914 3H4a2 2 0 00-2 2v2a.5.5 0 001 0V7z" clip-rule="evenodd" />
+                    </svg>
+                    <span>{{ item.label }}</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header *ngIf="project" class="bg-white shadow-md p-4 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-gray-900">ЭТАПЫ ПРОЕКТА</h1>
+            <div class="flex items-center space-x-4">
+                <div class="flex flex-col">
+                    <span class="text-sm text-gray-500">До конца проекта</span>
+                    <span class="text-sm text-gray-900 font-medium">{{ project.endDate | date:'dd.MM.yyyy' }}</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-x-hidden bg-gray-100 p-6 flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-6">
+            <!-- <div class="w-full md:w-1/2 bg-white rounded-lg shadow-md p-6"> -->
+                <div class="activity-log-container">
+                     <div class="activity-log">
+                <h2 class="text-xl font-bold mb-4 text-blue-800">ПОСЛЕДНИЕ ДЕЙСТВИЯ</h2>
+                <div class="activity-log-content">
+                <div class="space-y-4">
+                    <div *ngFor="let log of activityLog">
+                        <h3 class="text-sm font-semibold text-gray-500 mb-2">{{ log.timestamp | date:'d MMMM y' }}</h3>
+                        <!-- <div class="space-y-2"> -->
+                            <div class="p-4 bg-blue-100 rounded-lg border-l-4 border-blue-500">
+                                <div class="flex justify-between items-center text-sm text-gray-700 mb-1">
+                                    <span class="font-medium px-2 py-1 rounded-lg"
+                                        [ngClass]="log.actorFullName === 'Подрядчик' ? 'bg-red-400 text-white' : 'bg-blue-400 text-white'">
+                                        {{ log.actorFullName }}
+                                    </span>
+                                    <span class="text-xs text-gray-500">{{ log.timestamp | date:'HH:mm' }}</span>
+                                </div>
+                                <p class="text-gray-800">
+                                    <span class="font-medium">{{ getActivityActionText(log.actionType) }}</span>
+                                    <ng-container *ngIf="log.entityType">
+                                        {{ getActivityEntityText(log.entityType) }}
+                                    </ng-container>
+                                    <ng-container *ngIf="log.entityName">
+                                        <span class="text-blue-600 font-semibold">{{ log.entityName }}</span>
+                                    </ng-container>
+                                </p>
+                            </div>
+                        <!-- </div> -->
+                    </div>
+                </div>
+                </div>
+                </div>
+                </div>
+            <!-- </div> -->
+
+            <!-- <div class="w-full md:w-1/2 flex flex-col items-center justify-center space-y-8"> -->
+              <div class="stages-container">
+    <ng-container *ngFor="let stage of stages; let i = index">
+        <div class="stage-item" [class.active-stage]="stage.status === stageStatus.ACTIVE || stage.status === stageStatus.COMPLETED">
+            <!-- Соединительная линия (кроме первого этапа) -->
+            <div *ngIf="i > 0" class="stage-connector"></div>
+            
+            <div [ngSwitch]="stage.status" class="relative">
+                <!-- Активный этап -->
+                <div *ngSwitchCase="stageStatus.ACTIVE" class="stage-circle stage-active">
+                    <div class="stage-content">
+                        <span class="stage-name">{{ stage.name }}</span>
+                        <span class="stage-description">{{ stage.description }}</span>
+                    </div>
+                </div>
+
+                <!-- Завершенный этап -->
+                <div *ngSwitchCase="stageStatus.COMPLETED" class="stage-circle stage-completed">
+                    <div class="stage-content">
+                        <span class="stage-name">{{ stage.name }}</span>
+                        <span class="stage-description">{{ stage.description }}</span>
+                    </div>
+                </div>
+
+                <!-- Неактивный этап -->
+                <div *ngSwitchDefault class="stage-circle stage-inactive">
+                    <div class="stage-content">
+                        <span class="stage-name">{{ stage.name }}</span>
+                        <span class="stage-description">{{ stage.description }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Кнопки управления для активного этапа -->
+            <div *ngIf="stage.status === stageStatus.ACTIVE" class="button-grid">
+                <button (click)="handleStageAction('showMap', stage)" 
+                        class="stage-button bg-blue-700 hover:bg-blue-800">
+                    Карта этапа
+                </button>
+                <button (click)="handleStageAction('showTimeline', stage)"
+                        class="stage-button bg-blue-700 hover:bg-blue-800">
+                    Сроки
+                </button>
+                 <button *ngIf="isOwner" (click)="handleStageAction('editStage', stage)"
+                        class="stage-button bg-blue-700 hover:bg-blue-800">
+                   Редактировать
+                </button>
+                <button *ngIf="isOwner" (click)="handleStageAction('completeStage', stage)"
+                        class="stage-button bg-green-500 hover:bg-green-600 col-span-2">
+                    Завершить этап
+                </button>
+            </div>
+
+            <!-- Кнопки управления для завершенного этапа -->
+            <div *ngIf="stage.status === stageStatus.COMPLETED" class="button-grid">
+                <button (click)="handleStageAction('showMap', stage)"
+                        class="stage-button bg-blue-700 hover:bg-blue-800">
+                    Карта этапа
+                </button>
+                <button (click)="handleStageAction('returnStageToActive', stage)"
+                        class="stage-button bg-blue-500 hover:bg-blue-600">
+                    Вернуть в актив
+                </button>
+            </div>
+        </div>
+    </ng-container>
+</div>
+        </main>
+    </div>
+
+    <app-modal [isOpen]="isTimelineModalOpen" title="СРОКИ" (closeEvent)="closeModal()">
+        <div *ngIf="selectedStageForModal" class="py-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col items-center justify-center">
+                    <svg class="h-32 w-32" viewBox="0 0 100 100" >
+                        <circle cx="50" cy="50" r="40" stroke="#E5E7EB" stroke-width="8" fill="none"></circle>
+                        <circle cx="50" cy="50" r="40" stroke="#22C55E" stroke-width="8" fill="none"
+                                transform="rotate(-90 50 50)"
+                                [attr.stroke-dasharray]="getStrokeDasharray(selectedStageForModal)"
+                                [attr.stroke-dashoffset]="getStrokeDashoffset(selectedStageForModal)"
+                                stroke-linecap="round"></circle>
+                        <text x="50" y="55" font-family="Arial" font-size="14" font-weight="bold" fill="#16A34A" text-anchor="middle">
+                            {{ getProgressPercentage(selectedStageForModal) }}%
+                        </text>
+                    </svg>
+                    <p class="mt-2 text-2xl font-bold text-green-600">
+                        {{ getProgressPercentage(selectedStageForModal) }}%
+                    </p>
+                </div>
+                <div class="flex flex-col justify-center space-y-4">
+                    <div>
+                        <p class="text-lg font-medium text-gray-700">Дата начала</p>
+                        <p class="text-lg font-bold text-gray-900">{{ selectedStageForModal.startDate | date:'dd.MM.yyyy' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-lg font-medium text-gray-700">Завершение</p>
+                        <p class="text-lg font-bold text-gray-900">{{ selectedStageForModal.endDate | date:'dd.MM.yyyy' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center my-6">
+                <button (click)="openEditTimelineModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Изменить сроки
+                </button>
+            </div>
+
+            <div class="bg-gray-200 rounded-lg p-4 mt-6">
+                <h4 class="text-xl font-bold text-gray-900 mb-2">ЗАДЕРЖКИ</h4>
+                <div class="p-3 bg-red-100 rounded-lg border-l-4 border-red-500">
+                    <div class="flex items-center space-x-2">
+                        <span class="font-medium px-2 py-1 rounded-lg bg-red-400 text-white text-sm">Заказчик</span>
+                        <p class="text-sm text-gray-800">не принимает исполнение: <span class="font-bold text-red-500">1 день</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </app-modal>
+
+    <app-modal [isOpen]="isEditTimelineModalOpen" title="ИЗМЕНЕНИЕ СРОКОВ" (closeEvent)="closeEditTimelineModal()">
+        <div *ngIf="selectedStageForModal" class="p-4">
+            <p class="text-lg font-bold text-gray-900 mb-4">{{ selectedStageForModal.name }}</p>
+            <div class="space-y-4">
+                <div>
+                    <label for="startDate" class="block text-sm font-medium text-gray-700">Дата начала</label>
+                    <input type="date" id="startDate" [(ngModel)]="editableStartDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="endDate" class="block text-sm font-medium text-gray-700">Дата завершения</label>
+                    <input type="date" id="endDate" [(ngModel)]="editableEndDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                </div>
+            </div>
+            <div class="mt-6 text-right">
+                <button (click)="saveTimelineChanges()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors">
+                    Сохранить
+                </button>
+            </div>
+        </div>
+    </app-modal>
+
+    <app-modal [isOpen]="isTimelineModalOpen" title="РЕДАКТИРОВАНИЕ ЭТАПА" (closeEvent)="closeModal()">
+    </app-modal>
+
+    <app-modal [isOpen]="isStageMapModalOpen" title="КАРТА ЭТАПА" (closeEvent)="closeModal()">
+        <div *ngIf="selectedStageForModal" class="p-4 w-full max-w-5xl mx-auto">
+            <div class="mb-6">
+                <h4 class="text-lg font-semibold text-gray-700 mb-2">Задачи:</h4>
+                <div class="flex space-x-4 overflow-x-auto p-2 bg-gray-200 rounded-lg shadow-inner">
+                    <div *ngFor="let task of tasks"
+                        class="p-3 rounded-lg border flex-shrink-0 cursor-pointer transition-colors"
+                        [ngClass]="{'bg-blue-600 text-white border-blue-600': activeTask?.id === task.id, 'bg-white border-gray-300 text-gray-800 hover:bg-gray-100': activeTask?.id !== task.id}"
+                        (click)="selectTask(task)">
+                        <p class="font-medium whitespace-nowrap">{{ task.name }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="activeTask" class="bg-white p-6 rounded-lg shadow-lg">
+                <h4 class="text-2xl font-bold text-gray-900 mb-4">{{ activeTask.name }}</h4>
+                <p class="text-gray-700 mb-4">{{ activeTask.description }}</p>
+
+                <div class="grid md:grid-cols-2 gap-8 mb-6">
+                    <div>
+                        <h5 class="text-lg font-semibold text-gray-700 mb-2">Ответственное лицо</h5>
+                        <div class="space-y-2 mb-4">
+                            <div *ngFor="let person of activeTask.responsiblePersons" class="p-3 bg-gray-100 rounded-lg shadow-sm">
+                                <p class="text-sm font-medium text-gray-800">{{ person.fullName }}</p>
+                            </div>
+                        </div>
+                        <h5 class="text-lg font-semibold text-gray-700 mb-2">Сроки</h5>
+                        <div class="space-y-2">
+                            <div class="p-3 bg-gray-100 rounded-lg shadow-sm">
+                                <p class="text-sm text-gray-800">
+                                    <span class="font-medium">Дата начала:</span> {{ activeTask.startDate | date:'dd.MM.yyyy' }}
+                                </p>
+                                <p class="text-sm text-gray-800">
+                                    <span class="font-medium">Дата окончания:</span> {{ activeTask.endDate | date:'dd.MM.yyyy' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div>
+                            <h5 class="text-lg font-semibold text-gray-700 flex items-center justify-between mb-2">
+                                <span>Документы</span>
+                                <label class="cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                    <input type="file" class="hidden" (change)="addFileToTask($event)" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
+                                </label>
+                            </h5>
+                            <div class="space-y-2">
+                                <div *ngFor="let file of files" class="p-3 bg-gray-100 rounded-lg flex items-center justify-between shadow-sm">
+                                    <p class="text-sm text-gray-800">{{ file.name }}</p>
+                                    <button (click)="downloadFile(file)"
+                                            class="text-blue-600 hover:text-blue-800 text-sm">
+                                        Скачать
+                                    </button>
+                                </div>
+                            </div>
+                            <p *ngIf="files.length === 0" class="text-gray-500 text-sm italic">Файлов нет.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-4 mt-6" [ngClass]="{'justify-between': isOwner, 'justify-center': isResponsible}">
+                    <button *ngIf="isResponsible && !activeTask.executionRequested" (click)="requestAcceptance()"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-colors">
+                        Запросить принятие
+                    </button>
+                    <button *ngIf="isResponsible && activeTask.executionRequested"
+                            class="bg-gray-500 text-white font-bold py-2 px-6 rounded-full cursor-not-allowed">
+                        Запрос на принятие отправлен
+                    </button>
+
+                    <ng-container *ngIf="isOwner && activeTask.executionRequested">
+                        <button *ngIf="!activeTask.executionConfirmed" (click)="confirmExecution()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-colors">
+                            Принять исполнение
+                        </button>
+                        <button (click)="rejectExecution()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-colors">
+                            Отклонить
+                        </button>
+                    </ng-container>
+                </div>
+
+                <div class="mt-6">
+                    <h5 class="text-lg font-semibold text-gray-700 flex items-center justify-between mb-2">
+                        <span>Чек-лист</span>
+                        <button (click)="openAddRequirementModal()" class="cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                        </button>
+                    </h5>
+                    <div class="space-y-2">
+                        <div *ngFor="let req of requirements" class="p-3 bg-gray-100 rounded-lg flex justify-between items-center shadow-sm">
+                            <p class="text-sm text-gray-800">{{ req.description }}</p>
+                            <button *ngIf="req.sampleFile" (click)="downloadFile(req.sampleFile)"
+                                    class="text-blue-600 hover:text-blue-800 text-sm">
+                                Скачать файл
+                            </button>
+                        </div>
+                    </div>
+                    <p *ngIf="requirements.length === 0" class="text-gray-500 text-sm italic">Требований нет.</p>
+                </div>
+            </div>
+        </div>
+    </app-modal>
+
+    <app-modal [isOpen]="isAddRequirementModalOpen" title="Добавить требование" (closeEvent)="closeAddRequirementModal()">
+        <div class="p-4">
+            <div class="mb-4">
+                <label for="requirementDescription" class="block text-sm font-medium text-gray-700">Описание требования <span class="text-red-500">*</span></label>
+                <input type="text" id="requirementDescription" [(ngModel)]="newRequirementDescription" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+            </div>
+            <div class="mb-6">
+                <label for="requirementFile" class="block text-sm font-medium text-gray-700">Приложить файл</label>
+                <div class="mt-1 flex items-center space-x-2">
+                    <label class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md shadow-sm transition-colors">
+                        <span>Выберите файл</span>
+                        <input type="file" class="hidden" (change)="handleRequirementFileUpload($event)" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
+                    </label>
+                    <span class="text-gray-500">{{ newRequirementFileName || 'Файл не выбран' }}</span>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-4">
+                <button (click)="closeAddRequirementModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-md transition-colors">
+                    Отмена
+                </button>
+                <button (click)="addRequirement()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md shadow-lg transition-colors">
+                    Добавить
+                </button>
+            </div>
+        </div>
+    </app-modal>
+</div>

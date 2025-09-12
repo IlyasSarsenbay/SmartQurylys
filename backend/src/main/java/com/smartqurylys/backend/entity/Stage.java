@@ -34,7 +34,7 @@ public class Stage {
 
     private String contractors;
 
-    private String resources;
+//    private String resources;
 
     @Enumerated(EnumType.STRING)
     private StageStatus status;

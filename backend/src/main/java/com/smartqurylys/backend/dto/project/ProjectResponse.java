@@ -21,4 +21,6 @@ public class ProjectResponse {
     private String status;
     private String cityName;
     private String ownerIinBin;
+    private String ownerName;
+    private ScheduleResponse schedule;
 }

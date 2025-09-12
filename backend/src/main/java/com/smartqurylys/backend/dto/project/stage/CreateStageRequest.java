@@ -21,12 +21,11 @@ public class CreateStageRequest {
     @NotNull
     private LocalDate endDate;
 
-    @NotBlank
     private String contractors;
 
-    @NotBlank
-    private String resources;
+//    @NotBlank
+//    private String resources;
 
-    @NotNull
-    private StageStatus status;
+//    @NotNull
+//    private StageStatus status;
 }

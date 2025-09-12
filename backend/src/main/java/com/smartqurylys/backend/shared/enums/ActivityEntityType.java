@@ -4,5 +4,4 @@ public enum ActivityEntityType {
     PROJECT,
     STAGE,
     FILE,
-    LICENSE
 }

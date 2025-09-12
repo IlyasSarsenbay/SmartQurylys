@@ -1,6 +1,6 @@
 
 .dashboard-container {
-  flex-grow: 1; 
+  flex-grow: 2; 
   display: flex;
   justify-content: center;
   align-items: center;
@@ -22,8 +22,8 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  width: 250px; 
-  height: 250px; 
+  width: 350px; /* Increased from 250px */
+  height: 350px; /* Increased from 250px */
   cursor: pointer;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   border: 1px solid var(--color-border-light);
@@ -35,14 +35,14 @@
 }
 
 .card-icon {
-  width: 120px; 
-  height: 120px;
-  margin-bottom: 1rem;
+  width: 180px; /* Increased from 120px */
+  height: 180px; /* Increased from 120px */
+  margin-bottom: 1.5rem; /* Slightly increased */
   object-fit: contain; 
 }
 
 .card-title {
-  font-size: 1.25rem; 
+  font-size: 1.5rem; /* Increased from 1.25rem */
   font-weight: 600;
   color: var(--color-primary-dark);
 }
@@ -54,15 +54,16 @@
     padding: 1rem;
   }
   .dashboard-card {
-    width: 200px;
-    height: 200px;
+    width: 280px; /* Increased from 200px */
+    height: 280px; /* Increased from 200px */
     padding: 1.5rem;
   }
   .card-icon {
-    width: 100px;
-    height: 100px;
+    width: 140px; /* Increased from 100px */
+    height: 140px; /* Increased from 100px */
   }
   .card-title {
-    font-size: 1.1rem;
+    font-size: 1.3rem; /* Increased from 1.1rem */
   }
+
 }

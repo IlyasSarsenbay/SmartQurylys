@@ -50,4 +50,14 @@ public class StageController {
         stageService.deleteStage(stageId);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{stageId}/complete")
+    public ResponseEntity<StageResponse> completeStage(@PathVariable Long stageId) {
+        return ResponseEntity.ok(stageService.completeStage(stageId));
+    }
+
+    @PutMapping("/{stageId}/return-to-active")
+    public ResponseEntity<StageResponse> returnStageToActive(@PathVariable Long stageId) {
+        return ResponseEntity.ok(stageService.returnStageToActive(stageId));
+    }
 }

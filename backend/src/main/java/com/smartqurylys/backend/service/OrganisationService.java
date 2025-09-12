@@ -91,6 +91,7 @@ public class OrganisationService {
                 .field(request.getField())
                 .specialization(specializations)
                 .yearsOfExperience(request.getYearsOfExperience())
+                .role("USER")
                 .build();
 
         Organisation savedOrganisation = organisationRepository.save(organisation);

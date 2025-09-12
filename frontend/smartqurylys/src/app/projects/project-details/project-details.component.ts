@@ -13,10 +13,10 @@ import { FileResponse } from '../../core/models/file';
 import { ParticipantResponse } from '../../core/models/participant';
 import { ParticipantService } from '../../core/participant.service';
 import { environment } from '../../../environments/environment';
-import { GprTabComponent } from './gpr-tab/gpr-tab.component';
 import { City } from '../../core/models/city';
 import { CityService } from '../../core/city.service';
-import { ProjectStatus } from "../../core/enums/project-status.enum"; 
+import { ProjectStatus } from "../../core/enums/project-status.enum";
+import { StagesTabComponent } from './stages-tab/stages-tab.component'; 
 
 
 @Component({
@@ -26,7 +26,7 @@ import { ProjectStatus } from "../../core/enums/project-status.enum";
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    GprTabComponent
+    StagesTabComponent // Добавлен в imports
   ],
   templateUrl: './project-details.component.html',
   styleUrls: ['./project-details.component.css']
@@ -48,7 +48,7 @@ export class ProjectDetailsComponent implements OnInit {
   editParticipantErrorMessage: string = '';
   editParticipantSuccessMessage: string = '';
 
-  activeTab: 'info' | 'contract' | 'estimate' | 'gpr' = 'info';
+  activeTab: 'info' | 'contract' | 'estimate' | 'stages' = 'info'; // Обновлен тип activeTab
   showInviteForm: boolean = false;
   showUploadForm: boolean = false;
 
@@ -104,8 +104,8 @@ export class ProjectDetailsComponent implements OnInit {
       description: [''],
       type: ['', Validators.required],
       cityId: ['', Validators.required],
-      status: ['', Validators.required], // <-- Используем ProjectStatus enum
-      startDate: ['', Validators.required], // <-- ДОБАВЛЕНО: Поле даты начала с валидатором
+      status: ['', Validators.required],
+      startDate: ['', Validators.required],
       endDate: ['', Validators.required]
     });
 
@@ -130,21 +130,21 @@ export class ProjectDetailsComponent implements OnInit {
                   name: project.name,
                   description: project.description,
                   type: project.type,
-                  status: project.status, // <-- Заполнение статуса из project
-                  startDate: project.startDate, // <-- Заполнение даты начала из project
+                  status: project.status,
+                  startDate: project.startDate,
                   endDate: project.endDate
                 });
 
                 this.cities$.pipe(take(1)).subscribe(cities => {
-                    const foundCity = cities.find(city => city.name === project.cityName);
-                    if (foundCity) {
-                        this.projectEditForm.patchValue({
-                            cityId: foundCity.id
-                        });
-                    } else {
-                        console.warn(`City ID not found for city name: "${project.cityName}". Please select a city.`);
-                        this.projectEditForm.patchValue({ cityId: null });
-                    }
+                  const foundCity = cities.find(city => city.name === project.cityName);
+                  if (foundCity) {
+                    this.projectEditForm.patchValue({
+                      cityId: foundCity.id
+                    });
+                  } else {
+                    console.warn(`City ID not found for city name: "${project.cityName}". Please select a city.`);
+                    this.projectEditForm.patchValue({ cityId: null });
+                  }
                 });
               }
             }),
@@ -182,7 +182,7 @@ export class ProjectDetailsComponent implements OnInit {
     }
   }
 
-  setActiveTab(tab: 'info' | 'contract' | 'estimate' | 'gpr'): void {
+  setActiveTab(tab: 'info' | 'contract' | 'estimate' | 'stages'): void { // Обновлен тип activeTab
     this.activeTab = tab;
     this.invitationErrorMessage = '';
     this.invitationSuccessMessage = '';
@@ -202,20 +202,20 @@ export class ProjectDetailsComponent implements OnInit {
             name: project.name,
             description: project.description,
             type: project.type,
-            status: project.status, // <-- Заполнение статуса при открытии формы
-            startDate: project.startDate, // <-- Заполнение даты начала при открытии формы
+            status: project.status,
+            startDate: project.startDate,
             endDate: project.endDate
           });
           this.cities$.pipe(take(1)).subscribe(cities => {
-              const foundCity = cities.find(city => city.name === project.cityName);
-              if (foundCity) {
-                  this.projectEditForm.patchValue({
-                      cityId: foundCity.id
-                  });
-              } else {
-                  console.warn(`City ID not found for city name: "${project.cityName}". Please select a city.`);
-                  this.projectEditForm.patchValue({ cityId: null });
-              }
+            const foundCity = cities.find(city => city.name === project.cityName);
+            if (foundCity) {
+              this.projectEditForm.patchValue({
+                cityId: foundCity.id
+              });
+            } else {
+              console.warn(`City ID not found for city name: "${project.cityName}". Please select a city.`);
+              this.projectEditForm.patchValue({ cityId: null });
+            }
           });
         }
       });

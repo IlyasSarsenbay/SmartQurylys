@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { AuthResponse, LoginRequest, RegisterRequest, ForgotPasswordRequest, PasswordResetRequest } from '../core/models/auth';
+import { AuthResponse, LoginRequest, RegisterRequest, ForgotPasswordRequest, PasswordResetRequest, OrganisationRegisterRequest } from '../core/models/auth';
 import { tap } from 'rxjs/operators';
 
 @Injectable({
@@ -10,6 +10,7 @@ import { tap } from 'rxjs/operators';
 })
 export class AuthService {
   private apiUrl = `${environment.apiUrl}/auth`;
+  private orgApiUrl = `${environment.apiUrl}/organisations`;
 
   constructor(private http: HttpClient) { }
 
@@ -20,6 +21,30 @@ export class AuthService {
       })
     );
   }
+
+  registerOrganisation(request: OrganisationRegisterRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.orgApiUrl}/register`, request).pipe(
+      tap(response => {
+        localStorage.setItem('jwt_token', response.token);
+      })
+    );
+  }
+
+  uploadRepresentativeDocuments(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.orgApiUrl}/me/files`, formData);
+  }
+
+  uploadLicense(file: File, licenseCategoryDisplay: string): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (licenseCategoryDisplay) {
+      formData.append('licenseCategoryDisplay', licenseCategoryDisplay);
+    }
+    return this.http.post(`${this.orgApiUrl}/me/licenses`, formData);
+  }
+
 
   login(request: LoginRequest): Observable<string> {
     return this.http.post(`${this.apiUrl}/login`, request, { responseType: 'text' }).pipe(

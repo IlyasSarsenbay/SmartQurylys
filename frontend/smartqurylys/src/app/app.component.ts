@@ -28,7 +28,7 @@ export class AppComponent implements OnInit {
   }
 
   showAppHeader(): boolean {
-    const noHeaderRoutes = ['/', '/home', '/login', '/register', '/forgot-password'];
+    const noHeaderRoutes = ['/', '/home', '/login', '/registerUser', '/forgot-password',  '/register'];
     return !noHeaderRoutes.includes(this.currentRoute);
   }
 

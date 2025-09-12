@@ -17,7 +17,7 @@ public class UpdateStageRequest {
 
     private String contractors;
 
-    private String resources;
+//    private String resources;
 
     private StageStatus status;
 }

@@ -22,6 +22,22 @@ export interface RegisterRequest {
   cityId: number; 
 }
 
+export interface OrganisationRegisterRequest {
+  fullName: string;
+  email: string;
+  password: string;
+  phone: string;
+  iinBin: string;
+  cityId: number;
+  judAddress: string;
+  organization: string;
+  position: string;
+  type: string;
+  field: string;
+  specialization: string[];
+  yearsOfExperience: number;
+}
+
 
 export interface ForgotPasswordRequest {
   contact: string; 

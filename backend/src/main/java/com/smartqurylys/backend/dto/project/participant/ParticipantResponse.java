@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class ParticipantResponse {
     private Long id;
     private String fullName;
+    private String iinBin;
     private String role;
     private boolean canUploadDocuments;
     private boolean canSendNotifications;
