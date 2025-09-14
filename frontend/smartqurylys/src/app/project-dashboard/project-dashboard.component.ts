@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { ActivatedRoute, RouterModule, Router } from '@angular/router'; // Добавили Router
+import { ActivatedRoute, RouterModule, Router } from '@angular/router'; 
 import { ProjectService } from './../core/project.service';
 import { StageService } from './../core/stage.service';
 import { ProjectResponse } from '../core/models/project';
