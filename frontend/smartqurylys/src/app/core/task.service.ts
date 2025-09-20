@@ -25,7 +25,27 @@ export class TaskService {
   createTask(stageId: number, formData: FormData): Observable<TaskResponse> {
     return this.http.post<TaskResponse>(`${this.apiUrl}/${stageId}/tasks`, formData);
   }
+  createTask2(stageId: number, request: CreateTaskRequest): Observable<TaskResponse> {
+    // Конвертируем объект в FormData
+    const formData = new FormData();
+    const taskData = {
+      name: request.name,
+      description: request.description,
+      startDate: request.startDate,
+      endDate: request.endDate,
+      responsiblePersonIds: request.responsiblePersonIds || [],
+      info: request.info,
+      isPriority: request.isPriority || false,
+      executionRequested: request.executionRequested || false,
+      executed: request.executed || false,
+      dependsOnTaskIds: request.dependsOnTaskIds || [],
+      requirements: request.requirements || []
+    };
 
+    formData.append('taskData', new Blob([JSON.stringify(taskData)], { type: 'application/json' }));
+    
+    return this.http.post<TaskResponse>(`${this.apiUrl}/${stageId}/tasks`, formData);
+  }
  getTasksByStage(stageId: number): Observable<TaskResponse[]> {
    return this.http.get<TaskResponse[]>(`${this.apiUrl}/${stageId}/tasks`);
    }
@@ -69,6 +89,11 @@ export class TaskService {
  addDependency(stageId: number, taskId: number, dependencyTaskId: number): Observable<void> {
   return this.http.post<void>(`${this.apiUrl}/${stageId}/tasks/${taskId}/dependencies/${dependencyTaskId}`, {});
  }
+ removeDependency(stageId: number, taskId: number, dependencyTaskId: number): Observable<void> {
+  return this.http.delete<void>(
+    `${this.apiUrl}/${stageId}/tasks/${taskId}/dependencies/${dependencyTaskId}`
+  );
+}
 
  createRequirement(stageId: number, taskId: number, formData: FormData): Observable<RequirementResponse> {
   return this.http.post<RequirementResponse>(`${this.apiUrl}/${stageId}/tasks/${taskId}/requirements`, formData);

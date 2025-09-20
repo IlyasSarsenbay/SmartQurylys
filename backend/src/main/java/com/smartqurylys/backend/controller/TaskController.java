@@ -147,6 +147,21 @@ public class TaskController {
             taskService.addDependency(taskId, dependencyTaskId);
             return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/{taskId}/dependencies/{dependencyTaskId}")
+    public ResponseEntity<Void> removeDependency(
+            @PathVariable Long taskId,
+            @PathVariable Long dependencyTaskId, @PathVariable String stageId) {
+        try {
+            taskService.removeDependency(taskId, dependencyTaskId);
+            return ResponseEntity.noContent().build();
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @PostMapping("/{taskId}/requirements")
     public ResponseEntity<RequirementResponse> createRequirement(
             @PathVariable Long stageId,

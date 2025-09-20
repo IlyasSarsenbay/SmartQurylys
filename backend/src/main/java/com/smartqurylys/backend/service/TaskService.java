@@ -180,7 +180,35 @@ public class TaskService {
         if (!taskRepository.existsById(taskId)) {
             throw new EntityNotFoundException("Задача не найдена с ID: " + taskId);
         }
+        // 1. Удаляем все зависимости, где эта задача является зависимой
+        removeAllDependenciesForTask(taskId);
+
+        // 2. Удаляем все зависимости, где эта задача является основной
+        removeAllDependenciesFromTask(taskId);
+        
         taskRepository.deleteById(taskId);
+    }
+
+    @Transactional
+    public void removeAllDependenciesForTask(Long taskId) {
+        // Удаляем все зависимости, где эта задача является зависимой (другие задачи зависят от этой)
+        List<Task> tasksThatDependOnThis = taskRepository.findTasksThatDependOn(taskId);
+        for (Task dependentTask : tasksThatDependOnThis) {
+            dependentTask.getDependsOn().removeIf(dep -> dep.getId().equals(taskId));
+            taskRepository.save(dependentTask);
+        }
+    }
+
+    @Transactional
+    public void removeAllDependenciesFromTask(Long taskId) {
+        // Удаляем все зависимости этой задачи (задачи, от которых зависит эта задача)
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
+
+        if (task.getDependsOn() != null) {
+            task.getDependsOn().clear();
+            taskRepository.save(task);
+        }
     }
 
     @Transactional
@@ -302,6 +330,26 @@ public class TaskService {
 
         task.getDependsOn().add(dependency);
         taskRepository.save(task);
+    }
+
+    @Transactional
+    public void removeDependency(Long taskId, Long dependencyTaskId) {
+        // Проверяем существование задач
+        if (!taskRepository.existsById(taskId)) {
+            throw new EntityNotFoundException("Задача не найдена с ID: " + taskId);
+        }
+        if (!taskRepository.existsById(dependencyTaskId)) {
+            throw new EntityNotFoundException("Зависимая задача не найдена с ID: " + dependencyTaskId);
+        }
+
+        // Удаляем связь через native query
+        int deletedCount = taskRepository.removeDependencyRelation(taskId, dependencyTaskId);
+
+        if (deletedCount == 0) {
+            throw new IllegalArgumentException("Зависимость не существует между задачами");
+        }
+
+        System.out.println("Удалена " + deletedCount + " зависимость(ей)");
     }
 
     @Transactional

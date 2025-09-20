@@ -224,8 +224,255 @@
         </div>
     </app-modal>
 
-    <app-modal [isOpen]="isTimelineModalOpen" title="РЕДАКТИРОВАНИЕ ЭТАПА" (closeEvent)="closeModal()">
+     <app-modal [isOpen]="isEditStageModalOpen" title="РЕДАКТИРОВАНИЕ ЭТАПА" (closeEvent)="closeEditStageModal()">
+        <div *ngIf="selectedStageForModal" class="p-4 w-full max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h4 class="text-lg font-semibold text-gray-700 mb-4">Редактирование этапа: {{ selectedStageForModal.name }}</h4>
+                
+                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="stageName" class="block text-sm font-medium text-gray-700">Название этапа *</label>
+                        <input type="text" id="stageName" [(ngModel)]="editableStageName" 
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="stageDescription" class="block text-sm font-medium text-gray-700">Описание</label>
+                        <input type="text" id="stageDescription" [(ngModel)]="editableStageDescription"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label for="editStartDate" class="block text-sm font-medium text-gray-700">Дата начала</label>
+                        <input type="date" id="editStartDate" [(ngModel)]="editableStartDate"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="editEndDate" class="block text-sm font-medium text-gray-700">Дата завершения</label>
+                        <input type="date" id="editEndDate" [(ngModel)]="editableEndDate"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4 mb-6">
+                    <button (click)="saveStageChanges()" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition-colors">
+                        Сохранить изменения
+                    </button>
+                    <button (click)="openAddTaskModal()" 
+                            class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-md transition-colors">
+                        Добавить задачу
+                    </button>
+                </div>
+            </div>
+
+            <!-- Список задач этапа -->
+            <div class="mb-6">
+                <h4 class="text-lg font-semibold text-gray-700 mb-4">Задачи этапа</h4>
+                <div class="space-y-3">
+                    <div *ngFor="let task of tasks" 
+                         class="p-4 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-2">
+                            <h5 class="font-medium text-gray-900">{{ task.name }}</h5>
+                            <div class="flex space-x-2">
+                                <button (click)="editTask(task)"
+                                        class="text-blue-600 hover:text-blue-800 text-sm">
+                                    Редактировать
+                                </button>
+                                <button (click)="deleteTask(task.id)"
+                                        class="text-red-600 hover:text-red-800 text-sm">
+                                    Удалить
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-2">{{ task.description }}</p>
+                        <div class="text-xs text-gray-500">
+                            <span>Сроки: {{ task.startDate | date:'dd.MM.yyyy' }} - {{ task.endDate | date:'dd.MM.yyyy' }}</span>
+                        </div>
+                        <div class="mt-2">
+                            <span class="text-xs font-medium px-2 py-1 rounded 
+                                        bg-blue-100 text-blue-800" 
+                                  *ngFor="let person of task.responsiblePersons">
+                                {{ person.fullName }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <p *ngIf="tasks.length === 0" class="text-gray-500 text-sm italic text-center py-4">
+                    Задачи не добавлены
+                </p>
+            </div>
+        </div>
     </app-modal>
+
+    <!-- Модальное окно добавления/редактирования задачи -->
+    <app-modal [isOpen]="isAddTaskModalOpen" 
+           [title]="selectedTaskForEdit ? 'РЕДАКТИРОВАНИЕ ЗАДАЧИ' : 'ДОБАВЛЕНИЕ ЗАДАЧИ'" 
+           (closeEvent)="closeAddTaskModal()">
+    <div class="p-4 w-full max-w-2xl mx-auto">
+        <div class="space-y-4">
+            <div>
+                <label for="taskName" class="block text-sm font-medium text-gray-700">Название задачи *</label>
+                <input type="text" id="taskName" [(ngModel)]="editableTaskName" 
+                       required
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+            </div>
+            
+            <div>
+                <label for="taskDescription" class="block text-sm font-medium text-gray-700">Описание</label>
+                <textarea id="taskDescription" [(ngModel)]="editableTaskDescription" rows="3"
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label for="taskStartDate" class="block text-sm font-medium text-gray-700">Дата начала *</label>
+                    <input type="date" id="taskStartDate" [(ngModel)]="editableTaskStartDate" required
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="taskEndDate" class="block text-sm font-medium text-gray-700">Дата завершения *</label>
+                    <input type="date" id="taskEndDate" [(ngModel)]="editableTaskEndDate" required
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                </div>
+            </div>
+
+            <!-- Блок приоритета -->
+            <div class="pt-4 border-t border-gray-200">
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="taskPriority" [(ngModel)]="editableTaskPriority"
+                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <label for="taskPriority" class="text-sm font-medium text-gray-700">
+                        Высокий приоритет
+                    </label>
+                    <button *ngIf="selectedTaskForEdit && !editableTaskPriority" 
+                            (click)="markAsPriority()"
+                            class="ml-4 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold py-1 px-3 rounded transition-colors">
+                        Сделать приоритетной
+                    </button>
+                </div>
+            </div>
+
+            <!-- Блок зависимостей -->
+            <div class="pt-4 border-t border-gray-200">
+                <h4 class="text-sm font-medium text-gray-700 mb-3">Управление зависимостями</h4>
+                
+                <!-- Текущие зависимости -->
+                <div *ngIf="currentDependencies.length > 0" class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Текущие зависимости:</label>
+                    <div class="space-y-2">
+                        <div *ngFor="let dep of currentDependencies" 
+                             class="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div class="flex-1">
+                                <span class="text-sm font-medium text-blue-800">{{ dep.name }}</span>
+                                <p class="text-xs text-blue-600 mt-1">
+                                    Сроки: {{ dep.startDate | date:'dd.MM.yyyy' }} - {{ dep.endDate | date:'dd.MM.yyyy' }}
+                                </p>
+                            </div>
+                            <button (click)="removeDependency(dep.id)"
+                                    class="ml-3 bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-full transition-colors"
+                                    title="Удалить зависимость">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Добавление новых зависимостей -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Добавить зависимости:</label>
+                    <div class="space-y-2 max-h-48 overflow-y-auto p-1">
+                        <div *ngFor="let task of availableDependencyTasks" 
+                             class="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <input type="checkbox" [id]="'dependency-' + task.id" 
+                                   [checked]="isTaskDependency(task.id)"
+                                   (change)="toggleDependency(task.id, $event)"
+                                   [disabled]="!canAddDependency(task)"
+                                   class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <label [for]="'dependency-' + task.id" 
+                                   class="text-sm text-gray-700 flex-1 cursor-pointer">
+                                <span class="font-medium">{{ task.name }}</span>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    {{ task.startDate | date:'dd.MM.yyyy' }} - {{ task.endDate | date:'dd.MM.yyyy' }}
+                                </p>
+                            </label>
+                            <div class="flex space-x-1">
+                                <span *ngIf="task.isPriority" 
+                                      class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded"
+                                      title="Приоритетная задача">
+                                    Приоритет
+                                </span>
+                                <span *ngIf="!canAddDependency(task)" 
+                                      class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded"
+                                      title="Невозможно добавить зависимость">
+                                    Заблокировано
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div *ngIf="availableDependencyTasks.length === 0" class="text-center py-4">
+                        <p class="text-gray-500 text-sm italic">
+                            Нет доступных задач для добавления зависимостей
+                        </p>
+                    </div>
+
+                    <!-- Предупреждение о циклических зависимостях -->
+                    <div *ngIf="hasCircularDependencyWarning" class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-start space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-red-800">Обнаружена циклическая зависимость!</p>
+                                <p class="text-xs text-red-600 mt-1">Невозможно добавить зависимость, которая создаст цикл.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ответственные лица -->
+            <div class="pt-4 border-t border-gray-200">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Ответственные лица *</label>
+                <div class="space-y-2 max-h-40 overflow-y-auto p-1">
+                    <div *ngFor="let participant of projectParticipants" 
+                         class="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <input type="checkbox" [id]="'participant-' + participant.id" 
+                               [value]="participant.id" 
+                               [checked]="isParticipantSelected(participant.id)"
+                               (change)="toggleParticipantSelection(participant.id, $event)"
+                               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <label [for]="'participant-' + participant.id" 
+                               class="text-sm text-gray-700 flex-1 cursor-pointer">
+                            {{ participant.fullName }}
+                            <span class="text-xs text-gray-500 block">{{ participant.role }}</span>
+                        </label>
+                    </div>
+                </div>
+                <p *ngIf="projectParticipants.length === 0" class="text-gray-500 text-sm italic mt-2">
+                    Нет доступных участников проекта
+                </p>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <button (click)="closeAddTaskModal()" 
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-6 rounded-md transition-colors">
+                    Отмена
+                </button>
+                <button (click)="saveTask()" 
+                        [disabled]="!isTaskFormValid()"
+                        class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 px-6 rounded-md transition-colors">
+                    {{ selectedTaskForEdit ? 'Сохранить изменения' : 'Создать задачу' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</app-modal>
 
     <app-modal [isOpen]="isStageMapModalOpen" title="КАРТА ЭТАПА" (closeEvent)="closeModal()">
         <div *ngIf="selectedStageForModal" class="p-4 w-full max-w-5xl mx-auto">

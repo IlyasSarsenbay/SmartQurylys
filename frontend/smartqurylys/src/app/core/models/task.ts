@@ -14,6 +14,7 @@ export interface TaskResponse {
   executionRequested: boolean;
   executionConfirmed: boolean; 
   dependsOnTaskIds?: number[];
+  dependsOnTasks?: TaskResponse[];
   files?: FileResponse[];
   requirements?: RequirementResponse[];
 }
