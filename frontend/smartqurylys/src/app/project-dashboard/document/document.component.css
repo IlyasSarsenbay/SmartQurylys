@@ -1,0 +1,32 @@
+/* Стили для страницы документов */
+:host {
+  display: block;
+  height: 100vh;
+}
+
+/* Анимации */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Стили для прогресс-бара */
+.progress-bar {
+  transition: width 0.3s ease;
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+  .file-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .file-actions button {
+    width: 100%;
+  }
+}

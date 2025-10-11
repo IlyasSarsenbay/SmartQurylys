@@ -97,13 +97,13 @@ export class ProjectDashboardComponent implements OnInit {
   };
 
   navItems = [
-    { label: 'Этапы проекта', icon: 'list', view: 'stages', active: true },
-    { label: 'Документация', icon: 'document', view: 'documentation', active: false },
-    { label: 'Направить уведомление', icon: 'notification', view: 'notifications', active: false },
-    { label: 'Участники проекта', icon: 'users', view: 'users', active: false },
-    { label: 'Чат', icon: 'chat', view: 'chat', active: false },
-    { label: 'Проект', icon: 'project', view: 'project', active: false },
-  ];
+  { label: 'Этапы проекта', icon: 'list', view: 'stages', active: true },
+  { label: 'Документация', icon: 'document', view: 'documents', active: false },
+  { label: 'Направить уведомление', icon: 'notification', view: 'notifications', active: false },
+  { label: 'Участники проекта', icon: 'users', view: 'users', active: false },
+  { label: 'Чат', icon: 'chat', view: 'chat', active: false },
+  { label: 'Проект', icon: 'project', view: 'project', active: false },
+];
 
   constructor(
     private http: HttpClient,
@@ -134,15 +134,27 @@ export class ProjectDashboardComponent implements OnInit {
    * Для 'project' выполняет внешнюю навигацию.
    * Для остальных элементов меняет локальный вид.
    */
-  onNavItemClick(item: any): void {
-    if (item.view === 'project') {
-      this.router.navigate(['/project', this.projectId]);
-    } else {
-      this.currentView = item.view;
-      this.navItems.forEach(navItem => navItem.active = (navItem.view === item.view));
-    }
-  }
-
+ onNavItemClick(item: any): void {
+  // Сбрасываем активность у всех элементов
+  this.navItems.forEach(navItem => navItem.active = false);
+  
+  // Устанавливаем активность текущему элементу
+  item.active = true;
+  
+  // Обрабатываем навигацию
+  switch (item.view) {
+    case 'project':
+      this.router.navigate(['/project', this.projectId]);
+      break;
+    case 'documents':
+      this.router.navigate(['/projects', this.projectId, 'documents']);
+      break;
+    default:
+      // Для локальных представлений просто меняем currentView
+      this.currentView = item.view;
+      break;
+  }
+}
   // ... все остальные методы компонента остаются без изменений
   get isResponsible(): boolean {
     return this.activeTask?.responsiblePersons.some(p => p.iinBin === this.currentUserIinBin) || false;
@@ -259,6 +271,10 @@ export class ProjectDashboardComponent implements OnInit {
       }
     });
   }
+
+getTaskById(taskId: number): TaskResponse | null {
+  return this.tasks.find(task => task.id === taskId) || null;
+}
 
   selectTask(task: TaskResponse): void {
     this.activeTask = task;
@@ -666,16 +682,25 @@ editStage(stageId: number): void {
   }
 
   // Методы для работы с задачами
-  fetchStageTasks(stageId: number): void {
-    this.taskService.getTasksByStage(stageId).subscribe({
-      next: (tasks: TaskResponse[]) => {
-        this.tasks = tasks;
-      },
-      error: (error) => {
-        console.error('Ошибка при загрузке задач этапа:', error);
+fetchStageTasks(stageId: number): void {
+  this.taskService.getTasksByStage(stageId).subscribe({
+    next: (tasks: TaskResponse[]) => {
+      this.tasks = tasks;
+      
+      // Если редактируем задачу, обновляем её зависимости
+      if (this.selectedTaskForEdit) {
+        const updatedTask = tasks.find(t => t.id === this.selectedTaskForEdit!.id);
+        if (updatedTask) {
+          this.selectedTaskForEdit = updatedTask;
+          this.loadTaskDependencies(updatedTask);
+        }
       }
-    });
-  }
+    },
+    error: (error) => {
+      console.error('Ошибка при загрузке задач этапа:', error);
+    }
+  });
+}
 
   fetchProjectParticipants(): void {
     if (this.projectId) {
@@ -705,43 +730,82 @@ editStage(stageId: number): void {
     this.selectedTaskForEdit = null;
   }
 
-  editTask(task: TaskResponse): void {
-    this.selectedTaskForEdit = task;
-    this.editableTaskName = task.name;
-    this.editableTaskDescription = task.description || '';
-    this.editableTaskStartDate = task.startDate || '';
-    this.editableTaskEndDate = task.endDate || '';
-    this.selectedParticipantIds = task.responsiblePersons.map(p => p.id);
-    this.loadTaskDependencies(task);
-    this.loadAvailableDependencyTasks(task.id);
-    this.isAddTaskModalOpen = true;
-  } 
-   
-  loadTaskDependencies(task: TaskResponse): void {
-    this.currentDependencies = task.dependsOnTasks || [];
-    this.selectedDependencyIds = this.currentDependencies.map(dep => dep.id);
+ editTask(task: TaskResponse): void {
+  
+  this.selectedTaskForEdit = task;
+  this.editableTaskName = task.name;
+  this.editableTaskDescription = task.description || '';
+  this.editableTaskStartDate = task.startDate || '';
+  this.editableTaskEndDate = task.endDate || '';
+  this.selectedParticipantIds = task.responsiblePersons.map(p => p.id);
+  
+  // Перезагружаем задачи этапа, чтобы получить актуальные данные с зависимостями
+  if (this.selectedStageForModal) {
+    this.fetchStageTasks(this.selectedStageForModal.id);
   }
+  
+  this.isAddTaskModalOpen = true;
+}
 
-  // Загрузка доступных задач для зависимостей (исключая текущую задачу)
-  loadAvailableDependencyTasks(currentTaskId: number): void {
-    if (this.selectedStageForModal) {
-      this.taskService.getTasksByStage(this.selectedStageForModal.id).subscribe({
-        next: (tasks: TaskResponse[]) => {
-          this.availableDependencyTasks = tasks.filter(task => 
-            task.id !== currentTaskId
-          );
-        },
-        error: (error) => {
-          console.error('Ошибка при загрузке доступных задач:', error);
-        }
-      });
-    }
+   
+loadTaskDependencies(task: TaskResponse): void {
+  
+  // Используем dependsOnTasks из задачи, если они есть
+  if (task.dependsOnTasks) {
+    this.currentDependencies = task.dependsOnTasks;
+  } else {
+    // Если dependsOnTasks нет, пробуем найти зависимости в локальном массиве tasks
+    this.currentDependencies = this.tasks.filter(t => 
+      task.dependsOnTaskIds?.includes(t.id)
+    ) || [];
   }
+  
+  this.selectedDependencyIds = this.currentDependencies.map(dep => dep.id);
+  
+  // Загружаем доступные задачи
+  this.loadAvailableDependencyTasks(task.id);
+}
+// Принудительная загрузка зависимостей задачи
+loadTaskDependenciesWithAPI(taskId: number): void {
+  if (this.selectedStageForModal) {
+    this.taskService.getTasksByStage(this.selectedStageForModal.id).subscribe({
+      next: (tasks: TaskResponse[]) => {
+        const taskWithDeps = tasks.find(t => t.id === taskId);
+        if (taskWithDeps) {
+          this.loadTaskDependencies(taskWithDeps);
+        }
+      },
+      error: (error) => {
+        console.error('Ошибка при загрузке зависимостей:', error);
+      }
+    });
+  }
+}
+  // Загрузка доступных задач для зависимостей
+loadAvailableDependencyTasks(currentTaskId: number): void {
+  
+  if (this.selectedStageForModal) {
+    this.taskService.getTasksByStage(this.selectedStageForModal.id).subscribe({
+      next: (tasks: TaskResponse[]) => {
+        
+        // Исключаем текущую задачу
+        this.availableDependencyTasks = tasks.filter(task => 
+          task.id !== currentTaskId
+        );
+        
+      },
+      error: (error) => {
+        console.error('Ошибка при загрузке доступных задач:', error);
+      }
+    });
+  }
+}
 
   // Проверка, является ли задача зависимостью
   isTaskDependency(taskId: number): boolean {
-    return this.selectedDependencyIds.includes(taskId);
-  }
+  const isDependency = this.selectedDependencyIds.includes(taskId);
+  return isDependency;
+}
 
    canAddDependency(task: TaskResponse): boolean {
     if (!this.selectedTaskForEdit) return true;
@@ -760,30 +824,111 @@ editStage(stageId: number): void {
   }
 
   // Проверка на циклические зависимости
-  wouldCreateCircularDependency(taskId: number): boolean {
-    if (!this.selectedTaskForEdit) return false;
-    
-    // Рекурсивная проверка зависимостей
-    const checkDependencies = (currentTaskId: number, visited: Set<number> = new Set()): boolean => {
-      if (visited.has(currentTaskId)) return true;
-      if (currentTaskId === this.selectedTaskForEdit!.id) return true;
-      
-      visited.add(currentTaskId);
-      
-      const task = this.tasks.find(t => t.id === currentTaskId);
-      if (!task || !task.dependsOnTaskIds) return false;
-      
-      for (const depId of task.dependsOnTaskIds) {
-        if (checkDependencies(depId, new Set(visited))) {
-          return true;
-        }
-      }
-      
-      return false;
-    };
-    
-    return checkDependencies(taskId);
+ wouldCreateCircularDependency(taskId: number): boolean {
+  if (!this.selectedTaskForEdit) return false;
+  
+  // Если задача уже зависит от текущей задачи - это циклическая зависимость
+  const targetTask = this.tasks.find(t => t.id === taskId);
+  if (targetTask?.dependsOnTaskIds?.includes(this.selectedTaskForEdit.id)) {
+    return true;
   }
+  
+  // Рекурсивная проверка через все зависимости
+  const checkDependencies = (currentTaskId: number, visited: Set<number> = new Set()): boolean => {
+    if (visited.has(currentTaskId)) return true;
+    if (currentTaskId === this.selectedTaskForEdit!.id) return true;
+    
+    visited.add(currentTaskId);
+    
+    const task = this.tasks.find(t => t.id === currentTaskId);
+    if (!task || !task.dependsOnTaskIds || task.dependsOnTaskIds.length === 0) {
+      return false;
+    }
+    
+    // Проверяем все зависимости текущей задачи
+    for (const depId of task.dependsOnTaskIds) {
+      if (checkDependencies(depId, new Set(visited))) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
+  
+  return checkDependencies(taskId);
+}
+
+// Получение цепочки зависимостей
+getDependencyChain(): TaskResponse[] {
+  if (!this.selectedTaskForEdit) return [];
+  
+  const chain: TaskResponse[] = [];
+  const visited = new Set<number>();
+  
+  const buildChain = (taskId: number) => {
+    if (visited.has(taskId)) return;
+    visited.add(taskId);
+    
+    const task = this.tasks.find(t => t.id === taskId);
+    if (task) {
+      chain.unshift(task);
+      
+      // Добавляем зависимости этой задачи
+      if (task.dependsOnTaskIds && task.dependsOnTaskIds.length > 0) {
+        task.dependsOnTaskIds.forEach(depId => buildChain(depId));
+      }
+    }
+  };
+  
+  // Строим цепочку от текущей задачи через все зависимости
+  buildChain(this.selectedTaskForEdit.id);
+  return chain;
+}
+
+// Получение доступных зависимостей со статусом
+getAvailableDependenciesWithStatus(): any[] {
+  if (!this.availableDependencyTasks) return [];
+  
+  // Фильтруем задачи, которые уже являются зависимостями
+  return this.availableDependencyTasks
+    .filter(task => !this.isTaskDependency(task.id))
+    .map(task => ({
+      ...task,
+      canAdd: this.canAddDependency(task),
+      blockReason: this.getDependencyBlockReason(task)
+    }));
+}
+// Получение причины блокировки зависимости
+getDependencyBlockReason(task: TaskResponse): string {
+  if (!this.selectedTaskForEdit) return '';
+  
+  if (this.wouldCreateCircularDependency(task.id)) {
+    return 'Создает циклическую зависимость';
+  }
+  
+  if (task.dependsOnTaskIds?.includes(this.selectedTaskForEdit.id)) {
+    return 'Эта задача уже зависит от текущей';
+  }
+  
+  if (task.executionConfirmed) {
+    return 'Задача уже выполнена';
+  }
+  
+  return 'Невозможно добавить зависимость';
+}
+
+// Проверка возможности выполнения задачи на основе зависимостей
+canExecuteTask(task: TaskResponse): boolean {
+  if (!task.dependsOnTaskIds || task.dependsOnTaskIds.length === 0) {
+    return true;
+  }
+  
+  // Проверяем, все ли зависимости выполнены
+  return task.dependsOnTaskIds.every(depId => {
+    const depTask = this.tasks.find(t => t.id === depId);
+    return depTask?.executionConfirmed || false; 
+  });
+}
 
   // Валидация формы
   isTaskFormValid(): boolean {
@@ -793,51 +938,57 @@ editStage(stageId: number): void {
            this.selectedParticipantIds.length > 0;
   }
 
-  // Переключение зависимости
-  toggleDependency(taskId: number, event: any): void {
-    if (event.target.checked) {
-      // Проверяем возможность добавления
-      if (!this.canAddDependency(this.tasks.find(t => t.id === taskId)!)) {
-        event.target.checked = false;
-        this.hasCircularDependencyWarning = true;
-        setTimeout(() => {
-          this.hasCircularDependencyWarning = false;
-        }, 3000);
-        return;
-      }
-      
-      this.addDependency(taskId);
-    } else {
-      this.removeDependency(taskId);
+ // Переключение зависимости
+toggleDependency(taskId: number, event: any): void {
+  const task = this.tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  if (event.target.checked) {
+    // Проверяем возможность добавления
+    if (!this.canAddDependency(task)) {
+      event.target.checked = false;
+      this.hasCircularDependencyWarning = true;
+      setTimeout(() => {
+        this.hasCircularDependencyWarning = false;
+      }, 3000);
+      return;
     }
+    
+    this.addDependency(taskId);
+  } else {
+    this.removeDependency(taskId);
   }
+}
 
   // Добавление зависимости
-  addDependency(dependencyTaskId: number): void {
-    if (this.selectedStageForModal && this.selectedTaskForEdit) {
-      this.taskService.addDependency(
-        this.selectedStageForModal.id,
-        this.selectedTaskForEdit.id,
-        dependencyTaskId
-      ).subscribe({
-        next: () => {
-          // Обновляем список зависимостей
-          const dependencyTask = this.availableDependencyTasks.find(t => t.id === dependencyTaskId);
-          if (dependencyTask) {
-            this.currentDependencies.push(dependencyTask);
-            this.availableDependencyTasks = this.availableDependencyTasks.filter(t => t.id !== dependencyTaskId);
-          }
-        },
-        error: (error) => {
-          console.error('Ошибка при добавлении зависимости:', error);
-          alert('Не удалось добавить зависимость: ' + error.message);
+addDependency(dependencyTaskId: number): void {
+  if (this.selectedStageForModal && this.selectedTaskForEdit) {
+    this.taskService.addDependency(
+      this.selectedStageForModal.id,
+      this.selectedTaskForEdit.id,
+      dependencyTaskId
+    ).subscribe({
+      next: () => {
+        // Обновляем список зависимостей
+        const dependencyTask = this.tasks.find(t => t.id === dependencyTaskId);
+        if (dependencyTask && !this.currentDependencies.some(dep => dep.id === dependencyTaskId)) {
+          this.currentDependencies.push(dependencyTask);
+          this.selectedDependencyIds.push(dependencyTaskId);
+          
+          // Удаляем из доступных задач
+          this.availableDependencyTasks = this.availableDependencyTasks.filter(t => t.id !== dependencyTaskId);
         }
-      });
-    }
+      },
+      error: (error) => {
+        console.error('Ошибка при добавлении зависимости:', error);
+        alert('Не удалось добавить зависимость: ' + error.message);
+      }
+    });
   }
+}
 
   // Удаление зависимости
- removeDependency(dependencyTaskId: number): void {
+removeDependency(dependencyTaskId: number): void {
   if (this.selectedStageForModal && this.selectedTaskForEdit) {
     this.taskService.removeDependency(
       this.selectedStageForModal.id,
@@ -851,17 +1002,23 @@ editStage(stageId: number): void {
         
         // Добавляем задачу обратно в доступные
         const dependencyTask = this.tasks.find(t => t.id === dependencyTaskId);
-        if (dependencyTask) {
+        if (dependencyTask && !this.availableDependencyTasks.some(t => t.id === dependencyTaskId)) {
           this.availableDependencyTasks.push(dependencyTask);
         }
-        
-        alert('Зависимость успешно удалена');
       },
       error: (error) => {
         console.error('Ошибка при удалении зависимости:', error);
         alert('Не удалось удалить зависимость: ' + error.message);
       }
     });
+  }
+}
+
+// Обновление данных при редактировании задачи
+refreshDependencies(): void {
+  if (this.selectedTaskForEdit) {
+    this.loadTaskDependencies(this.selectedTaskForEdit);
+    this.loadAvailableDependencyTasks(this.selectedTaskForEdit.id);
   }
 }
 
@@ -902,6 +1059,14 @@ editStage(stageId: number): void {
 
   saveTask(): void {
     if (!this.selectedStageForModal) return;
+
+  // Проверяем зависимости перед сохранением
+  const unresolvedDependencies = this.currentDependencies.filter(dep => !dep.executionConfirmed);
+  if (unresolvedDependencies.length > 0 && !confirm(
+    `Некоторые зависимости не выполнены. Задача может быть заблокирована. Продолжить сохранение?`
+  )) {
+    return;
+  }
 
     if (!this.editableTaskName.trim()) {
       alert('Название задачи обязательно для заполнения');

@@ -1,6 +1,6 @@
 
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ProjectResponse } from './models/project';
@@ -56,4 +56,11 @@ export class ProjectService {
   deleteProjectFile(fileId: number): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/files/${fileId}`);
   }
+
+  downloadFile(fileId: string | number): Observable<HttpResponse<Blob>> {
+      return this.http.get(`${environment.apiUrl}/files/download/${fileId}`, {
+        responseType: 'blob',
+        observe: 'response'
+      });
+    }
 }

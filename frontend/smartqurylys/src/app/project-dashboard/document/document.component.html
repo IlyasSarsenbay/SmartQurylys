@@ -1,0 +1,249 @@
+<div class="flex flex-col md:flex-row h-screen bg-gray-100 font-sans">
+    <!-- Навигационная панель -->
+    <div class="w-full md:w-64 bg-white shadow-lg p-6 flex flex-col justify-between">
+        <div>
+            <nav class="space-y-2">
+                <button
+                    *ngFor="let item of navItems"
+                    (click)="onNavItemClick(item)"
+                    [ngClass]="{'bg-gray-200 text-gray-900 font-medium': item.active}"
+                    class="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-200 transition-colors w-full text-left">
+                    
+                    <!-- Иконки -->
+                    <svg *ngIf="item.icon === 'list'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <svg *ngIf="item.icon === 'document'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 000-2H7zm3 0a1 1 0 000 2h.01a1 1 0 000-2H10zm3 0a1 1 0 000 2h.01a1 1 0 000-2H13zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H10z" clip-rule="evenodd" />
+                    </svg>
+                    <svg *ngIf="item.icon === 'notification'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                    </svg>
+                    <svg *ngIf="item.icon === 'users'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 15.094A5.972 5.972 0 004 18v3H1v-3a5.972 5.972 0 003.75-2.906z" />
+                    </svg>
+                    <svg *ngIf="item.icon === 'chat'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.492 12.11 2 10.536 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
+                    </svg>
+                    <svg *ngIf="item.icon === 'project'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M2 7a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V7zm2-2.5a.5.5 0 00-.5.5v12a.5.5 0 00.5.5h12a.5.5 0 00.5-.5V7a2 2 0 00-2-2h-2.586a1 1 0 01-.707-.293l-.867-.867A2 2 0 008.914 3H4a2 2 0 00-2 2v2a.5.5 0 001 0V7z" clip-rule="evenodd" />
+                    </svg>
+                    
+                    <span>{{ item.label }}</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header class="bg-white shadow-md p-4">
+            <h1 class="text-xl font-bold text-gray-900">ДОКУМЕНТАЦИЯ ПРОЕКТА</h1>
+        </header>
+
+        <main class="flex-1 overflow-x-hidden bg-gray-100 p-6">
+            <!-- Панель загрузки файлов -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Загрузить новый документ</h2>
+                <div class="flex flex-col md:flex-row gap-4 items-center">
+                    <div class="flex-1">
+                        <input 
+                            type="file" 
+                            (change)="onFileSelected($event)"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.rar">
+                    </div>
+                    <button 
+                        (click)="uploadFile()"
+                        [disabled]="!selectedFile || isUploading"
+                        class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-6 rounded-md transition-colors">
+                        {{ isUploading ? 'Загрузка...' : 'Загрузить' }}
+                    </button>
+                </div>
+                
+                <!-- Прогресс загрузки -->
+                <div *ngIf="isUploading" class="mt-4">
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-blue-600 h-2.5 rounded-full" [style.width.%]="uploadProgress"></div>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-2">Прогресс загрузки: {{ uploadProgress }}%</p>
+                </div>
+
+                <!-- Выбранный файл -->
+                <div *ngIf="selectedFile" class="mt-4 p-3 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-blue-800">Выбран файл: {{ selectedFile.name }}</p>
+                </div>
+            </div>
+
+            <!-- Категории документов -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Договоры -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Договоры</h3>
+                        <span class="text-sm text-gray-500">{{ getContractFiles().length }} документов</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div *ngFor="let file of getContractFiles()" 
+                             class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                    <span class="text-xl">{{ getFileIcon(file.name) }}</span>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="text-sm font-medium text-gray-900 truncate">{{ file.name }}</h4>
+                                        <div class="flex items-center space-x-2 mt-1 text-xs text-gray-500">
+                                            <span>{{ formatFileSize(file.size) }}</span>
+                                            <span>{{ formatDate(file.createdAt) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2 ml-3">
+                                    <button 
+                                        (click)="downloadFile(file)"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1 px-3 rounded text-xs transition-colors">
+                                        Скачать
+                                    </button>
+                                    <button 
+                                        (click)="deleteFile(file.id)"
+                                        class="bg-red-600 hover:bg-red-700 text-white font-medium py-1 px-3 rounded text-xs transition-colors">
+                                        Удалить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="getContractFiles().length === 0" 
+                             class="text-center py-4 text-gray-400">
+                            <div class="text-4xl mb-2">📄</div>
+                            <p class="text-sm">Нет договоров</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Сметы -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Сметы</h3>
+                        <span class="text-sm text-gray-500">{{ getEstimateFiles().length }} документов</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div *ngFor="let file of getEstimateFiles()" 
+                             class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                    <span class="text-xl">{{ getFileIcon(file.name) }}</span>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="text-sm font-medium text-gray-900 truncate">{{ file.name }}</h4>
+                                        <div class="flex items-center space-x-2 mt-1 text-xs text-gray-500">
+                                            <span>{{ formatFileSize(file.size) }}</span>
+                                            <span>{{ formatDate(file.createdAt) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2 ml-3">
+                                    <button 
+                                        (click)="downloadFile(file)"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1 px-3 rounded text-xs transition-colors">
+                                        Скачать
+                                    </button>
+                                    <button 
+                                        (click)="deleteFile(file.id)"
+                                        class="bg-red-600 hover:bg-red-700 text-white font-medium py-1 px-3 rounded text-xs transition-colors">
+                                        Удалить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="getEstimateFiles().length === 0" 
+                             class="text-center py-4 text-gray-400">
+                            <div class="text-4xl mb-2">📊</div>
+                            <p class="text-sm">Нет смет</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Отчеты -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Отчеты</h3>
+                        <span class="text-sm text-gray-500">{{ getReportFiles().length }} документов</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div *ngFor="let file of getReportFiles()" 
+                             class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                    <span class="text-xl">{{ getFileIcon(file.name) }}</span>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="text-sm font-medium text-gray-900 truncate">{{ file.name }}</h4>
+                                        <div class="flex items-center space-x-2 mt-1 text-xs text-gray-500">
+                                            <span>{{ formatFileSize(file.size) }}</span>
+                                            <span>{{ formatDate(file.createdAt) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2 ml-3">
+                                    <button 
+                                        (click)="downloadFile(file)"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1 px-3 rounded text-xs transition-colors">
+                                        Скачать
+                                    </button>
+                                    <button 
+                                        (click)="deleteFile(file.id)"
+                                        class="bg-red-600 hover:bg-red-700 text-white font-medium py-1 px-3 rounded text-xs transition-colors">
+                                        Удалить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="getReportFiles().length === 0" 
+                             class="text-center py-4 text-gray-400">
+                            <div class="text-4xl mb-2">📝</div>
+                            <p class="text-sm">Нет отчетов</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Остальные документы (не попавшие в категории) -->
+            <div *ngIf="getOtherFiles().length > 0" class="mt-6">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Прочие документы</h3>
+                        <span class="text-sm text-gray-500">{{ getOtherFiles().length }} документов</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div *ngFor="let file of getOtherFiles()" 
+                             class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                    <span class="text-xl">{{ getFileIcon(file.name) }}</span>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="text-sm font-medium text-gray-900 truncate">{{ file.name }}</h4>
+                                        <div class="flex items-center space-x-2 mt-1 text-xs text-gray-500">
+                                            <span>{{ formatFileSize(file.size) }}</span>
+                                            <span>{{ formatDate(file.createdAt) }}</span>
+                                            <span *ngIf="file.userFullName">Автор: {{ file.userFullName }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2 ml-3">
+                                    <button 
+                                        (click)="downloadFile(file)"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1 px-3 rounded text-xs transition-colors">
+                                        Скачать
+                                    </button>
+                                    <button 
+                                        (click)="deleteFile(file.id)"
+                                        class="bg-red-600 hover:bg-red-700 text-white font-medium py-1 px-3 rounded text-xs transition-colors">
+                                        Удалить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>

@@ -12,11 +12,13 @@ import { CreateProjectComponent } from './projects/create-project/create-project
 import { ProjectDetailsComponent } from './projects/project-details/project-details.component'; 
 import { CreateStageComponent } from './projects/project-details/create-stage/create-stage.component'; // Добавлен импорт CreateStageComponent
 import { ProjectDashboardComponent } from './project-dashboard/project-dashboard.component';
+import { DocumentsComponent } from './project-dashboard/document/document.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'registerUser', component: RegisterComponent },
-   { path: 'registerOrg', component: RegisterOrgComponent },
+  { path: 'projects/:id/documents', component: DocumentsComponent, canActivate: [authGuard] },
+  { path: 'registerOrg', component: RegisterOrgComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'home', component: HomeComponent, canActivate: [authGuard] },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },

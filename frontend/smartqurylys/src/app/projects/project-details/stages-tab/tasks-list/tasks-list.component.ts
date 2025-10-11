@@ -19,187 +19,394 @@ import { ParticipantResponse } from '../../../../core/models/participant'; // П
 })
 export class TasksListComponent implements OnInit, OnChanges {
   @Input() stageId!: number;
-  @Input() stageName!: string;
-  // Добавили новый @Input для получения ID проекта
-  @Input() projectId!: number;
-  @Output() close = new EventEmitter<void>();
+  @Input() stageName!: string;
+  @Input() projectId!: number;
+  @Output() close = new EventEmitter<void>();
 
-  tasks: TaskResponse[] = [];
-  // Добавили массив для хранения участников проекта
-  participants: ParticipantResponse[] = [];
-  isLoading = true;
-  errorMessage: string | null = null;
-  successMessage: string | null = null;
+  tasks: TaskResponse[] = [];
+  participants: ParticipantResponse[] = [];
+  isLoading = true;
+  errorMessage: string | null = null;
+  successMessage: string | null = null;
 
-  showAddTaskModal = false;
-  showEditTaskModal = false;
-  showConfirmDeleteTaskModal = false;
-  taskIdToDelete: number | null = null;
+  // Модальные окна
+  showAddTaskModal = false;
+  showEditTaskModal = false;
+  showConfirmDeleteTaskModal = false;
+  taskIdToDelete: number | null = null;
 
-  showAddRequirementModal = false;
-  currentTaskForAddRequirement: TaskResponse | null = null;
+  showAddRequirementModal = false;
+  currentTaskForAddRequirement: TaskResponse | null = null;
 
-  showEditRequirementModal = false;
-  editRequirementForm: FormGroup;
-  currentRequirementForEdit: RequirementResponse | null = null;
-  currentTaskForRequirementEdit: TaskResponse | null = null;
+  showEditRequirementModal = false;
+  editRequirementForm: FormGroup;
+  currentRequirementForEdit: RequirementResponse | null = null;
+  currentTaskForRequirementEdit: TaskResponse | null = null;
 
-  showConfirmDeleteRequirementModal = false;
-  requirementIdToDelete: number | null = null;
-  taskIdForRequirementDelete: number | null = null;
+  showConfirmDeleteRequirementModal = false;
+  requirementIdToDelete: number | null = null;
+  taskIdForRequirementDelete: number | null = null;
 
-  addTaskForm: FormGroup;
-  editTaskForm: FormGroup;
-  currentTaskForEdit: TaskResponse | null = null;
+  // Управление зависимостями
+  showDependenciesModal = false;
+  currentTaskForDependencies: TaskResponse | null = null;
+  availableDependencyTasks: TaskResponse[] = [];
+  currentDependencies: TaskResponse[] = [];
+  selectedDependencyIds: number[] = [];
+  hasCircularDependencyWarning: boolean = false;
 
-  addRequirementForm: FormGroup;
+  // Формы
+  addTaskForm: FormGroup;
+  editTaskForm: FormGroup;
+  currentTaskForEdit: TaskResponse | null = null;
+  addRequirementForm: FormGroup;
 
-  private mimeTypeMap: { [key: string]: string } = {
-    'image/png': 'png',
-    'image/jpeg': 'jpeg',
-    'image/gif': 'gif',
-    'application/pdf': 'pdf',
-    'text/plain': 'txt',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-    'application/msword': 'doc',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
-    'application/vnd.ms-excel': 'xls',
-    'application/zip': 'zip'
-  };
+  private mimeTypeMap: { [key: string]: string } = {
+    'image/png': 'png',
+    'image/jpeg': 'jpeg',
+    'image/gif': 'gif',
+    'application/pdf': 'pdf',
+    'text/plain': 'txt',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/msword': 'doc',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+    'application/vnd.ms-excel': 'xls',
+    'application/zip': 'zip'
+  };
 
-  constructor(
-    private taskService: TaskService,
-    // Внедрили ParticipantService
-    private participantService: ParticipantService,
-    private fb: FormBuilder
-  ) {
-    this.addTaskForm = this.fb.group({
-      name: ['', Validators.required],
-      description: [''],
-      startDate: ['', Validators.required],
-      endDate: ['', Validators.required],
-      // Поле для ответственных лиц, остается таким же, так как оно уже массив
-      responsiblePersonIds: [[]],
-      info: [''],
-      isPriority: [false],
-      executionRequested: [false],
-      executionConfirmed: [false],
-      dependsOnTaskIds: [[]],
-      requirements: this.fb.array([])
-    });
+  constructor(
+    private taskService: TaskService,
+    private participantService: ParticipantService,
+    private fb: FormBuilder
+  ) {
+    this.addTaskForm = this.fb.group({
+      name: ['', Validators.required],
+      description: [''],
+      startDate: ['', Validators.required],
+      endDate: ['', Validators.required],
+      responsiblePersonIds: [[]],
+      info: [''],
+      isPriority: [false],
+      executionRequested: [false],
+      executionConfirmed: [false],
+      dependsOnTaskIds: [[]],
+      requirements: this.fb.array([])
+    });
 
-    this.editTaskForm = this.fb.group({
-      id: [null],
-      name: ['', Validators.required],
-      description: [''],
-      startDate: ['', Validators.required],
-      endDate: ['', Validators.required],
-      responsiblePersonIds: [[]],
-      info: [''],
-      isPriority: [false],
-      executionRequested: [false],
-      executionConfirmed: [false],
-      dependsOnTaskIds: [[]],
-      requirements: this.fb.array([])
-    });
+    this.editTaskForm = this.fb.group({
+      id: [null],
+      name: ['', Validators.required],
+      description: [''],
+      startDate: ['', Validators.required],
+      endDate: ['', Validators.required],
+      responsiblePersonIds: [[]],
+      info: [''],
+      isPriority: [false],
+      executionRequested: [false],
+      executionConfirmed: [false],
+      dependsOnTaskIds: [[]],
+      requirements: this.fb.array([])
+    });
 
-    this.addRequirementForm = this.fb.group({
-      description: ['', Validators.required],
-      file: [null]
-    });
+    this.addRequirementForm = this.fb.group({
+      description: ['', Validators.required],
+      file: [null]
+    });
 
-    this.editRequirementForm = this.fb.group({
-      description: ['', Validators.required],
-      file: [null],
-      removeSampleFile: [false] // Добавили опцию для удаления файла
-    });
-  }
+    this.editRequirementForm = this.fb.group({
+      description: ['', Validators.required],
+      file: [null],
+      removeSampleFile: [false]
+    });
+  }
 
-  ngOnInit(): void {
-    if (this.stageId) {
-      this.loadTasks(this.stageId);
-    }
-    // Загружаем список участников проекта при инициализации компонента
-    if (this.projectId) {
-   console.log('ID проекта для загрузки участников:', this.projectId);
-      this.loadParticipants(this.projectId);
-    }
-  }
+  ngOnInit(): void {
+    if (this.stageId) {
+      this.loadTasks(this.stageId);
+    }
+    if (this.projectId) {
+      console.log('ID проекта для загрузки участников:', this.projectId);
+      this.loadParticipants(this.projectId);
+    }
+  }
 
-ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(changes: SimpleChanges): void {
     if (changes['projectId']) {
       const newProjectId = changes['projectId'].currentValue;
       console.log('ngOnChanges: Получено новое значение projectId:', newProjectId);
-
-      // Проверяем, что projectId существует и является числом
       if (newProjectId && typeof newProjectId === 'number') {
         this.loadParticipants(newProjectId);
       }
     }
   }
 
-  // Новый метод для загрузки участников
-  loadParticipants(projectId: number): void {
-    this.participantService.getParticipantsByProject(projectId).pipe(
-      catchError((err: HttpErrorResponse) => {
-        this.setActionMessage(`Не удалось загрузить участников проекта: ${err.message}`, 'error');
-        return of([]);
-      })
-    ).subscribe(participants => {
-      this.participants = participants;
-    });
-  }
+   get requirementsFormArray(): FormArray {
+    return this.addTaskForm.get('requirements') as FormArray;
+  }
+  
+  get editRequirementsFormArray(): FormArray {
+    return this.editTaskForm.get('requirements') as FormArray;
+  }
 
-  // Helper method for FormArray
-  get requirementsFormArray(): FormArray {
-    return this.addTaskForm.get('requirements') as FormArray;
-  }
-  
-  get editRequirementsFormArray(): FormArray {
-    return this.editTaskForm.get('requirements') as FormArray;
-  }
-  
-  // Method to handle closing the component
-  onClose(): void {
-    this.close.emit();
-  }
+  // Закрытие компонента
+  onClose(): void {
+    this.close.emit();
+  }
 
-  // Loading and messaging
-  private setActionMessage(message: string, type: 'success' | 'error'): void {
-    if (type === 'success') {
-      this.successMessage = message;
-      this.errorMessage = null;
-    } else {
-      this.errorMessage = message;
-      this.successMessage = null;
-    }
-    setTimeout(() => {
-      this.successMessage = null;
-      this.errorMessage = null;
-    }, 5000);
-  }
+  // Сообщения
+  private setActionMessage(message: string, type: 'success' | 'error'): void {
+    if (type === 'success') {
+      this.successMessage = message;
+      this.errorMessage = null;
+    } else {
+      this.errorMessage = message;
+      this.successMessage = null;
+    }
+    setTimeout(() => {
+      this.successMessage = null;
+      this.errorMessage = null;
+    }, 5000);
+  }
 
-  loadTasks(stageId: number): void {
-    this.isLoading = true;
-    this.taskService.getTasksByStage(stageId).pipe(
-      switchMap(tasks => {
-        this.tasks = tasks;
-        const reqObservables = tasks.map(task => 
-          this.taskService.getRequirementsByTask(this.stageId, task.id!).pipe(
-            tap(reqs => task.requirements = reqs),
-            catchError(() => of([]))
-          )
-        );
-        return forkJoin(reqObservables);
-      }),
-      catchError((err: HttpErrorResponse) => {
-        this.setActionMessage(`Не удалось загрузить задачи: ${err.message}`, 'error');
-        return of([]);
-      }),
-      finalize(() => this.isLoading = false)
-    ).subscribe(() => {});
-  }
+  // Загрузка данных
+  loadTasks(stageId: number): void {
+    this.isLoading = true;
+    this.taskService.getTasksByStage(stageId).pipe(
+      switchMap(tasks => {
+        this.tasks = tasks;
+        const reqObservables = tasks.map(task => 
+          this.taskService.getRequirementsByTask(this.stageId, task.id!).pipe(
+            tap(reqs => task.requirements = reqs),
+            catchError(() => of([]))
+          )
+        );
+        return forkJoin(reqObservables);
+      }),
+      catchError((err: HttpErrorResponse) => {
+        this.setActionMessage(`Не удалось загрузить задачи: ${err.message}`, 'error');
+        return of([]);
+      }),
+      finalize(() => this.isLoading = false)
+    ).subscribe(() => {});
+  }
 
+  loadParticipants(projectId: number): void {
+    this.participantService.getParticipantsByProject(projectId).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.setActionMessage(`Не удалось загрузить участников проекта: ${err.message}`, 'error');
+        return of([]);
+      })
+    ).subscribe(participants => {
+      this.participants = participants;
+    });
+  }
+
+   // Открытие модального окна управления зависимостями
+  openDependenciesModal(task: TaskResponse): void {
+    this.currentTaskForDependencies = task;
+    this.loadTaskDependencies(task);
+    this.loadAvailableDependencyTasks(task.id!);
+    this.showDependenciesModal = true;
+  }
+
+  // Закрытие модального окна управления зависимостями
+  closeDependenciesModal(): void {
+    this.showDependenciesModal = false;
+    this.currentTaskForDependencies = null;
+    this.currentDependencies = [];
+    this.selectedDependencyIds = [];
+    this.availableDependencyTasks = [];
+    this.hasCircularDependencyWarning = false;
+  }
+
+  // Загрузка текущих зависимостей задачи
+  loadTaskDependencies(task: TaskResponse): void {
+    if (task.dependsOnTasks) {
+      this.currentDependencies = task.dependsOnTasks;
+    } else {
+      this.currentDependencies = this.tasks.filter(t => 
+        task.dependsOnTaskIds?.includes(t.id)
+      ) || [];
+    }
+    this.selectedDependencyIds = this.currentDependencies.map(dep => dep.id);
+  }
+
+  // Загрузка доступных задач для зависимостей
+  loadAvailableDependencyTasks(currentTaskId: number): void {
+    this.availableDependencyTasks = this.tasks.filter(task => 
+      task.id !== currentTaskId && !this.currentDependencies.some(dep => dep.id === task.id)
+    );
+  }
+
+  // Проверка возможности добавления зависимости
+  canAddDependency(task: TaskResponse): boolean {
+    if (!this.currentTaskForDependencies) return true;
+    
+    // Проверяем циклические зависимости
+    if (this.wouldCreateCircularDependency(task.id!)) {
+      return false;
+    }
+    
+    // Проверяем, не зависит ли уже эта задача от текущей
+    if (task.dependsOnTaskIds?.includes(this.currentTaskForDependencies.id!)) {
+      return false;
+    }
+    
+    return true;
+  }
+
+  // Проверка на циклические зависимости
+  wouldCreateCircularDependency(taskId: number): boolean {
+    if (!this.currentTaskForDependencies) return false;
+    
+    const targetTask = this.tasks.find(t => t.id === taskId);
+    if (targetTask?.dependsOnTaskIds?.includes(this.currentTaskForDependencies.id!)) {
+      return true;
+    }
+    
+    const checkDependencies = (currentTaskId: number, visited: Set<number> = new Set()): boolean => {
+      if (visited.has(currentTaskId)) return true;
+      if (currentTaskId === this.currentTaskForDependencies!.id!) return true;
+      
+      visited.add(currentTaskId);
+      
+      const task = this.tasks.find(t => t.id === currentTaskId);
+      if (!task || !task.dependsOnTaskIds || task.dependsOnTaskIds.length === 0) {
+        return false;
+      }
+      
+      for (const depId of task.dependsOnTaskIds) {
+        if (checkDependencies(depId, new Set(visited))) {
+          return true;
+        }
+      }
+      
+      return false;
+    };
+    
+    return checkDependencies(taskId);
+  }
+
+  // Получение причины блокировки зависимости
+  getDependencyBlockReason(task: TaskResponse): string {
+    if (!this.currentTaskForDependencies) return '';
+    
+    if (this.wouldCreateCircularDependency(task.id!)) {
+      return 'Создает циклическую зависимость';
+    }
+    
+    if (task.dependsOnTaskIds?.includes(this.currentTaskForDependencies.id!)) {
+      return 'Эта задача уже зависит от текущей';
+    }
+    
+    if (task.executionConfirmed) {
+      return 'Задача уже выполнена';
+    }
+    
+    return 'Невозможно добавить зависимость';
+  }
+
+  // Переключение зависимости
+  toggleDependency(taskId: number, event: any): void {
+    const task = this.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    if (event.target.checked) {
+      if (!this.canAddDependency(task)) {
+        event.target.checked = false;
+        this.hasCircularDependencyWarning = true;
+        setTimeout(() => {
+          this.hasCircularDependencyWarning = false;
+        }, 3000);
+        return;
+      }
+      
+      this.addDependency(taskId);
+    } else {
+      this.removeDependency(taskId);
+    }
+  }
+
+  // Добавление зависимости
+  addDependency(dependencyTaskId: number): void {
+    if (this.currentTaskForDependencies) {
+      this.taskService.addDependency(
+        this.stageId,
+        this.currentTaskForDependencies.id!,
+        dependencyTaskId
+      ).subscribe({
+        next: () => {
+          const dependencyTask = this.tasks.find(t => t.id === dependencyTaskId);
+          if (dependencyTask && !this.currentDependencies.some(dep => dep.id === dependencyTaskId)) {
+            this.currentDependencies.push(dependencyTask);
+            this.selectedDependencyIds.push(dependencyTaskId);
+            this.availableDependencyTasks = this.availableDependencyTasks.filter(t => t.id !== dependencyTaskId);
+          }
+          this.setActionMessage('Зависимость успешно добавлена!', 'success');
+        },
+        error: (error) => {
+          console.error('Ошибка при добавлении зависимости:', error);
+          this.setActionMessage(`Не удалось добавить зависимость: ${error.message}`, 'error');
+        }
+      });
+    }
+  }
+
+  // Удаление зависимости
+  removeDependency(dependencyTaskId: number): void {
+    if (this.currentTaskForDependencies) {
+      this.taskService.removeDependency(
+        this.stageId,
+        this.currentTaskForDependencies.id!,
+        dependencyTaskId
+      ).subscribe({
+        next: () => {
+          this.currentDependencies = this.currentDependencies.filter(dep => dep.id !== dependencyTaskId);
+          this.selectedDependencyIds = this.selectedDependencyIds.filter(id => id !== dependencyTaskId);
+          
+          const dependencyTask = this.tasks.find(t => t.id === dependencyTaskId);
+          if (dependencyTask && !this.availableDependencyTasks.some(t => t.id === dependencyTaskId)) {
+            this.availableDependencyTasks.push(dependencyTask);
+          }
+          this.setActionMessage('Зависимость успешно удалена!', 'success');
+        },
+        error: (error) => {
+          console.error('Ошибка при удалении зависимости:', error);
+          this.setActionMessage(`Не удалось удалить зависимость: ${error.message}`, 'error');
+        }
+      });
+    }
+  }
+
+  // Получение доступных зависимостей со статусом
+  getAvailableDependenciesWithStatus(): any[] {
+    if (!this.availableDependencyTasks) return [];
+    
+    return this.availableDependencyTasks
+      .filter(task => !this.selectedDependencyIds.includes(task.id!))
+      .map(task => ({
+        ...task,
+        canAdd: this.canAddDependency(task),
+        blockReason: this.getDependencyBlockReason(task)
+      }));
+  }
+
+  // Проверка возможности выполнения задачи на основе зависимостей
+  canExecuteTask(task: TaskResponse): boolean {
+    if (!task.dependsOnTaskIds || task.dependsOnTaskIds.length === 0) {
+      return true;
+    }
+    
+    return task.dependsOnTaskIds.every(depId => {
+      const depTask = this.tasks.find(t => t.id === depId);
+      return depTask?.executionConfirmed || false; 
+    });
+  }
+
+  // Получение задачи по ID
+  getTaskById(taskId: number): TaskResponse | null {
+    return this.tasks.find(task => task.id === taskId) || null;
+  }
   // Add Task operations
   openAddTaskModal(): void {
     this.addTaskForm.reset();
