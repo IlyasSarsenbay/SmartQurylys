@@ -108,8 +108,8 @@
     <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
 
     <!-- Загрузка новой лицензии -->
-    <!-- <div class="license-upload-card">
-      <h4>Добавить новую лицензию</h4>
+    <div *ngIf="licenses.length === 0" class="license-upload-card">
+      <h4>Добавить лицензию</h4>
       <div class="license-form">
         <div class="form-group">
           <label for="newLicenseFile">Файл лицензии</label>
@@ -124,7 +124,7 @@
           {{ isUploadingLicense ? 'Загрузка...' : 'Добавить лицензию' }}
         </button>
       </div>
-    </div> -->
+    </div>
 
     <!-- Список лицензий -->
     <div class="licenses-list">
