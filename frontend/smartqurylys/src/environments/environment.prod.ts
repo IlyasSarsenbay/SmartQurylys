@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://192.168.1.132:8080/api' 
+  apiUrl: 'https://finder-author-makeup-edward.trycloudflare.com/api' 
 };

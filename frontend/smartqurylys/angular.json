@@ -29,6 +29,26 @@
             ],
             "scripts": []
           },
+"serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "host": "0.0.0.0",
+            "allowedHosts": [
+              ".trycloudflare.com",
+              ".serveo.net"
+            ],
+            "disableHostCheck": true
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "smartqurylys:build:production"
+            },
+            "development": {
+              "buildTarget": "smartqurylys:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
           "configurations": {
             "production": {
               "fileReplacements": [
@@ -98,5 +118,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }

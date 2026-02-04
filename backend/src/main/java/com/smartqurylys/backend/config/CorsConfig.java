@@ -16,7 +16,7 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 // Разрешаем кросс-доменные запросы со следующих источников.
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:4200","http://192.168.1.132:4200", "https://journalist-newbie-simultaneously-rarely.trycloudflare.com","https://finder-author-makeup-edward.trycloudflare.com")
+                        .allowedOrigins("http://localhost:4200","http://192.168.1.132:4200", "https://journalist-newbie-simultaneously-rarely.trycloudflare.com", "https://finder-author-makeup-edward.trycloudflare.com")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
