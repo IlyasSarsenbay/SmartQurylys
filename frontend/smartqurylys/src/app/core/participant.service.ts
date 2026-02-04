@@ -9,7 +9,8 @@ import { UpdateParticipantRequest } from './models/project-requests';
   providedIn: 'root'
 })
 export class ParticipantService {
-  private apiUrl = `${environment.apiUrl}/participants`; 
+  private apiUrl = `${environment.apiUrl}/participants`;
+  private invitationApiUrl = `${environment.apiUrl}/invitations`;
 
   constructor(private http: HttpClient) { }
 
@@ -18,11 +19,19 @@ export class ParticipantService {
   }
 
   updateParticipant(participantId: number, request: UpdateParticipantRequest): Observable<ParticipantResponse> {
-    return this.http.patch<ParticipantResponse>(`${this.apiUrl}/${participantId}`, request); 
-    
+    return this.http.patch<ParticipantResponse>(`${this.apiUrl}/${participantId}`, request);
+
   }
-  
+
   removeParticipant(participantId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${participantId}`);
+  }
+
+  acceptInvitation(invitationId: number): Observable<void> {
+    return this.http.post<void>(`${this.invitationApiUrl}/${invitationId}/accept`, {});
+  }
+
+  declineInvitation(invitationId: number): Observable<void> {
+    return this.http.post<void>(`${this.invitationApiUrl}/${invitationId}/decline`, {});
   }
 }

@@ -5,7 +5,9 @@ export interface UserResponse {
   phone: string;
   organization: string;
   iinBin: string;
-  city: string; 
+  city: string;
+  role: string; // Added role property
+  userType: string; // Add userType property
 }
 
 export interface ChangeEmailRequest {
@@ -13,6 +15,41 @@ export interface ChangeEmailRequest {
 }
 
 export interface ChangePasswordRequest {
+
   currentPassword: string;
+
   newPassword: string;
+
 }
+
+
+
+export interface UpdateUserRequest {
+
+
+
+  fullName: string;
+
+
+
+  phone: string;
+
+
+
+  iinBin: string;
+
+
+
+  cityId: number;
+
+
+
+}
+
+
+
+
+
+
+
+

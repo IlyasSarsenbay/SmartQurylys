@@ -1,0 +1,128 @@
+<div class="admin-detail-container">
+    <h2>Детали организации</h2>
+    <form [formGroup]="organisationForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+            <label for="fullName">Полное наименование</label>
+            <input id="fullName" formControlName="fullName" class="form-input">
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" formControlName="email" class="form-input">
+        </div>
+        <div class="form-group">
+            <label for="phone">Телефон</label>
+            <input id="phone" formControlName="phone" class="form-input">
+        </div>
+        <div class="form-group">
+            <label for="iinBin">ИИН/БИН</label>
+            <input id="iinBin" formControlName="iinBin" class="form-input">
+        </div>
+        <div class="form-group">
+            <label for="cityId">Город</label>
+            <select id="cityId" formControlName="cityId" class="form-input">
+                <option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="judAddress">Юридический адрес</label>
+            <input id="judAddress" formControlName="judAddress" class="form-input">
+        </div>
+        <div class="form-group">
+            <label for="organization">Название организации</label>
+            <input id="organization" formControlName="organization" class="form-input">
+        </div>
+        <div class="form-group">
+            <label for="position">Должность</label>
+            <input id="position" formControlName="position" class="form-input">
+        </div>
+        <div class="form-group">
+            <label for="type">Тип организации</label>
+            <select id="type" formControlName="type" class="form-input">
+                <option *ngFor="let option of organisationTypeOptions" [value]="option.key">{{ option.value }}</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="field">Сфера деятельности</label>
+            <input id="field" formControlName="field" class="form-input">
+        </div>
+        <div class="form-group">
+            <label>Специализации</label>
+            <div formGroupName="specialization" class="specialization-checkbox-group">
+                <div *ngFor="let option of specializationOptions" class="checkbox-container">
+                    <input type="checkbox" [formControlName]="option.key" [id]="'spec-' + option.key">
+                    <label [for]="'spec-' + option.key">{{ option.value }}</label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="yearsOfExperience">Опыт работы (лет)</label>
+            <input id="yearsOfExperience" formControlName="yearsOfExperience" type="number" class="form-input">
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn-save" [disabled]="organisationForm.invalid || organisationForm.pristine">
+                Сохранить изменения
+            </button>
+        </div>
+    </form>
+
+    <div class="licenses-section">
+        <h3>Управление лицензиями</h3>
+
+        <!-- Форма загрузки новой лицензии -->
+        <!-- <div class="upload-license-form">
+            <h4>Загрузить новую лицензию</h4>
+            <div class="upload-controls">
+                <div class="form-group">
+                    <label for="licenseFile">Выберите файл</label>
+                    <input type="file" id="licenseFile" (change)="onFileSelected($event)" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="licenseCategory">Категория лицензии</label>
+                    <input type="text" id="licenseCategory" [(ngModel)]="licenseCategory"
+                        placeholder="Напр: Строительная лицензия" class="form-input text-input-fix">
+                </div>
+                <button (click)="uploadLicense()" [disabled]="!selectedFile || isUploading" class="btn-upload-new">
+                    {{ isUploading ? 'Загрузка...' : 'Загрузить' }}
+                </button>
+            </div>
+        </div> -->
+
+        <div class="licenses-list-container">
+            <h4>Список лицензий</h4>
+            <div *ngIf="licenses.length === 0" class="no-licenses">
+                <p>У организации нет загруженных лицензий</p>
+            </div>
+            <div *ngIf="licenses.length > 0" class="licenses-list">
+                <div *ngFor="let license of licenses" class="license-card">
+                    <div class="license-info">
+                        <h4>{{ license.name }}</h4>
+                        <p><strong>Категория:</strong> {{ license.licenseCategoryDisplay || 'Не указана' }}</p>
+                        <p><strong>Дата загрузки:</strong> {{ license.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
+                        <p><strong>Размер:</strong> {{ (license.size / 1024).toFixed(2) }} KB</p>
+                        <span class="status-badge" [ngClass]="getStatusBadgeClass(license.reviewStatus)">
+                            {{ getStatusText(license.reviewStatus) }}
+                        </span>
+                    </div>
+                    <div class="license-actions">
+                        <button class="btn-download" (click)="downloadLicense(license)">Скачать</button>
+                        <button *ngIf="license.reviewStatus !== 'APPROVED'" class="btn-approve"
+                            (click)="approveLicense(license.id)">
+                            Одобрить
+                        </button>
+                        <button *ngIf="license.reviewStatus !== 'REJECTED'" class="btn-reject"
+                            (click)="rejectLicense(license.id)">
+                            Отклонить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="successMessage" class="success-message">
+        {{ successMessage }}
+    </div>
+    <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+    </div>
+</div>

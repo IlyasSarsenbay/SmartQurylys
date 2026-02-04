@@ -1,11 +1,38 @@
-<div class="dashboard-container">
-  <div class="dashboard-card" routerLink="/create-project">
-    <img src="https://static.tildacdn.com/tild3365-6136-4931-b038-613666303838/architect_17234330.png" alt="Создать новый проект" class="card-icon">
-    <span class="card-title">Создать новый проект</span>
+<div class="dashboard-layout">
+  <div class="sidebar">
+    <div class="sidebar-item" routerLink="/my-projects"
+      [class.active]="router.url === '/dashboard' || router.url.startsWith('/my-projects')">
+      <i class="fas fa-list-alt"></i>
+      <span>Проекты</span>
+    </div>
+    <div class="sidebar-item" routerLink="/contractor-registry" routerLinkActive="active">
+      <i class="fas fa-hard-hat"></i>
+      <span>Найти Подрядчика</span>
+    </div>
+    <div class="sidebar-item" routerLink="/chat" routerLinkActive="active">
+      <i class="fas fa-comments"></i>
+      <span>Чат</span>
+    </div>
   </div>
 
-  <div class="dashboard-card" routerLink="/my-projects">
-    <img src="https://cdn2.iconfinder.com/data/icons/real-estate-1-0-1/1024/building_construction-512.png" alt="Мои проекты" class="card-icon">
-    <span class="card-title">Мои проекты</span>
+  <div class="main-content">
+    <div class="dashboard-container">
+      <div class="dashboard-card" routerLink="/projects/create">
+        <img src="https://static.tildacdn.com/tild3365-6136-4931-b038-613666303838/architect_17234330.png"
+          alt="Создать новый проект" class="card-icon">
+        <span class="card-title">Создать новый проект</span>
+      </div>
+
+      <div class="dashboard-card" routerLink="/projects">
+        <img src="https://cdn2.iconfinder.com/data/icons/real-estate-1-0-1/1024/building_construction-512.png"
+          alt="Мои проекты" class="card-icon">
+        <span class="card-title">Мои проекты</span>
+      </div>
+
+      <div class="dashboard-card admin-card" *ngIf="isAdmin" routerLink="/admin">
+        <img src="assets/admin_features_icon_1770046741413.png" alt="Функции Админа" class="card-icon">
+        <span class="card-title">Функции Админа</span>
+      </div>
+    </div>
   </div>
 </div>

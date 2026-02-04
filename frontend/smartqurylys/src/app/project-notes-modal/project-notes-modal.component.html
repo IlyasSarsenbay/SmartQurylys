@@ -1,0 +1,44 @@
+<div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Памятка</h2>
+            <button class="close-btn" (click)="closeModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <!-- Add Note Form -->
+            <div class="add-note-section" *ngIf="isAddingNote">
+                <textarea [(ngModel)]="newNoteContent" placeholder="Введите текст памятки..." rows="4"
+                    class="note-textarea"></textarea>
+                <div class="add-note-actions">
+                    <button class="btn-save" (click)="addNote()">Сохранить</button>
+                    <button class="btn-cancel" (click)="toggleAddNote()">Отмена</button>
+                </div>
+            </div>
+
+            <!-- Notes List -->
+            <div class="notes-list">
+                <div *ngFor="let note of notes" class="note-item">
+                    <div class="note-header">
+                        <span class="author-badge">{{ note.author.fullName }}</span>
+                        <span class="note-date">{{ note.createdAt | date: 'dd.MM.yyyy HH:mm' }}</span>
+                    </div>
+                    <div class="note-content">{{ note.content }}</div>
+                    <button *ngIf="canDeleteNote(note)" class="btn-delete-note" (click)="deleteNote(note.id)">
+                        Удалить
+                    </button>
+                </div>
+
+                <div *ngIf="notes.length === 0 && !isAddingNote" class="no-notes">
+                    Нет памяток для этого проекта
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-primary" (click)="toggleAddNote()" *ngIf="!isAddingNote">
+                Добавить памятку
+            </button>
+        </div>
+    </div>
+</div>

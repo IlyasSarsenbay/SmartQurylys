@@ -2,7 +2,8 @@
 
   <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
     <h2 class="text-3xl font-bold text-gray-900">Задачи для этапа: {{ stageName }}</h2>
-    <button (click)="onClose()" class="text-gray-500 hover:text-gray-700 transition-colors duration-200 p-2 rounded-full hover:bg-gray-200">
+    <button (click)="onClose()"
+      class="text-gray-500 hover:text-gray-700 transition-colors duration-200 p-2 rounded-full hover:bg-gray-200">
       <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
@@ -18,7 +19,8 @@
     <div class="flex">
       <div class="py-1">
         <svg class="h-6 w-6 text-red-600 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
       <div>
@@ -28,11 +30,13 @@
     </div>
   </div>
 
-  <div *ngIf="successMessage" class="bg-green-50 border-l-4 border-green-400 text-green-700 p-4 mb-4 rounded-md" role="alert">
+  <div *ngIf="successMessage" class="bg-green-50 border-l-4 border-green-400 text-green-700 p-4 mb-4 rounded-md"
+    role="alert">
     <div class="flex">
       <div class="py-1">
         <svg class="h-6 w-6 text-green-600 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
       <div>
@@ -43,45 +47,50 @@
   </div>
 
   <div class="space-y-4">
-    <div *ngFor="let task of tasks" class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-100">
+    <div *ngFor="let task of tasks"
+      class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-100">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-2">
         <h3 class="text-xl font-bold text-gray-900">{{ task.name }}</h3>
         <div class="flex items-center space-x-2 mt-2 md:mt-0">
-          <span *ngIf="task.isPriority" class="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+          <span *ngIf="task.isPriority"
+            class="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
             Приоритетная
           </span>
-          <span *ngIf="task.executionConfirmed" class="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+          <span *ngIf="task.executionConfirmed"
+            class="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
             <span class="inline-block h-2 w-2 mr-1 rounded-full bg-green-500"></span>
             Выполнена
           </span>
-          <span *ngIf="task.executionRequested && !task.executionConfirmed" class="bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+          <span *ngIf="task.executionRequested && !task.executionConfirmed"
+            class="bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
             <span class="inline-block h-2 w-2 mr-1 rounded-full bg-blue-500"></span>
             Требует подтверждения
           </span>
           <!-- Индикатор статуса зависимостей -->
-          <span *ngIf="task.dependsOnTaskIds && task.dependsOnTaskIds.length > 0" 
-                class="bg-purple-100 text-purple-700 text-xs font-semibold px-2.5 py-0.5 rounded-full"
-                [ngClass]="canExecuteTask(task) ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'">
-            <span class="inline-block h-2 w-2 mr-1 rounded-full" 
-                  [ngClass]="canExecuteTask(task) ? 'bg-green-500' : 'bg-yellow-500'"></span>
+          <span *ngIf="task.dependsOnTaskIds && task.dependsOnTaskIds.length > 0"
+            class="bg-purple-100 text-purple-700 text-xs font-semibold px-2.5 py-0.5 rounded-full"
+            [ngClass]="canExecuteTask(task) ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'">
+            <span class="inline-block h-2 w-2 mr-1 rounded-full"
+              [ngClass]="canExecuteTask(task) ? 'bg-green-500' : 'bg-yellow-500'"></span>
             {{ canExecuteTask(task) ? 'Готова к выполнению' : 'Ожидает зависимости' }}
           </span>
         </div>
       </div>
-      
+
       <p *ngIf="task.description" class="text-gray-600 mb-4 text-sm">{{ task.description }}</p>
-      
+
       <!-- Отображение зависимостей задачи -->
       <div *ngIf="task.dependsOnTaskIds && task.dependsOnTaskIds.length > 0" class="mb-4">
         <div class="flex items-center text-sm text-gray-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-500 flex-shrink-0" viewBox="0 0 20 20"
+            fill="currentColor">
+            <path fill-rule="evenodd"
+              d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"
+              clip-rule="evenodd" />
           </svg>
           <span class="font-medium mr-2">Зависит от:</span>
           <div class="flex flex-wrap gap-1">
-            <span *ngFor="let depId of task.dependsOnTaskIds" 
-                  class="text-xs px-2 py-1 rounded border"
-                  [ngClass]="getTaskById(depId)?.executionConfirmed ? 
+            <span *ngFor="let depId of task.dependsOnTaskIds" class="text-xs px-2 py-1 rounded border" [ngClass]="getTaskById(depId)?.executionConfirmed ? 
                             'bg-green-100 text-green-800 border-green-200' : 
                             'bg-yellow-100 text-yellow-800 border-yellow-200'">
               {{ getTaskById(depId)?.name || 'Задача ' + depId }}
@@ -90,47 +99,59 @@
           </div>
         </div>
       </div>
-      
-      <div *ngIf="task.responsiblePersons && task.responsiblePersons.length > 0" class="flex items-start text-sm text-gray-600 mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+
+      <div *ngIf="task.responsiblePersons && task.responsiblePersons.length > 0"
+        class="flex items-start text-sm text-gray-600 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500 flex-shrink-0" viewBox="0 0 20 20"
+          fill="currentColor">
           <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
         </svg>
         <div class="flex flex-wrap gap-1">
-            <span class="font-medium">Ответственные:</span>
-            <span *ngFor="let person of task.responsiblePersons; let last = last">{{ person.fullName }}{{ !last ? ', ' : '' }}</span>
+          <span class="font-medium">Ответственные:</span>
+          <span *ngFor="let person of task.responsiblePersons; let last = last">{{ person.fullName }}{{ !last ? ', ' :
+            '' }}</span>
         </div>
       </div>
 
       <div class="text-xs text-gray-500 flex flex-wrap gap-x-4 mb-4">
         <span *ngIf="task.startDate" class="flex items-center">
           <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h.01M7 12h.01M7 16h.01M11 16h.01M15 16h.01M17 12h.01M17 16h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h.01M7 12h.01M7 16h.01M11 16h.01M15 16h.01M17 12h.01M17 16h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
           </svg>
           Начало: {{ task.startDate | date }}
         </span>
         <span *ngIf="task.endDate" class="flex items-center">
           <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h.01M7 12h.01M7 16h.01M11 16h.01M15 16h.01M17 12h.01M17 16h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h.01M7 12h.01M7 16h.01M11 16h.01M15 16h.01M17 12h.01M17 16h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
           </svg>
           Конец: {{ task.endDate | date }}
         </span>
       </div>
 
-      <div *ngIf="task.requirements && task.requirements.length > 0" class="mt-4 border-t border-dashed border-gray-200 pt-4">
+      <div *ngIf="task.requirements && task.requirements.length > 0"
+        class="mt-4 border-t border-dashed border-gray-200 pt-4">
         <h4 class="text-sm font-semibold text-gray-700 mb-2">Требования:</h4>
         <ul class="list-none space-y-2 text-sm text-gray-600">
-          <li *ngFor="let req of task.requirements" class="flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
+          <li *ngFor="let req of task.requirements"
+            class="flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
             <span>{{ req.description }}</span>
             <div class="flex items-center space-x-2 mt-2 md:mt-0">
-             <button *ngIf="req.sampleFile" (click)="downloadFile(req.sampleFile.id!, req.sampleFile.name)" class="text-blue-500 hover:text-blue-700 text-xs font-medium flex items-center">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-    </svg>
-</button>
-              <button (click)="openEditRequirementModal(task, req)" class="text-indigo-500 hover:text-indigo-700 text-xs font-medium">
+              <button *ngIf="req.sampleFile" (click)="downloadFile(req.sampleFile.id!, req.sampleFile.name)"
+                class="text-blue-500 hover:text-blue-700 text-xs font-medium flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </button>
+              <button (click)="openEditRequirementModal(task, req)"
+                class="text-indigo-500 hover:text-indigo-700 text-xs font-medium">
                 Редактировать
               </button>
-              <button (click)="openConfirmDeleteRequirementModal(task.id!, req.id!)" class="text-red-500 hover:text-red-700 text-xs font-medium">
+              <button (click)="openConfirmDeleteRequirementModal(task.id!, req.id!)"
+                class="text-red-500 hover:text-red-700 text-xs font-medium">
                 Удалить
               </button>
             </div>
@@ -139,17 +160,21 @@
       </div>
 
       <div class="mt-4 flex flex-wrap gap-2">
-        <button (click)="openEditTaskModal(task)" class="px-4 py-2 bg-indigo-500 text-white rounded-md shadow hover:bg-indigo-600 transition-colors duration-200 text-sm">
+        <button (click)="openEditTaskModal(task)"
+          class="px-4 py-2 bg-indigo-500 text-white rounded-md shadow hover:bg-indigo-600 transition-colors duration-200 text-sm">
           Редактировать
         </button>
-        <button (click)="openConfirmDeleteTaskModal(task.id!)" class="px-4 py-2 bg-red-500 text-white rounded-md shadow hover:bg-red-600 transition-colors duration-200 text-sm">
+        <button (click)="openConfirmDeleteTaskModal(task.id!)"
+          class="px-4 py-2 bg-red-500 text-white rounded-md shadow hover:bg-red-600 transition-colors duration-200 text-sm">
           Удалить
         </button>
-        <button (click)="openAddRequirementModal(task)" class="px-4 py-2 bg-green-500 text-white rounded-md shadow hover:bg-green-600 transition-colors duration-200 text-sm">
+        <button (click)="openAddRequirementModal(task)"
+          class="px-4 py-2 bg-green-500 text-white rounded-md shadow hover:bg-green-600 transition-colors duration-200 text-sm">
           Добавить требование
         </button>
         <!-- Кнопка управления зависимостями -->
-        <button (click)="openDependenciesModal(task)" class="px-4 py-2 bg-purple-500 text-white rounded-md shadow hover:bg-purple-600 transition-colors duration-200 text-sm">
+        <button (click)="openDependenciesModal(task)"
+          class="px-4 py-2 bg-purple-500 text-white rounded-md shadow hover:bg-purple-600 transition-colors duration-200 text-sm">
           Управление зависимостями
         </button>
       </div>
@@ -157,17 +182,20 @@
   </div>
 
   <div class="flex justify-center mt-8">
-    <button (click)="openAddTaskModal()" class="px-8 py-4 bg-indigo-600 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105">
+    <button (click)="openAddTaskModal()"
+      class="px-8 py-4 bg-indigo-600 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105">
       Добавить новую задачу
     </button>
   </div>
-  
+
   <!-- Модальное окно добавления задачи -->
   <div *ngIf="showAddTaskModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out scale-100">
+    <div
+      class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out scale-100">
       <div class="flex justify-between items-center mb-6">
         <h3 class="text-2xl font-bold text-gray-900">Создать новую задачу</h3>
-        <button (click)="closeAddTaskModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100">
+        <button (click)="closeAddTaskModal()"
+          class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100">
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -177,41 +205,60 @@
       <form [formGroup]="addTaskForm" (ngSubmit)="addTask()">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
-            <label for="addTaskName" class="block text-sm font-medium text-gray-700">Название задачи <span class="text-red-500">*</span></label>
-            <input id="addTaskName" type="text" formControlName="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            <div *ngIf="addTaskForm.get('name')?.invalid && addTaskForm.get('name')?.touched" class="text-red-500 text-xs mt-1">
+            <label for="addTaskName" class="block text-sm font-medium text-gray-700">Название задачи <span
+                class="text-red-500">*</span></label>
+            <input id="addTaskName" type="text" formControlName="name"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <div *ngIf="addTaskForm.get('name')?.invalid && addTaskForm.get('name')?.touched"
+              class="text-red-500 text-xs mt-1">
               Название задачи обязательно.
             </div>
           </div>
           <div>
-            <label for="addTaskDescription" class="block text-sm font-medium text-gray-700">Описание</label>
-            <textarea id="addTaskDescription" rows="2" formControlName="description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+            <label for="addTaskDescription" class="block text-sm font-medium text-gray-700">Описание <span
+                class="text-red-500">*</span></label>
+            <textarea id="addTaskDescription" rows="2" formControlName="description"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+            <div *ngIf="addTaskForm.get('description')?.invalid && addTaskForm.get('description')?.touched"
+              class="text-red-500 text-xs mt-1">
+              Описание обязательно.
+            </div>
           </div>
           <div>
-            <label for="addTaskStartDate" class="block text-sm font-medium text-gray-700">Дата начала <span class="text-red-500">*</span></label>
-            <input id="addTaskStartDate" type="date" formControlName="startDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            <div *ngIf="addTaskForm.get('startDate')?.invalid && addTaskForm.get('startDate')?.touched" class="text-red-500 text-xs mt-1">
+            <label for="addTaskStartDate" class="block text-sm font-medium text-gray-700">Дата начала <span
+                class="text-red-500">*</span></label>
+            <input id="addTaskStartDate" type="date" formControlName="startDate"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <div *ngIf="addTaskForm.get('startDate')?.invalid && addTaskForm.get('startDate')?.touched"
+              class="text-red-500 text-xs mt-1">
               Дата начала обязательна.
             </div>
           </div>
           <div>
-            <label for="addTaskEndDate" class="block text-sm font-medium text-gray-700">Дата завершения <span class="text-red-500">*</span></label>
-            <input id="addTaskEndDate" type="date" formControlName="endDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            <div *ngIf="addTaskForm.get('endDate')?.invalid && addTaskForm.get('endDate')?.touched" class="text-red-500 text-xs mt-1">
+            <label for="addTaskEndDate" class="block text-sm font-medium text-gray-700">Дата завершения <span
+                class="text-red-500">*</span></label>
+            <input id="addTaskEndDate" type="date" formControlName="endDate"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <div *ngIf="addTaskForm.get('endDate')?.invalid && addTaskForm.get('endDate')?.touched"
+              class="text-red-500 text-xs mt-1">
               Дата завершения обязательна.
             </div>
           </div>
           <div>
             <label for="addTaskResponsiblePersons" class="block text-sm font-medium text-gray-700">Ответственные</label>
-            <select id="addTaskResponsiblePersons" multiple formControlName="responsiblePersonIds" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 h-24">
-              <option *ngFor="let participant of participants" [ngValue]="participant.id">{{ participant.fullName }}</option>
+            <select id="addTaskResponsiblePersons" multiple formControlName="responsiblePersonIds"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 h-24">
+              <option *ngFor="let participant of participants" [ngValue]="participant.id">{{ participant.fullName }}
+              </option>
             </select>
             <small class="text-gray-500">Для выбора нескольких человек используйте Ctrl (Cmd) + клик.</small>
           </div>
           <div class="col-span-1 md:col-span-2">
             <div class="flex items-center">
-              <input id="addTaskIsPriority" type="checkbox" formControlName="isPriority" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-              <label for="addTaskIsPriority" class="ml-2 block text-sm font-medium text-gray-700">Приоритетная задача</label>
+              <input id="addTaskIsPriority" type="checkbox" formControlName="isPriority"
+                class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+              <label for="addTaskIsPriority" class="ml-2 block text-sm font-medium text-gray-700">Приоритетная
+                задача</label>
             </div>
           </div>
         </div>
@@ -219,26 +266,33 @@
         <div formArrayName="requirements" class="mb-6 border-t border-dashed border-gray-200 pt-6">
           <div class="flex justify-between items-center mb-4">
             <h4 class="text-lg font-bold text-gray-900">Требования</h4>
-            <button type="button" (click)="addRequirement()" class="px-3 py-1 bg-green-500 text-white text-sm rounded-md shadow hover:bg-green-600 transition-colors duration-200">
+            <button type="button" (click)="addRequirement()"
+              class="px-3 py-1 bg-green-500 text-white text-sm rounded-md shadow hover:bg-green-600 transition-colors duration-200">
               <svg class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
               Добавить
             </button>
           </div>
-          <div *ngFor="let requirementGroup of requirementsFormArray.controls; let i = index" [formGroupName]="i" class="flex flex-col md:flex-row gap-4 mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+          <div *ngFor="let requirementGroup of requirementsFormArray.controls; let i = index" [formGroupName]="i"
+            class="flex flex-col md:flex-row gap-4 mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
             <div class="flex-grow">
-              <label [for]="'addReqDesc' + i" class="block text-sm font-medium text-gray-700">Описание требования <span class="text-red-500">*</span></label>
-              <input [id]="'addReqDesc' + i" type="text" formControlName="description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+              <label [for]="'addReqDesc' + i" class="block text-sm font-medium text-gray-700">Описание требования <span
+                  class="text-red-500">*</span></label>
+              <input [id]="'addReqDesc' + i" type="text" formControlName="description"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
             </div>
             <div class="flex-grow">
               <label [for]="'addReqFile' + i" class="block text-sm font-medium text-gray-700">Образец файла</label>
-              <input [id]="'addReqFile' + i" type="file" (change)="onFileChange($event, i)" class="mt-1 block w-full text-gray-500 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+              <input [id]="'addReqFile' + i" type="file" (change)="onFileChange($event, i)"
+                class="mt-1 block w-full text-gray-500 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
             </div>
             <div class="flex items-end">
-              <button type="button" (click)="removeRequirement(i)" class="p-2 text-red-500 hover:text-red-700 transition-colors duration-200">
+              <button type="button" (click)="removeRequirement(i)"
+                class="p-2 text-red-500 hover:text-red-700 transition-colors duration-200">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1H8a1 1 0 00-1 1v3m-3 4h14" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1H8a1 1 0 00-1 1v3m-3 4h14" />
                 </svg>
               </button>
             </div>
@@ -246,10 +300,12 @@
         </div>
 
         <div class="flex justify-end space-x-4 mt-6 border-t border-gray-200 pt-4">
-          <button type="button" (click)="closeAddTaskModal()" class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+          <button type="button" (click)="closeAddTaskModal()"
+            class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
             Отмена
           </button>
-          <button type="submit" [disabled]="addTaskForm.invalid" class="px-6 py-2 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
+          <button type="submit" [disabled]="addTaskForm.invalid"
+            class="px-6 py-2 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
             Создать задачу
           </button>
         </div>
@@ -259,10 +315,12 @@
 
   <!-- Модальное окно редактирования задачи -->
   <div *ngIf="showEditTaskModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out scale-100">
+    <div
+      class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out scale-100">
       <div class="flex justify-between items-center mb-6">
         <h3 class="text-2xl font-bold text-gray-900">Редактировать задачу</h3>
-        <button (click)="closeEditTaskModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100">
+        <button (click)="closeEditTaskModal()"
+          class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100">
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -273,50 +331,72 @@
         <input type="hidden" formControlName="id">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
-            <label for="editTaskName" class="block text-sm font-medium text-gray-700">Название задачи <span class="text-red-500">*</span></label>
-            <input id="editTaskName" type="text" formControlName="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            <div *ngIf="editTaskForm.get('name')?.invalid && editTaskForm.get('name')?.touched" class="text-red-500 text-xs mt-1">
+            <label for="editTaskName" class="block text-sm font-medium text-gray-700">Название задачи <span
+                class="text-red-500">*</span></label>
+            <input id="editTaskName" type="text" formControlName="name"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <div *ngIf="editTaskForm.get('name')?.invalid && editTaskForm.get('name')?.touched"
+              class="text-red-500 text-xs mt-1">
               Название задачи обязательно.
             </div>
           </div>
           <div>
-            <label for="editTaskDescription" class="block text-sm font-medium text-gray-700">Описание</label>
-            <textarea id="editTaskDescription" rows="2" formControlName="description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+            <label for="editTaskDescription" class="block text-sm font-medium text-gray-700">Описание <span
+                class="text-red-500">*</span></label>
+            <textarea id="editTaskDescription" rows="2" formControlName="description"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+            <div *ngIf="editTaskForm.get('description')?.invalid && editTaskForm.get('description')?.touched"
+              class="text-red-500 text-xs mt-1">
+              Описание обязательно.
+            </div>
           </div>
           <div>
-            <label for="editTaskStartDate" class="block text-sm font-medium text-gray-700">Дата начала <span class="text-red-500">*</span></label>
-            <input id="editTaskStartDate" type="date" formControlName="startDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            <div *ngIf="editTaskForm.get('startDate')?.invalid && editTaskForm.get('startDate')?.touched" class="text-red-500 text-xs mt-1">
+            <label for="editTaskStartDate" class="block text-sm font-medium text-gray-700">Дата начала <span
+                class="text-red-500">*</span></label>
+            <input id="editTaskStartDate" type="date" formControlName="startDate"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <div *ngIf="editTaskForm.get('startDate')?.invalid && editTaskForm.get('startDate')?.touched"
+              class="text-red-500 text-xs mt-1">
               Дата начала обязательна.
             </div>
           </div>
           <div>
-            <label for="editTaskEndDate" class="block text-sm font-medium text-gray-700">Дата завершения <span class="text-red-500">*</span></label>
-            <input id="editTaskEndDate" type="date" formControlName="endDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            <div *ngIf="editTaskForm.get('endDate')?.invalid && editTaskForm.get('endDate')?.touched" class="text-red-500 text-xs mt-1">
+            <label for="editTaskEndDate" class="block text-sm font-medium text-gray-700">Дата завершения <span
+                class="text-red-500">*</span></label>
+            <input id="editTaskEndDate" type="date" formControlName="endDate"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <div *ngIf="editTaskForm.get('endDate')?.invalid && editTaskForm.get('endDate')?.touched"
+              class="text-red-500 text-xs mt-1">
               Дата завершения обязательна.
             </div>
           </div>
           <div>
-            <label for="editTaskResponsiblePersons" class="block text-sm font-medium text-gray-700">Ответственные</label>
-            <select id="editTaskResponsiblePersons" multiple formControlName="responsiblePersonIds" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 h-24">
-              <option *ngFor="let participant of participants" [ngValue]="participant.id">{{ participant.fullName }}</option>
+            <label for="editTaskResponsiblePersons"
+              class="block text-sm font-medium text-gray-700">Ответственные</label>
+            <select id="editTaskResponsiblePersons" multiple formControlName="responsiblePersonIds"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 h-24">
+              <option *ngFor="let participant of participants" [ngValue]="participant.id">{{ participant.fullName }}
+              </option>
             </select>
             <small class="text-gray-500">Для выбора нескольких человек используйте Ctrl (Cmd) + клик.</small>
           </div>
           <div class="col-span-1 md:col-span-2">
             <div class="flex items-center">
-              <input id="editTaskIsPriority" type="checkbox" formControlName="isPriority" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-              <label for="editTaskIsPriority" class="ml-2 block text-sm font-medium text-gray-700">Приоритетная задача</label>
+              <input id="editTaskIsPriority" type="checkbox" formControlName="isPriority"
+                class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+              <label for="editTaskIsPriority" class="ml-2 block text-sm font-medium text-gray-700">Приоритетная
+                задача</label>
             </div>
           </div>
         </div>
 
         <div class="flex justify-end space-x-4 mt-6 border-t border-gray-200 pt-4">
-          <button type="button" (click)="closeEditTaskModal()" class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+          <button type="button" (click)="closeEditTaskModal()"
+            class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
             Отмена
           </button>
-          <button type="submit" [disabled]="editTaskForm.invalid" class="px-6 py-2 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
+          <button type="submit" [disabled]="editTaskForm.invalid"
+            class="px-6 py-2 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
             Сохранить изменения
           </button>
         </div>
@@ -325,11 +405,14 @@
   </div>
 
   <!-- Модальное окно управления зависимостями -->
-  <div *ngIf="showDependenciesModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out scale-100">
+  <div *ngIf="showDependenciesModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+    <div
+      class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out scale-100">
       <div class="flex justify-between items-center mb-6">
         <h3 class="text-2xl font-bold text-gray-900">Управление зависимостями</h3>
-        <button (click)="closeDependenciesModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100">
+        <button (click)="closeDependenciesModal()"
+          class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100">
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -338,13 +421,13 @@
 
       <div *ngIf="currentTaskForDependencies" class="mb-6">
         <h4 class="text-lg font-semibold text-gray-800 mb-4">Задача: {{ currentTaskForDependencies.name }}</h4>
-        
+
         <!-- Текущие зависимости -->
         <div class="mb-6">
           <h5 class="text-md font-medium text-gray-700 mb-3">Текущие зависимости:</h5>
           <div *ngIf="currentDependencies.length > 0" class="space-y-3">
-            <div *ngFor="let dep of currentDependencies" 
-                 class="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div *ngFor="let dep of currentDependencies"
+              class="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
               <div class="flex-1">
                 <span class="font-medium text-blue-800">{{ dep.name }}</span>
                 <p class="text-sm text-blue-600 mt-1">{{ dep.description }}</p>
@@ -352,26 +435,26 @@
                   <span class="text-gray-500">
                     Сроки: {{ dep.startDate | date:'dd.MM.yyyy' }} - {{ dep.endDate | date:'dd.MM.yyyy' }}
                   </span>
-                  <span *ngIf="dep.executionConfirmed" 
-                        class="bg-green-100 text-green-800 px-2 py-1 rounded">
+                  <span *ngIf="dep.executionConfirmed" class="bg-green-100 text-green-800 px-2 py-1 rounded">
                     ✓ Выполнена
                   </span>
-                  <span *ngIf="!dep.executionConfirmed" 
-                        class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                  <span *ngIf="!dep.executionConfirmed" class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
                     ⏳ Ожидает выполнения
                   </span>
                 </div>
               </div>
               <button (click)="removeDependency(dep.id!)"
-                      class="ml-4 bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-full transition-colors"
-                      title="Удалить зависимость">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                class="ml-4 bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-full transition-colors"
+                title="Удалить зависимость">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
           </div>
-          <div *ngIf="currentDependencies.length === 0" class="text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+          <div *ngIf="currentDependencies.length === 0"
+            class="text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
             <p class="text-gray-500 italic">Нет установленных зависимостей</p>
           </div>
         </div>
@@ -380,15 +463,12 @@
         <div class="border-t border-gray-200 pt-6">
           <h5 class="text-md font-medium text-gray-700 mb-3">Добавить зависимости:</h5>
           <div class="space-y-3 max-h-64 overflow-y-auto p-2">
-            <div *ngFor="let task of getAvailableDependenciesWithStatus()" 
-                 class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-              <input type="checkbox" [id]="'dependency-' + task.id" 
-                     [checked]="selectedDependencyIds.includes(task.id!)"
-                     (change)="toggleDependency(task.id!, $event)"
-                     [disabled]="!task.canAdd"
-                     class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-              <label [for]="'dependency-' + task.id" 
-                     class="text-sm text-gray-700 flex-1 cursor-pointer">
+            <div *ngFor="let task of getAvailableDependenciesWithStatus()"
+              class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <input type="checkbox" [id]="'dependency-' + task.id" [checked]="selectedDependencyIds.includes(task.id!)"
+                (change)="toggleDependency(task.id!, $event)" [disabled]="!task.canAdd"
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+              <label [for]="'dependency-' + task.id" class="text-sm text-gray-700 flex-1 cursor-pointer">
                 <div class="flex justify-between items-start">
                   <div>
                     <span class="font-medium">{{ task.name }}</span>
@@ -397,8 +477,7 @@
                       <span class="text-gray-400">
                         {{ task.startDate | date:'dd.MM.yyyy' }} - {{ task.endDate | date:'dd.MM.yyyy' }}
                       </span>
-                      <span *ngIf="task.executionConfirmed" 
-                            class="bg-green-100 text-green-800 px-2 py-0.5 rounded">
+                      <span *ngIf="task.executionConfirmed" class="bg-green-100 text-green-800 px-2 py-0.5 rounded">
                         ✓ Выполнена
                       </span>
                     </div>
@@ -413,8 +492,9 @@
               </label>
             </div>
           </div>
-          
-          <div *ngIf="getAvailableDependenciesWithStatus().length === 0" class="text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+
+          <div *ngIf="getAvailableDependenciesWithStatus().length === 0"
+            class="text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
             <p class="text-gray-500 italic">Нет доступных задач для добавления зависимостей</p>
           </div>
         </div>
@@ -422,19 +502,23 @@
         <!-- Предупреждение о циклических зависимостях -->
         <div *ngIf="hasCircularDependencyWarning" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
           <div class="flex items-start space-x-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mt-0.5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <div>
               <p class="text-sm font-medium text-red-800">Обнаружена циклическая зависимость!</p>
-              <p class="text-xs text-red-600 mt-1">Невозможно добавить зависимость, которая создаст цикл в цепочке задач.</p>
+              <p class="text-xs text-red-600 mt-1">Невозможно добавить зависимость, которая создаст цикл в цепочке
+                задач.</p>
             </div>
           </div>
         </div>
       </div>
 
       <div class="flex justify-end space-x-4 mt-6 border-t border-gray-200 pt-4">
-        <button (click)="closeDependenciesModal()" class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+        <button (click)="closeDependenciesModal()"
+          class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
           Закрыть
         </button>
       </div>
@@ -442,11 +526,14 @@
   </div>
 
   <!-- Остальные модальные окна (добавления/редактирования требований, подтверждения удаления) -->
-  <div *ngIf="showAddRequirementModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out scale-100">
+  <div *ngIf="showAddRequirementModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+    <div
+      class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out scale-100">
       <div class="flex justify-between items-center mb-6">
         <h3 class="text-2xl font-bold text-gray-900">Добавить требование</h3>
-        <button (click)="closeAddRequirementModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100">
+        <button (click)="closeAddRequirementModal()"
+          class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100">
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -455,21 +542,27 @@
 
       <form [formGroup]="addRequirementForm" (ngSubmit)="addRequirementForTask()">
         <div class="mb-4">
-          <label for="addReqDescription" class="block text-sm font-medium text-gray-700">Описание требования <span class="text-red-500">*</span></label>
-          <input id="addReqDescription" type="text" formControlName="description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-          <div *ngIf="addRequirementForm.get('description')?.invalid && addRequirementForm.get('description')?.touched" class="text-red-500 text-xs mt-1">
+          <label for="addReqDescription" class="block text-sm font-medium text-gray-700">Описание требования <span
+              class="text-red-500">*</span></label>
+          <input id="addReqDescription" type="text" formControlName="description"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+          <div *ngIf="addRequirementForm.get('description')?.invalid && addRequirementForm.get('description')?.touched"
+            class="text-red-500 text-xs mt-1">
             Описание обязательно.
           </div>
         </div>
         <div class="mb-6">
           <label for="addReqFile" class="block text-sm font-medium text-gray-700">Приложить файл</label>
-          <input id="addReqFile" type="file" (change)="onFileChangeAddRequirement($event)" class="mt-1 block w-full text-gray-500 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+          <input id="addReqFile" type="file" (change)="onFileChangeAddRequirement($event)"
+            class="mt-1 block w-full text-gray-500 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
         </div>
         <div class="flex justify-end space-x-4">
-          <button type="button" (click)="closeAddRequirementModal()" class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+          <button type="button" (click)="closeAddRequirementModal()"
+            class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
             Отмена
           </button>
-          <button type="submit" [disabled]="addRequirementForm.invalid" class="px-6 py-2 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
+          <button type="submit" [disabled]="addRequirementForm.invalid"
+            class="px-6 py-2 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
             Добавить
           </button>
         </div>
@@ -477,11 +570,14 @@
     </div>
   </div>
 
-  <div *ngIf="showEditRequirementModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out scale-100">
+  <div *ngIf="showEditRequirementModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+    <div
+      class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out scale-100">
       <div class="flex justify-between items-center mb-6">
         <h3 class="text-2xl font-bold text-gray-900">Редактировать требование</h3>
-        <button (click)="closeEditRequirementModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100">
+        <button (click)="closeEditRequirementModal()"
+          class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100">
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -489,21 +585,28 @@
       </div>
       <form [formGroup]="editRequirementForm" (ngSubmit)="updateRequirement()">
         <div class="mb-4">
-          <label for="editReqDescription" class="block text-sm font-medium text-gray-700">Описание требования <span class="text-red-500">*</span></label>
-          <input id="editReqDescription" type="text" formControlName="description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-          <div *ngIf="editRequirementForm.get('description')?.invalid && editRequirementForm.get('description')?.touched" class="text-red-500 text-xs mt-1">
+          <label for="editReqDescription" class="block text-sm font-medium text-gray-700">Описание требования <span
+              class="text-red-500">*</span></label>
+          <input id="editReqDescription" type="text" formControlName="description"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+          <div
+            *ngIf="editRequirementForm.get('description')?.invalid && editRequirementForm.get('description')?.touched"
+            class="text-red-500 text-xs mt-1">
             Описание обязательно.
           </div>
         </div>
         <div class="mb-6">
           <label for="editReqFile" class="block text-sm font-medium text-gray-700">Приложить новый файл</label>
-          <input id="editReqFile" type="file" (change)="onFileChangeEditRequirement($event)" class="mt-1 block w-full text-gray-500 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+          <input id="editReqFile" type="file" (change)="onFileChangeEditRequirement($event)"
+            class="mt-1 block w-full text-gray-500 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
         </div>
         <div class="flex justify-end space-x-4 mt-6 border-t border-gray-200 pt-4">
-          <button type="button" (click)="closeEditRequirementModal()" class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+          <button type="button" (click)="closeEditRequirementModal()"
+            class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
             Отмена
           </button>
-          <button type="submit" [disabled]="editRequirementForm.invalid" class="px-6 py-2 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
+          <button type="submit" [disabled]="editRequirementForm.invalid"
+            class="px-6 py-2 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
             Сохранить
           </button>
         </div>
@@ -512,15 +615,18 @@
   </div>
 
 
-  <div *ngIf="showConfirmDeleteTaskModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+  <div *ngIf="showConfirmDeleteTaskModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
     <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
       <h3 class="text-xl font-bold text-gray-900 mb-4">Подтверждение удаления задачи</h3>
       <p class="text-gray-700 mb-6">Вы уверены, что хотите удалить эту задачу? Это действие необратимо.</p>
       <div class="flex justify-end space-x-4">
-        <button (click)="closeConfirmDeleteTaskModal()" class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+        <button (click)="closeConfirmDeleteTaskModal()"
+          class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
           Отмена
         </button>
-        <button (click)="confirmDeleteTask()" class="px-6 py-2 border border-transparent rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 transition-colors duration-200">
+        <button (click)="confirmDeleteTask()"
+          class="px-6 py-2 border border-transparent rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 transition-colors duration-200">
           Удалить
         </button>
       </div>
@@ -528,15 +634,18 @@
   </div>
 
 
-  <div *ngIf="showConfirmDeleteRequirementModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+  <div *ngIf="showConfirmDeleteRequirementModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
     <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
       <h3 class="text-xl font-bold text-gray-900 mb-4">Подтверждение удаления требования</h3>
       <p class="text-gray-700 mb-6">Вы уверены, что хотите удалить это требование? Это действие необратимо.</p>
       <div class="flex justify-end space-x-4">
-        <button (click)="closeConfirmDeleteRequirementModal()" class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+        <button (click)="closeConfirmDeleteRequirementModal()"
+          class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
           Отмена
         </button>
-        <button (click)="confirmDeleteRequirement()" class="px-6 py-2 border border-transparent rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 transition-colors duration-200">
+        <button (click)="confirmDeleteRequirement()"
+          class="px-6 py-2 border border-transparent rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 transition-colors duration-200">
           Удалить
         </button>
       </div>

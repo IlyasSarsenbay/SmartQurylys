@@ -26,7 +26,7 @@ export class CreateStageComponent implements OnInit {
   ) {
     this.stageForm = this.fb.group({
       name: ['', Validators.required],
-      description: [''],
+      description: ['', Validators.required],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required]
     });

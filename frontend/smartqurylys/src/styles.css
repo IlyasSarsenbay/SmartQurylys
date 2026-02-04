@@ -2,6 +2,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 :root {
   --color-primary-dark: #2C3E50;
   --color-accent-blue-light: #1A4D8D;
@@ -24,11 +25,16 @@
   --color-nav-tab-inactive-text: #E0E0E0;
 }
 
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: var(--color-background-light);
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
   line-height: 1.5;
   color: var(--color-primary-dark);
@@ -41,7 +47,7 @@ body {
   align-items: center;
   justify-content: space-between;
   color: var(--color-header-text);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .app-header .logo-section {
@@ -88,7 +94,7 @@ body {
   padding: 0;
   margin: 0;
   list-style: none;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   flex-wrap: wrap;
 }
 
@@ -328,24 +334,29 @@ body {
     align-items: flex-start;
     padding: 0.5rem 1rem;
   }
+
   .app-header .nav-links {
     flex-direction: column;
     gap: 0.5rem;
     margin-top: 0.5rem;
   }
+
   .project-nav-tabs {
     flex-wrap: wrap;
     justify-content: center;
   }
+
   .project-nav-item {
     padding: 0.5rem 0.75rem;
     font-size: 0.85rem;
   }
+
   .project-nav-arrow {
     margin-left: 0.5rem;
   }
+
   .form-card {
     padding: 1.5rem;
   }
-  
+
 }

@@ -1,0 +1,22 @@
+<div class="notification-overlay" (click)="close()">
+  <div class="notification-modal" (click)="$event.stopPropagation()">
+    <button class="close-button" (click)="close()">×</button>
+    <h1>УВЕДОМЛЕНИЯ</h1>
+    <div *ngIf="notifications.length === 0">
+      <p>У вас нет новых уведомлений.</p>
+    </div>
+    <div *ngFor="let notification of notifications" class="notification-item"
+      [class.clickable]="notification.type === 'MENTION'"
+      (click)="notification.type === 'MENTION' ? onNotificationClick(notification) : null">
+      <div class="notification-content">
+        {{ notification.message }}
+      </div>
+      <div *ngIf="notification.type === 'INVITATION'" class="buttons">
+        <button class="button accept"
+          (click)="$event.stopPropagation(); accept(notification.relatedEntityId)">Принять</button>
+        <button class="button decline"
+          (click)="$event.stopPropagation(); decline(notification.relatedEntityId)">Отказать</button>
+      </div>
+    </div>
+  </div>
+</div>

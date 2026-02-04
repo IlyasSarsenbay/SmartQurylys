@@ -1,0 +1,48 @@
+<div class="modal-overlay">
+  <div class="modal-content">
+    <h3>Редактировать личные данные</h3>
+    <form [formGroup]="userEditForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="fullName">Полное имя</label>
+        <input id="fullName" formControlName="fullName" class="form-input">
+        <div *ngIf="userEditForm.get('fullName')?.invalid && userEditForm.get('fullName')?.touched" class="error-message-inline">
+          Имя обязательно.
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="phone">Телефон</label>
+        <input id="phone" formControlName="phone" class="form-input">
+        <div *ngIf="userEditForm.get('phone')?.invalid && userEditForm.get('phone')?.touched" class="error-message-inline">
+          Введите корректный номер телефона.
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="iinBin">ИИН/БИН</label>
+        <input id="iinBin" formControlName="iinBin" class="form-input">
+        <div *ngIf="userEditForm.get('iinBin')?.invalid && userEditForm.get('iinBin')?.touched" class="error-message-inline">
+          ИИН/БИН должен состоять из 12 цифр.
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="cityId">Город</label>
+        <select id="cityId" formControlName="cityId" class="form-input">
+          <option [value]="null" disabled>Выберите город</option>
+          <option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</option>
+        </select>
+        <div *ngIf="userEditForm.get('cityId')?.invalid && userEditForm.get('cityId')?.touched" class="error-message-inline">
+          Город обязателен.
+        </div>
+      </div>
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+      <div *ngIf="successMessage" class="success-message">
+        {{ successMessage }}
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="userEditForm.invalid">Сохранить</button>
+        <button type="button" class="btn btn-secondary" (click)="onClose()">Отмена</button>
+      </div>
+    </form>
+  </div>
+</div>

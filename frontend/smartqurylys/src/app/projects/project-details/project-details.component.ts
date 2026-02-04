@@ -16,7 +16,8 @@ import { environment } from '../../../environments/environment';
 import { City } from '../../core/models/city';
 import { CityService } from '../../core/city.service';
 import { ProjectStatus } from "../../core/enums/project-status.enum";
-import { StagesTabComponent } from './stages-tab/stages-tab.component'; 
+import { StagesTabComponent } from './stages-tab/stages-tab.component';
+import { UserService } from '../../core/user.service';
 
 
 @Component({
@@ -73,6 +74,7 @@ export class ProjectDetailsComponent implements OnInit {
     private router: Router,
     private projectService: ProjectService,
     private participantService: ParticipantService,
+    private userService: UserService,
     private fb: FormBuilder,
     private cityService: CityService
   ) {
@@ -126,6 +128,13 @@ export class ProjectDetailsComponent implements OnInit {
           return this.projectService.getProjectById(this.projectId).pipe(
             tap(project => {
               if (project) {
+                // Check ownership and redirect if not owner
+                this.userService.getCurrentUser().subscribe(user => {
+                  if (user.iinBin !== project.ownerIinBin) {
+                    this.router.navigate(['/projects', this.projectId]);
+                  }
+                });
+
                 this.projectEditForm.patchValue({
                   name: project.name,
                   description: project.description,
@@ -431,9 +440,33 @@ export class ProjectDetailsComponent implements OnInit {
   }
 
   downloadFile(fileId: number, fileName: string): void {
-    const fileDownloadUrl = `${environment.apiUrl}/files/download/${fileId}`;
-    window.open(fileDownloadUrl, '_blank');
-    this.successMessage = `Файл "${fileName}" открыт для скачивания.`;
+    this.projectService.downloadFile(fileId).subscribe({
+      next: (response) => {
+        const blob = response.body;
+        const contentDisposition = response.headers.get('content-disposition');
+        let filename = fileName;
+
+        if (contentDisposition) {
+          const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+          const matches = filenameRegex.exec(contentDisposition);
+          if (matches != null && matches[1]) {
+            filename = matches[1].replace(/['"]/g, '');
+          }
+        }
+
+        const url = window.URL.createObjectURL(blob!);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.successMessage = `Файл "${filename}" успешно скачан.`;
+      },
+      error: (error) => {
+        console.error('Ошибка при скачивании файла:', error);
+        this.errorMessage = 'Не удалось скачать файл. Попробуйте еще раз.';
+      }
+    });
   }
 
   confirmDeleteFile(fileId: number): void {

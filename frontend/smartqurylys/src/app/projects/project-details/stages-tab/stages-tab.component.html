@@ -7,7 +7,7 @@
   <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
 
   <div class="stage-container">
-    
+
     <ng-container *ngIf="!showCreateOrEditStageForm">
       <div class="add-stage-bar">
         <button class="add-stage-button" (click)="onCreateStage()">Добавить этап</button>
@@ -42,7 +42,7 @@
         </div>
       </ng-container>
     </ng-container>
-    
+
     <ng-container *ngIf="showCreateOrEditStageForm">
       <div class="content-header">
         <h2 class="content-title">{{ editingStageId ? 'Редактирование этапа' : 'Создание нового этапа' }}</h2>
@@ -58,7 +58,12 @@
         </div>
         <div class="form-group">
           <label for="description">Описание:</label>
-          <textarea id="description" formControlName="description" class="form-control" placeholder="Введите описание этапа"></textarea>
+          <textarea id="description" formControlName="description" class="form-control"
+            placeholder="Введите описание этапа"></textarea>
+          <div *ngIf="stageForm.get('description')?.invalid && stageForm.get('description')?.touched"
+            class="error-message">
+            Описание обязательно.
+          </div>
         </div>
         <div class="form-group">
           <label for="startDate">Дата начала:</label>
@@ -87,11 +92,8 @@
 
 <!-- Модальное окно для отображения задач этапа -->
 <div *ngIf="showTasksModal" class="modal-overlay">
-  <div class="modal-content large-modal-content">
-    <app-tasks-list
-      [stageId]="currentStageForTasks?.id!"
-      [stageName]="currentStageForTasks?.name ?? ''"
-      [projectId]="projectId"        (close)="closeTasksModal()"
-    ></app-tasks-list>
-  </div>
+    <div class="modal-content large-modal-content">
+        <app-tasks-list       [stageId]="currentStageForTasks?.id!"       [stageName]="currentStageForTasks?.name ?? ''"
+            [projectId]="projectId"       (close)="closeTasksModal()"    ></app-tasks-list>
+      </div>
 </div>

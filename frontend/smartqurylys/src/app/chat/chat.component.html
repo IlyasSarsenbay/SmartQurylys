@@ -1,0 +1,234 @@
+<div class="flex h-full bg-[#E5E5E5] overflow-hidden font-sans">
+    <!-- Sidebar -->
+    <div class="w-80 bg-[#4A4A4A] flex flex-col border-r border-gray-600">
+        <div class="p-4">
+            <div class="relative">
+                <input type="text" [(ngModel)]="searchQuery" (input)="onSearch()" placeholder="Поиск..."
+                    class="w-full bg-[#7A7A7A] text-white placeholder-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+                <!-- Search Results Dropdown -->
+                <div *ngIf="showSearchResults"
+                    class="absolute z-10 w-full mt-1 bg-white border rounded shadow-lg max-h-60 overflow-y-auto">
+                    <div *ngFor="let user of searchResults" (click)="startPrivateChat(user)"
+                        class="p-3 hover:bg-gray-100 cursor-pointer flex items-center space-x-3 text-gray-800">
+                        <div
+                            class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">
+                            {{ user.fullName?.charAt(0) }}
+                        </div>
+                        <span>{{ user.fullName }}</span>
+                    </div>
+                    <div *ngIf="searchResults.length === 0" class="p-3 text-gray-500 italic">Пользователи не найдены
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto">
+            <div *ngFor="let conv of conversations" (click)="selectConversation(conv)"
+                [class.bg-[#3D3D3D]]="selectedConversation?.id === conv.id"
+                class="flex items-center space-x-3 p-4 hover:bg-[#555555] cursor-pointer transition-colors border-b border-gray-600">
+                <div class="relative">
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
+                        [ngClass]="conv.type === 'PROJECT_CHAT' ? 'bg-[#5B89F7]' : 'bg-[#2C3E50]'">
+                        <span *ngIf="conv.type === 'PROJECT_CHAT'">P</span>
+                        <span *ngIf="conv.type === 'PRIVATE_CHAT'">{{ conv.name?.charAt(0) }}</span>
+                    </div>
+                    <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#4A4A4A] rounded-full">
+                    </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-white font-medium truncate">{{ conv.name }}</p>
+                    <p class="text-gray-400 text-xs truncate">{{ conv.lastMessageContent || 'Нет сообщений' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="flex-1 flex flex-col min-w-0" *ngIf="selectedConversation; else selectChatPlaceholder">
+        <!-- Header -->
+        <div class="h-16 bg-[#4A4A4A] flex items-center justify-between px-6 border-b border-gray-600">
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center font-bold text-[#4A4A4A]">
+                    {{ selectedConversation.name?.charAt(0) }}
+                </div>
+                <div class="min-w-0">
+                    <h2 class="text-white font-bold truncate">{{ selectedConversation.name }}</h2>
+                    <p class="text-gray-400 text-xs truncate">{{ getParticipantNames() }}</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <!-- Registry Icon -->
+                <button (click)="openActionRegistry()" class="p-2 hover:bg-[#555555] rounded-full transition-colors"
+                    title="Реестр действий">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                </button>
+                <!-- Search Icon -->
+                <button class="p-2 hover:bg-[#555555] rounded-full transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div #messageContainer class="flex-1 overflow-y-auto p-6 space-y-4 bg-[#E5E5E5] scroll-smooth">
+            <div *ngFor="let msg of messages" class="flex flex-col" [class.items-end]="false">
+                <!-- Left aligned bubbles as per design -->
+                <div class="flex items-start space-x-3">
+                    <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white"
+                        [ngClass]="(msg.sender?.id || 0) % 2 === 0 ? 'bg-blue-500' : 'bg-orange-500'">
+                        {{ msg.sender?.fullName?.charAt(0) }}
+                    </div>
+                    <div class="max-w-[80%]">
+                        <div class="bg-gray-300 rounded-lg p-3 shadow-sm relative">
+                            <span class="text-blue-600 font-bold block text-sm mb-1">{{ msg.sender?.fullName }}</span>
+                            <p class="text-gray-800">{{ msg.content }}</p>
+
+                            <!-- Special message indicators -->
+                            <div *ngIf="msg.messageType === 'COORDINATION_REQUEST'" class="mt-2 flex space-x-2">
+                                <button class="bg-[#5B89F7] text-white px-3 py-1 rounded text-xs">Перейти на
+                                    согласование</button>
+                            </div>
+                            <div *ngIf="msg.attachedFile"
+                                class="mt-2 p-2 bg-white rounded border flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                </svg>
+                                <span class="text-xs text-blue-600 cursor-pointer">{{ msg.attachedFile.name }}</span>
+                            </div>
+
+                            <span class="text-[10px] text-gray-500 absolute bottom-1 right-2">{{ msg.timestamp |
+                                date:'HH:mm' }}</span>
+                        </div>
+
+                        <!-- Responses below initial message if applicable -->
+                        <div *ngIf="msg.messageType === 'COORDINATION_RESPONSE'"
+                            class="mt-1 bg-gray-200 rounded p-2 text-xs flex items-center space-x-2">
+                            <span class="font-bold">{{ msg.sender?.fullName }}</span>
+                            <span
+                                [ngClass]="msg.metaData?.['status'] === 'APPROVED' ? 'text-green-600' : 'text-red-600'">
+                                {{ msg.metaData?.['status'] === 'APPROVED' ? 'согласовал смету' : 'отклонил смету' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-4 bg-[#4A4A4A] border-t border-gray-600">
+            <div class="relative flex items-center space-x-4">
+                <!-- Action Menu Button -->
+                <button (click)="toggleActionMenu()" class="p-2 hover:bg-[#555555] rounded transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                    </svg>
+                </button>
+
+                <!-- Action Menu -->
+                <div *ngIf="showActionMenu"
+                    class="absolute bottom-full left-0 mb-2 w-64 bg-[#4A4A4A] border border-gray-600 rounded shadow-xl z-20 overflow-hidden">
+                    <button (click)="showActionMenu = false" class="w-full h-full absolute inset-0 -z-10"></button>
+                    <div class="p-2 flex flex-col">
+                        <button class="flex items-center space-x-3 p-3 hover:bg-[#555555] text-white text-sm text-left">
+                            <span class="text-xl">@</span> <span>Отметить</span>
+                        </button>
+                        <button (click)="fileInput.click()"
+                            class="flex items-center space-x-3 p-3 hover:bg-[#555555] text-white text-sm text-left w-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                            </svg>
+                            <span>Прикрепить документ</span>
+                        </button>
+                        <input type="file" #fileInput (change)="onFileSelected($event)" class="hidden">
+                        <div *ngIf="selectedFile"
+                            class="p-2 text-xs text-blue-300 bg-[#3D3D3D] flex items-center justify-between">
+                            <span class="truncate">{{ selectedFile.name }}</span>
+                            <button (click)="selectedFile = null" class="text-red-400">×</button>
+                        </div>
+                        <button (click)="sendSpecialMessage('COORDINATION_REQUEST')"
+                            class="flex items-center space-x-3 p-3 hover:bg-[#555555] text-white text-sm text-left">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Пометить как на согласование</span>
+                        </button>
+                        <button (click)="sendSpecialMessage('ACKNOWLEDGEMENT_REQUEST')"
+                            class="flex items-center space-x-3 p-3 hover:bg-[#555555] text-white text-sm text-left">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Пометить как на ознакомление</span>
+                        </button>
+                    </div>
+                </div>
+
+                <input type="text" [(ngModel)]="newMessageContent" (keyup.enter)="sendMessage()"
+                    placeholder="Введите сообщение"
+                    class="flex-1 bg-[#7A7A7A] text-white placeholder-gray-300 rounded-md py-2 px-4 focus:outline-none">
+
+                <button (click)="sendMessage()" [disabled]="!newMessageContent.trim()"
+                    class="p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-full transition-colors text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Placeholder -->
+    <ng-template #selectChatPlaceholder>
+        <div class="flex-1 flex flex-col items-center justify-center bg-[#E5E5E5] text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mb-4 opacity-20" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            <p class="text-xl">Выберите беседу, чтобы начать общение</p>
+        </div>
+    </ng-template>
+
+    <!-- Action Registry Modal -->
+    <app-modal [isOpen]="isActionRegistryModalOpen" title="РЕЕСТР ДЕЙСТВИЙ" (closeEvent)="closeActionRegistry()">
+        <div class="max-w-4xl mx-auto py-6">
+            <div *ngFor="let group of groupedRegistryMessages" class="mb-10">
+                <h3 class="text-lg font-bold mb-4 border-b pb-2 border-blue-500">{{ group.date }}</h3>
+                <div class="space-y-4">
+                    <div *ngFor="let msg of group.actions"
+                        class="flex items-center space-x-4 border-b border-gray-100 pb-2">
+                        <span
+                            class="bg-[#1A4D8D] text-white text-xs font-bold px-4 py-1.5 rounded-full min-w-[120px] text-center">
+                            {{ msg.sender?.organization || msg.sender?.fullName }}
+                        </span>
+                        <span class="flex-1 text-gray-800">{{ getActionText(msg) }}</span>
+                        <span class="text-gray-500 text-sm">{{ msg.timestamp | date:'HH:mm' }}</span>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="actionRegistryMessages.length === 0" class="text-center py-10 text-gray-400 italic">
+                Реестр действий пуст
+            </div>
+        </div>
+    </app-modal>
+</div>

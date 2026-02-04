@@ -1,0 +1,59 @@
+<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40" id="my-modal">
+  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white z-50">
+    <div class="mt-3 text-center">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Изменить Email</h3>
+      <div class="mt-2 px-7 py-3">
+        
+        <form *ngIf="!codeSent" [formGroup]="emailEditForm" (ngSubmit)="onSubmit()">
+          <div class="mb-4">
+            <label for="newEmail" class="block text-sm font-medium text-gray-700 text-left">Новый Email</label>
+            <input type="email" id="newEmail" formControlName="newEmail"
+                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            <div *ngIf="emailEditForm.get('newEmail')?.invalid && (emailEditForm.get('newEmail')?.dirty || emailEditForm.get('newEmail')?.touched)"
+                 class="text-red-500 text-xs mt-1">
+              <div *ngIf="emailEditForm.get('newEmail')?.errors?.['required']">Email обязателен.</div>
+              <div *ngIf="emailEditForm.get('newEmail')?.errors?.['email']">Введите корректный email.</div>
+            </div>
+          </div>
+          <div class="items-center px-4 py-3">
+            <button type="submit" [disabled]="emailEditForm.invalid"
+                    class="px-4 py-2 bg-indigo-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-gray-400">
+              Отправить код
+            </button>
+          </div>
+        </form>
+
+        <form *ngIf="codeSent" [formGroup]="verificationForm" (ngSubmit)="onSubmit()">
+          <p class="text-sm text-gray-600 mb-4">На email {{ emailEditForm.get('newEmail')?.value }} был отправлен код подтверждения.</p>
+          <div class="mb-4">
+            <label for="code" class="block text-sm font-medium text-gray-700 text-left">Код подтверждения</label>
+            <input type="text" id="code" formControlName="code"
+                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            <div *ngIf="verificationForm.get('code')?.invalid && (verificationForm.get('code')?.dirty || verificationForm.get('code')?.touched)"
+                 class="text-red-500 text-xs mt-1">
+              <div *ngIf="verificationForm.get('code')?.errors?.['required']">Код обязателен.</div>
+            </div>
+          </div>
+          <div class="items-center px-4 py-3">
+            <button type="submit" [disabled]="verificationForm.invalid"
+                    class="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-gray-400">
+              Подтвердить и изменить Email
+            </button>
+          </div>
+        </form>
+
+        <div *ngIf="successMessage" class="mt-2 text-sm text-green-600">
+          {{ successMessage }}
+        </div>
+        <div *ngIf="errorMessage" class="mt-2 text-sm text-red-600">
+          {{ errorMessage }}
+        </div>
+      </div>
+      <div class="items-center px-4 py-3">
+        <button (click)="onClose()" class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300">
+          Закрыть
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

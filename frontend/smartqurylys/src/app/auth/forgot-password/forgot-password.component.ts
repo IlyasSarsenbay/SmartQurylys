@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators, AbstractControl, ValidatorFn } from
 import { AuthService } from '../auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PasswordResetRequest } from '../../core/models/auth';
-import { Router } from '@angular/router'; // Импортируем Router
+import { Router } from '@angular/router';
 
 const passwordMatchValidator: ValidatorFn = (control: AbstractControl): { [key: string]: any } | null => {
   const formGroup = control as FormGroup;

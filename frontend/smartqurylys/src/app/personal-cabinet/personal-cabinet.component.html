@@ -1,0 +1,181 @@
+<header></header> <!-- Header will be rendered here -->
+<div class="personal-cabinet">
+  <h1>ЛИЧНЫЙ КАБИНЕТ</h1>
+
+  <div *ngIf="loadingUser || loadingProjects" class="loading-message">
+    Загрузка данных...
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <ng-container *ngIf="user && !loadingUser">
+    <div class="customer-info">
+      <h2>ЗАКАЗЧИК</h2>
+      <div class="info-item">
+        <strong>Полное имя:</strong> {{ user.fullName }}
+      </div>
+      <div *ngIf="isOrganisationUser && user.organization" class="info-item">
+        <strong>Организация:</strong> {{ user.organization }}
+      </div>
+      <div class="info-item">
+        <strong>ИИН/БИН:</strong> {{ user.iinBin }}
+      </div>
+      <div class="info-item">
+        <strong>Тел:</strong> {{ user.phone }}
+      </div>
+      <div class="info-item">
+        <strong>E-mail:</strong> {{ user.email }}
+      </div>
+      <div class="info-item">
+        <strong>Город:</strong> {{ user.city }}
+      </div>
+      <div *ngIf="isOrganisationUser" class="info-item status-toggle-item">
+        <strong>Статус доступности:</strong>
+        <button [class]="'status-btn ' + (isUpdatingStatus ? 'loading' : '')" (click)="toggleAvailability()"
+          [disabled]="isUpdatingStatus">
+          {{ isUpdatingStatus ? 'Обновление...' : 'Изменить статус' }}
+        </button>
+      </div>
+      <button class="edit-profile-btn" (click)="openEditModal()">Обновить данные</button>
+      <button class="edit-profile-btn" (click)="openEditEmailModal()">Изменить Email</button>
+      <button class="edit-profile-btn" (click)="openEditPasswordModal()">Изменить пароль</button>
+    </div>
+
+    <hr>
+  </ng-container>
+
+  <app-user-profile-edit-modal *ngIf="showEditProfileModal" [user]="user" (close)="closeEditProfileModal()"
+    (userUpdated)="onUserUpdated($event)">
+  </app-user-profile-edit-modal>
+
+  <app-organisation-profile-edit-modal *ngIf="showEditOrganisationProfileModal" [organisation]="organisationToEdit"
+    (close)="closeEditOrganisationProfileModal()" (organisationUpdated)="onOrganisationUpdated($event)">
+  </app-organisation-profile-edit-modal>
+
+  <app-user-email-edit-modal *ngIf="showEditEmailModal" [user]="user" (close)="closeEditEmailModal()"
+    (emailUpdated)="onEmailUpdated($event)">
+  </app-user-email-edit-modal>
+
+  <app-user-password-edit-modal *ngIf="showEditPasswordModal" [user]="user" (close)="closeEditPasswordModal()"
+    (passwordUpdated)="onPasswordUpdated()">
+  </app-user-password-edit-modal>
+
+  <div class="projects-section">
+    <h3>Проекты</h3>
+
+    <div *ngIf="projects.length === 0 && !loadingProjects" class="no-projects-message">
+      У вас пока нет проектов.
+    </div>
+
+    <div class="project-card" *ngFor="let project of projects">
+      <div class="project-name">{{ project.name }}</div>
+
+      <div class="project-timer">
+        <span class="timer-label">До конца проекта</span>
+        <div *ngIf="project.timeRemaining">
+          <ng-container *ngIf="!project.timeRemaining.isExpired">
+            <span class="timer-value">{{ project.timeRemaining.days }}</span>
+            <span class="timer-units">дней</span>
+            <span class="timer-value">{{ project.timeRemaining.hours }}</span>
+            <span class="timer-units">часов</span>
+          </ng-container>
+          <ng-container *ngIf="project.timeRemaining.isExpired">
+            <span class="timer-value">Срок закончился</span>
+            <span class="timer-units">{{ project.timeRemaining.expiredDate }}</span>
+          </ng-container>
+        </div>
+      </div>
+
+      <button class="open-btn" (click)="openProject(project.id)">Открыть</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="add-project">
+      <button class="add-project-btn" (click)="addNewProject()">Добавить новый проект</button>
+      <p class="note">После нажатия открывается рабочая страница проекта</p>
+    </div>
+  </div>
+
+  <!-- Секция управления лицензиями для организаций -->
+  <div *ngIf="isOrganisationUser" class="licenses-section">
+    <hr>
+    <h3>Управление лицензиями</h3>
+
+    <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+    <!-- Загрузка новой лицензии -->
+    <!-- <div class="license-upload-card">
+      <h4>Добавить новую лицензию</h4>
+      <div class="license-form">
+        <div class="form-group">
+          <label for="newLicenseFile">Файл лицензии</label>
+          <input type="file" id="newLicenseFile" (change)="onLicenseFileSelected($event)" class="file-input">
+        </div>
+        <div class="form-group">
+          <label for="newLicenseCategory">Категория</label>
+          <input type="text" id="newLicenseCategory" [(ngModel)]="newLicenseCategory"
+            placeholder="Напр: Строительная лицензия" class="text-input">
+        </div>
+        <button [disabled]="!selectedLicenseFile || isUploadingLicense" (click)="addLicense()" class="add-license-btn">
+          {{ isUploadingLicense ? 'Загрузка...' : 'Добавить лицензию' }}
+        </button>
+      </div>
+    </div> -->
+
+    <!-- Список лицензий -->
+    <div class="licenses-list">
+      <div *ngIf="loadingLicenses" class="loading">Загрузка лицензий...</div>
+
+      <div *ngFor="let license of licenses" class="license-item">
+        <!-- Режим редактирования -->
+        <div *ngIf="editingLicenseId === license.id" class="edit-license-form">
+          <h4>Редактирование: {{ license.name }}</h4>
+          <div class="form-group">
+            <label>Новое название (необязательно)</label>
+            <input type="text" [(ngModel)]="editLicenseName" class="text-input">
+          </div>
+          <div class="form-group">
+            <label>Новая категория</label>
+            <input type="text" [(ngModel)]="editLicenseCategory" class="text-input">
+          </div>
+          <div class="form-group">
+            <label>Обновить файл (необязательно)</label>
+            <input type="file" (change)="onEditLicenseFileSelected($event)" class="file-input">
+          </div>
+          <div class="edit-actions">
+            <button class="save-btn" (click)="updateLicense()" [disabled]="isUploadingLicense">
+              {{ isUploadingLicense ? 'Сохранение...' : 'Сохранить' }}
+            </button>
+            <button class="cancel-btn" (click)="cancelEditingLicense()" [disabled]="isUploadingLicense">Отмена</button>
+          </div>
+        </div>
+
+        <!-- Режим просмотра -->
+        <div *ngIf="editingLicenseId !== license.id" class="license-info">
+          <div class="license-header">
+            <span class="license-name">{{ license.name }}</span>
+            <span [class]="'status-badge ' + getStatusBadgeClass(license.reviewStatus)">
+              {{ getStatusText(license.reviewStatus) }}
+            </span>
+          </div>
+          <div class="license-details">
+            <p><strong>Категория:</strong> {{ license.licenseCategoryDisplay || 'Не указана' }}</p>
+            <p><strong>Дата:</strong> {{ license.createdAt | date:'dd.MM.yyyy' }}</p>
+            <p *ngIf="license.rejectionReason" class="rejection-reason">
+              <strong>Причина отклонения:</strong> {{ license.rejectionReason }}
+            </p>
+          </div>
+          <div class="license-actions">
+            <button (click)="downloadLicense(license)" class="icon-btn" title="Скачать">📥 Скачать</button>
+            <button (click)="startEditingLicense(license)" class="icon-btn" title="Редактировать">✏️
+              Редактировать</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

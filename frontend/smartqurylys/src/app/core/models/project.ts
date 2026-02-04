@@ -13,4 +13,5 @@ export interface ProjectResponse {
   ownerIinBin: string;
   ownerName: string;
   schedule: ScheduleResponse;
+  timeRemaining?: { days?: number; hours?: number; isExpired: boolean; expiredDate?: string; }; // Обновленное свойство
 }

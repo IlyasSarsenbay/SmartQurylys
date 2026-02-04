@@ -61,9 +61,9 @@ export class RegisterComponent implements OnInit {
     const emailControl = this.registerForm.get('email');
 
     if (emailControl?.valid) {
-      this.emailVerificationService.sendEmailVerificationCode(emailControl.value).subscribe({
-        next: (response) => {
-          this.successMessage = response;
+      this.emailVerificationService.sendEmailVerificationCode({email: emailControl.value}).subscribe({
+        next: (response: string) => {
+          this.successMessage = response || 'Код подтверждения отправлен на вашу почту.';
           this.emailSent = true;
           this.registerForm.get('verificationCode')?.enable();
         },
@@ -85,15 +85,15 @@ export class RegisterComponent implements OnInit {
     const codeControl = this.registerForm.get('verificationCode');
 
     if (emailControl?.valid && codeControl?.valid) {
-      this.emailVerificationService.verifyEmailVerificationCode(emailControl.value, codeControl.value).subscribe({
-        next: (response) => {
-          if (response === "Почта успешно подтверждена") {
+      this.emailVerificationService.verifyEmailVerificationCode({email: emailControl.value, code: codeControl.value}).subscribe({
+        next: (response: string) => {
+          if (response === 'Почта успешно подтверждена' || response === '') {
             this.successMessage = response;
             this.emailVerified = true;
             this.registerForm.get('email')?.disable();
             this.registerForm.get('verificationCode')?.disable();
           } else {
-            this.errorMessage = 'Неизвестный ответ сервера при верификации: ' + response;
+            this.errorMessage = 'Ошибка при проверке кода: ' + response;
             this.emailVerified = false;
           }
         },

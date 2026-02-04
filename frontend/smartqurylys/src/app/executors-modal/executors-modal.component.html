@@ -1,0 +1,41 @@
+<div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Исполнители <span *ngIf="stage">- {{ stage.name }}</span></h2>
+            <button class="close-btn" (click)="closeModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div *ngIf="isLoading" class="loading">
+                Загрузка...
+            </div>
+
+            <div *ngIf="!isLoading && (!tasks || tasks.length === 0)" class="no-data">
+                Нет задач в этом этапе
+            </div>
+
+            <div *ngIf="!isLoading && tasks && tasks.length > 0" class="executors-list">
+                <div *ngFor="let executor of getUniqueExecutors()" class="executor-card">
+                    <div class="executor-header">
+                        <div class="executor-avatar">
+                            {{ executor.fullName.charAt(0).toUpperCase() }}
+                        </div>
+                        <div class="executor-info">
+                            <div class="executor-name">{{ executor.fullName }}</div>
+                            <div class="executor-role">{{ executor.role }}</div>
+                        </div>
+                    </div>
+
+                    <div class="executor-tasks">
+                        <div class="tasks-label">Задачи:</div>
+                        <div class="tasks-tags">
+                            <span *ngFor="let taskName of executor.taskNames" class="task-tag">
+                                {{ taskName }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

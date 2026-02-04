@@ -6,7 +6,7 @@
   <form [formGroup]="stageForm" (ngSubmit)="onSubmit()" class="stage-form">
 
     <div class="form-group">
-      <label for="name">Название этапа:</label>
+      <label for="name">Название этапа: <span class="required-indicator">*обязательно</span></label>
       <input id="name" type="text" formControlName="name" class="form-control" placeholder="Введите название этапа">
       <div *ngIf="stageForm.get('name')?.invalid && stageForm.get('name')?.touched" class="error-message">
         Название обязательно.
@@ -14,12 +14,16 @@
     </div>
 
     <div class="form-group">
-      <label for="description">Описание:</label>
-      <textarea id="description" formControlName="description" class="form-control" placeholder="Введите описание этапа"></textarea>
+      <label for="description">Описание!: <span class="required-indicator">*обязательно</span></label>
+      <textarea id="description" formControlName="description" class="form-control"
+        placeholder="Введите описание этапа"></textarea>
+      <div *ngIf="stageForm.get('description')?.invalid && stageForm.get('description')?.touched" class="error-message">
+        Описание обязательно.
+      </div>
     </div>
 
     <div class="form-group">
-      <label for="startDate">Дата начала:</label>
+      <label for="startDate">Дата начала: <span class="required-indicator">*обязательно</span></label>
       <input id="startDate" type="date" formControlName="startDate" class="form-control">
       <div *ngIf="stageForm.get('startDate')?.invalid && stageForm.get('startDate')?.touched" class="error-message">
         Дата начала обязательна.
@@ -27,7 +31,7 @@
     </div>
 
     <div class="form-group">
-      <label for="endDate">Дата окончания:</label>
+      <label for="endDate">Дата окончания: <span class="required-indicator">*обязательно</span></label>
       <input id="endDate" type="date" formControlName="endDate" class="form-control">
       <div *ngIf="stageForm.get('endDate')?.invalid && stageForm.get('endDate')?.touched" class="error-message">
         Дата окончания обязательна.

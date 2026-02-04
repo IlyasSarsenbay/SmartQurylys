@@ -1,0 +1,53 @@
+<div class="admin-management-container">
+  <h2>Управление организациями</h2>
+
+  <div *ngIf="loading" class="loading-message">
+    Загрузка организаций...
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!loading && organisations.length === 0 && !errorMessage" class="no-results">
+    Организации не найдены.
+  </div>
+
+  <div *ngIf="!loading && organisations.length > 0" class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Название организации</th>
+          <th>Полное имя</th>
+          <th>Email</th>
+          <th>Телефон</th>
+          <th>ИИН/БИН</th>
+          <th>Город</th>
+          <th>Тип</th>
+          <th>Сфера</th>
+          <th>Опыт (лет)</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let org of organisations">
+          <td>{{ org.id }}</td>
+          <td>{{ org.organization }}</td>
+          <td>{{ org.fullName }}</td>
+          <td>{{ org.email }}</td>
+          <td>{{ org.phone }}</td>
+          <td>{{ org.iinBin }}</td>
+          <td>{{ org.city }}</td>
+          <td>{{ org.type }}</td>
+          <td>{{ org.field }}</td>
+          <td>{{ org.yearsOfExperience }}</td>
+          <td>
+            <button class="action-button view-button" (click)="viewOrganisation(org.id)">Просмотр</button>
+            <button class="action-button delete-button" (click)="deleteOrganisation(org.id)">Удалить</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

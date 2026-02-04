@@ -1,0 +1,95 @@
+/* admin-organisation-management.component.css */
+.admin-management-container {
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin: 20px;
+}
+
+h2 {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin-bottom: 25px;
+  border-bottom: 2px solid #ebf0f5;
+  padding-bottom: 15px;
+}
+
+.loading-message, .error-message, .no-results {
+  text-align: center;
+  padding: 30px;
+  font-size: 1rem;
+  color: #666;
+}
+
+.error-message {
+  color: #e74c3c;
+  background-color: #fce4e4;
+  border: 1px solid #e74c3c;
+  border-radius: 5px;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.data-table th, .data-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.data-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #34495e;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.data-table tr:hover {
+  background-color: #f4f4f4;
+}
+
+.action-button {
+  padding: 8px 12px;
+  margin-right: 5px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.2s ease;
+}
+
+.view-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.view-button:hover {
+  background-color: #0056b3;
+}
+
+.edit-button {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.edit-button:hover {
+  background-color: #e0a800;
+}
+
+.delete-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.delete-button:hover {
+  background-color: #c82333;
+}

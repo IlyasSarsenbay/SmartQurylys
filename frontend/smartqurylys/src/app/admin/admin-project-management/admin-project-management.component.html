@@ -1,0 +1,51 @@
+<div class="admin-management-container">
+  <h2>Управление проектами</h2>
+
+  <div *ngIf="loading" class="loading-message">
+    Загрузка проектов...
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!loading && projects.length === 0 && !errorMessage" class="no-results">
+    Проекты не найдены.
+  </div>
+
+  <div *ngIf="!loading && projects.length > 0" class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Название</th>
+          <th>Описание</th>
+          <th>Начало</th>
+          <th>Конец</th>
+          <th>Тип</th>
+          <th>Статус</th>
+          <th>Город</th>
+          <th>Владелец</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let project of projects">
+          <td>{{ project.id }}</td>
+          <td>{{ project.name }}</td>
+          <td>{{ project.description }}</td>
+          <td>{{ project.startDate | date }}</td>
+          <td>{{ project.endDate | date }}</td>
+          <td>{{ project.type }}</td>
+          <td>{{ project.status }}</td>
+          <td>{{ project.cityName }}</td>
+          <td>{{ project.ownerName }} ({{ project.ownerIinBin }})</td>
+          <td>
+            <button class="action-button view-button" (click)="viewProject(project.id)">Просмотр</button>
+            <button class="action-button delete-button" (click)="deleteProject(project.id)">Удалить</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

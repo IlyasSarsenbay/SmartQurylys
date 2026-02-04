@@ -1,0 +1,420 @@
+/* personal-cabinet.component.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+:host {
+    display: block;
+    /* Ensure the component takes up its own space */
+}
+
+body {
+    /* This might be overridden by global styles, consider moving to :host or more specific selectors */
+    background-color: #f5f5f5;
+    padding: 20px;
+    color: #333;
+}
+
+.personal-cabinet {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 30px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    /* Adjust top margin to account for fixed header */
+    margin-top: 80px;
+    /* Assuming header height is around 64px + some spacing */
+}
+
+h1 {
+    font-size: 28px;
+    text-align: center;
+    margin-bottom: 30px;
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+h2 {
+    font-size: 20px;
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+.customer-info {
+    margin-bottom: 30px;
+}
+
+.info-item {
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.info-item strong {
+    font-weight: bold;
+}
+
+.edit-profile-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+    margin-right: 10px;
+    /* Add some spacing between buttons */
+    transition: background-color 0.3s ease;
+}
+
+.edit-profile-btn:hover {
+    background-color: #0056b3;
+}
+
+.status-toggle-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s ease;
+}
+
+.status-btn:hover {
+    background-color: #5a6268;
+}
+
+.status-btn.loading {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+hr {
+    border: none;
+    height: 1px;
+    background-color: #ddd;
+    margin: 25px 0;
+}
+
+.projects-section {
+    margin-top: 30px;
+}
+
+.project-card {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background-color: #fafafa;
+}
+
+.project-name {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.project-timer {
+    background-color: #e8f4fd;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #d1e7ff;
+}
+
+.timer-label {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.timer-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.timer-units {
+    font-size: 14px;
+    color: #666;
+    margin-left: 5px;
+}
+
+.open-btn {
+    display: inline-block;
+    padding: 8px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.open-btn:hover {
+    background-color: #0056b3;
+}
+
+.add-project {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px dashed #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.add-project-btn {
+    display: inline-block;
+    padding: 10px 25px;
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.add-project-btn:hover {
+    background-color: #1e7e34;
+}
+
+.note {
+    font-size: 12px;
+    color: #666;
+    margin-top: 15px;
+    font-style: italic;
+    text-align: center;
+}
+
+.divider {
+    border: none;
+    height: 2px;
+    background-color: #eee;
+    margin: 25px 0;
+}
+
+.loading-message,
+.error-message,
+.no-projects-message {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 16px;
+    color: #555;
+}
+
+.error-message {
+    color: #d9534f;
+    margin-bottom: 15px;
+}
+
+.success-message {
+    padding: 10px;
+    background-color: #d4edda;
+    color: #155724;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+/* Licenses Section Styles */
+.licenses-section {
+    margin-top: 40px;
+}
+
+.license-upload-card {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.license-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #495057;
+}
+
+.text-input,
+.file-input {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.add-license-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.add-license-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.licenses-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.license-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #fff;
+}
+
+.license-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.license-name {
+    font-weight: bold;
+    font-size: 16px;
+    color: #2c3e50;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-approved {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-rejected {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.license-details {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.license-details p {
+    margin-bottom: 5px;
+}
+
+.rejection-reason {
+    color: #dc3545;
+    margin-top: 10px;
+    padding: 8px;
+    background-color: #fff5f5;
+    border-left: 3px solid #dc3545;
+}
+
+.license-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.icon-btn {
+    background: none;
+    border: 1px solid #dee2e6;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.icon-btn:hover {
+    background-color: #e9ecef;
+}
+
+/* Edit Form Styles */
+.edit-license-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.save-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.cancel-btn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.save-btn:disabled,
+.cancel-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}

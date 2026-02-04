@@ -16,8 +16,8 @@ export interface RegisterRequest {
   fullName: string;
   email: string;
   password: string;
-  phone: string;
   organization: string;
+  phone: string; 
   iinBin: string;
   cityId: number; 
 }

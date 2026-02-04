@@ -1,0 +1,21 @@
+<div class="dashboard-layout">
+  <div class="sidebar">
+    <div class="sidebar-item" routerLink="/admin/users" routerLinkActive="active">
+      <i class="fas fa-users-cog"></i>
+      <span>Пользователи</span>
+    </div>
+    <div class="sidebar-item" routerLink="/admin/organisations" routerLinkActive="active">
+      <i class="fas fa-building"></i>
+      <span>Организации</span>
+    </div>
+    <div class="sidebar-item" routerLink="/admin/projects" routerLinkActive="active">
+      <i class="fas fa-project-diagram"></i>
+      <span>Проекты</span>
+    </div>
+    <!-- Add more admin sections as needed -->
+  </div>
+
+  <div class="main-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>

@@ -7,7 +7,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-documents',
-   standalone: true,
+  standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './document.component.html',
   styleUrls: ['./document.component.css']
@@ -21,14 +21,14 @@ export class DocumentsComponent implements OnInit {
   isUploading = false;
 
   // Навигационные элементы
- navItems = [
-  { label: 'Этапы проекта', icon: 'list', view: 'stages', active: false },
-  { label: 'Документация', icon: 'document', view: 'documents', active: true },
-  { label: 'Направить уведомление', icon: 'notification', view: 'notifications', active: false },
-  { label: 'Участники проекта', icon: 'users', view: 'users', active: false },
-  { label: 'Чат', icon: 'chat', view: 'chat', active: false },
-  { label: 'Проект', icon: 'project', view: 'project', active: false },
-];
+  navItems = [
+    { label: 'Этапы проекта', icon: 'list', view: 'stages', active: false },
+    { label: 'Документация', icon: 'document', view: 'documents', active: true },
+    { label: 'Направить уведомление', icon: 'notification', view: 'notifications', active: false },
+    { label: 'Участники проекта', icon: 'users', view: 'users', active: false },
+    { label: 'Чат', icon: 'chat', view: 'chat', active: false },
+    { label: 'Проект', icon: 'project', view: 'project', active: false },
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -149,7 +149,7 @@ export class DocumentsComponent implements OnInit {
 
   getFileIcon(fileName: string): string {
     const extension = fileName.split('.').pop()?.toLowerCase();
-    
+
     switch (extension) {
       case 'pdf':
         return '📄';
@@ -186,41 +186,38 @@ export class DocumentsComponent implements OnInit {
   }
 
   getOtherFiles(): FileResponse[] {
-  const categorizedFiles = [
-    ...this.getContractFiles(),
-    ...this.getEstimateFiles(),
-    ...this.getReportFiles()
-  ];
-  
-  return this.files.filter(file => 
-    !categorizedFiles.some(catFile => catFile.id === file.id)
-  );
-}
+    const categorizedFiles = [
+      ...this.getContractFiles(),
+      ...this.getEstimateFiles(),
+      ...this.getReportFiles()
+    ];
 
- onNavItemClick(item: any): void {
+    return this.files.filter(file =>
+      !categorizedFiles.some(catFile => catFile.id === file.id)
+    );
+  }
+
+  onNavItemClick(item: any): void {
     // Сбрасываем активность у всех элементов
     this.navItems.forEach(navItem => navItem.active = false);
-    
+
     // Устанавливаем активность текущему элементу
     item.active = true;
-    
+
     // Обрабатываем навигацию
-    switch (item.view) {
-      case 'project':
-        // Навигация обратно на основную страницу проекта
-        this.router.navigate(['/project', this.projectId]);
-        break;
-      case 'documents':
-        // Уже на странице документов, ничего не делаем
-        break;
-      case 'stages':
-        // Навигация на основную страницу проекта (там отображаются этапы)
-        this.router.navigate(['/projects', this.projectId]);
-        break;
-      default:
-        // Для других элементов можно добавить навигацию при необходимости
-        console.log(`Навигация для ${item.view} не настроена`);
-        break;
+    if (item.view === 'documents') {
+      // Уже на странице документов
+      return;
+    }
+
+    if (item.view === 'project') {
+      this.router.navigate(['/project', this.projectId]);
+    } else {
+      // Для всех остальных (stages, notifications, users, chat) 
+      // переходим на страницу дашборда с параметром вида
+      this.router.navigate(['/projects', this.projectId], {
+        queryParams: { view: item.view }
+      });
     }
   }
 }

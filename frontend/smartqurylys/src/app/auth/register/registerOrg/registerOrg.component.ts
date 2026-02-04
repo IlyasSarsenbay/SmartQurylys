@@ -5,7 +5,7 @@ import { AuthService } from '../../auth.service';
 import { OrganisationRegisterRequest } from '../../../core/models/auth';
 import { CityService } from '../../../core/city.service';
 import { City } from '../../../core/models/city';
-import { Observable, of } from 'rxjs';
+import { Observable, of, forkJoin } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { HttpErrorResponse } from '@angular/common/http';
 import { EmailVerificationService } from '../../../core/email-verification.service';
@@ -15,27 +15,28 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-registerOrg',
-  standalone: true, 
+  standalone: true,
   imports: [
-    ReactiveFormsModule, 
-    CommonModule, 
+    ReactiveFormsModule,
+    CommonModule,
   ],
   templateUrl: './registerOrg.component.html',
   styleUrls: ['./registerOrg.component.css']
 })
 export class RegisterOrgComponent implements OnInit {
- organisationForm: FormGroup;
+  organisationForm: FormGroup;
   cities$: Observable<City[]>;
   errorMessage: string = '';
   successMessage: string = '';
 
   emailSent: boolean = false;
   emailVerified: boolean = false;
+  isUploading: boolean = false;
 
   representativeDocumentsFile: File | null = null;
   licenseFile: File | null = null;
 
-   public organisationTypeOptions = Object.keys(OrganisationType).map(key => ({
+  public organisationTypeOptions = Object.keys(OrganisationType).map(key => ({
     key,
     value: OrganisationType[key as keyof typeof OrganisationType]
   }));
@@ -43,7 +44,7 @@ export class RegisterOrgComponent implements OnInit {
     key,
     value: Specialization[key as keyof typeof Specialization]
   }));
-  
+
   // ИСПРАВЛЕНО: Явно указываем, что это массив строк.
   public organisationTypeKeys: string[] = Object.keys(OrganisationType);
   public specializationKeys: string[] = Object.keys(Specialization);
@@ -76,7 +77,7 @@ export class RegisterOrgComponent implements OnInit {
       specializationFormGroup.addControl(specKey, new FormControl(false));
     });
     this.organisationForm.addControl('specialization', specializationFormGroup);
-    
+
     this.organisationForm.get('specialization')?.setValidators(
       (control: AbstractControl) => {
         const specializationGroup = control as FormGroup;
@@ -113,9 +114,9 @@ export class RegisterOrgComponent implements OnInit {
     this.successMessage = '';
     const emailControl = this.organisationForm.get('email');
     if (emailControl?.valid) {
-      this.emailVerificationService.sendEmailVerificationCode(emailControl.value).subscribe({
-        next: (response) => {
-          this.successMessage = response;
+      this.emailVerificationService.sendEmailVerificationCode({ email: emailControl.value }).subscribe({
+        next: (response: string) => {
+          this.successMessage = response || 'Код подтверждения отправлен на вашу почту.';
           this.emailSent = true;
           this.organisationForm.get('verificationCode')?.enable();
         },
@@ -135,15 +136,15 @@ export class RegisterOrgComponent implements OnInit {
     const emailControl = this.organisationForm.get('email');
     const codeControl = this.organisationForm.get('verificationCode');
     if (emailControl?.valid && codeControl?.valid) {
-      this.emailVerificationService.verifyEmailVerificationCode(emailControl.value, codeControl.value).subscribe({
-        next: (response) => {
-          if (response === "Почта успешно подтверждена") {
+      this.emailVerificationService.verifyEmailVerificationCode({ email: emailControl.value, code: codeControl.value }).subscribe({
+        next: (response: string) => {
+          if (response === 'Почта успешно подтверждена' || response === '') {
             this.successMessage = response;
             this.emailVerified = true;
             this.organisationForm.get('email')?.disable();
             this.organisationForm.get('verificationCode')?.disable();
           } else {
-            this.errorMessage = 'Неизвестный ответ сервера при верификации: ' + response;
+            this.errorMessage = 'Ошибка при проверке кода: ' + response;
             this.emailVerified = false;
           }
         },
@@ -202,7 +203,7 @@ export class RegisterOrgComponent implements OnInit {
       this.errorMessage = 'Пожалуйста, заполните форму правильно и выберите хотя бы одну специализацию.';
       this.organisationForm.markAllAsTouched();
     }
-    
+
     if (this.emailVerified) {
       this.organisationForm.get('email')?.disable();
       this.organisationForm.get('verificationCode')?.disable();
@@ -221,16 +222,24 @@ export class RegisterOrgComponent implements OnInit {
     }
 
     if (fileUploads.length > 0) {
-      Promise.all(fileUploads.map(obs => obs.toPromise()))
-      .then(() => {
-        this.successMessage = 'Регистрация и загрузка документов прошли успешно!';
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 2000);
-      })
-      .catch((error) => {
-        this.errorMessage = this.extractErrorMessage(error, 'Регистрация прошла, но произошла ошибка при загрузке файлов. Попробуйте загрузить их позже в личном кабинете.');
-        console.error('File upload error:', error);
+      this.isUploading = true;
+      forkJoin(fileUploads).subscribe({
+        next: () => {
+          this.isUploading = false;
+          this.successMessage = 'Регистрация и загрузка документов прошли успешно!';
+          setTimeout(() => {
+            this.router.navigate(['/login']);
+          }, 2000);
+        },
+        error: (error) => {
+          this.isUploading = false;
+          this.errorMessage = this.extractErrorMessage(error, 'Регистрация прошла, но произошла ошибка при загрузке файлов. Попробуйте загрузить их позже в личном кабинете.');
+          console.error('File upload error:', error);
+          // Даже при ошибке загрузки файлов перенаправляем на логин через некоторое время
+          setTimeout(() => {
+            this.router.navigate(['/login']);
+          }, 3000);
+        }
       });
     } else {
       this.successMessage = 'Регистрация прошла успешно!';

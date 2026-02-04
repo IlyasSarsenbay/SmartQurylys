@@ -1,0 +1,111 @@
+<div class="modal-overlay">
+  <div class="modal-content">
+    <h3>Редактировать данные организации</h3>
+    <form [formGroup]="organisationEditForm" (ngSubmit)="onSubmit()">
+      <h4>Данные пользователя</h4>
+      <div class="form-group">
+        <label for="fullName">Полное имя</label>
+        <input id="fullName" formControlName="fullName" class="form-input">
+        <div *ngIf="organisationEditForm.get('fullName')?.invalid && organisationEditForm.get('fullName')?.touched" class="error-message-inline">
+          Имя обязательно.
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="phone">Телефон</label>
+        <input id="phone" formControlName="phone" class="form-input">
+        <div *ngIf="organisationEditForm.get('phone')?.invalid && organisationEditForm.get('phone')?.touched" class="error-message-inline">
+          Введите корректный номер телефона.
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="iinBin">ИИН/БИН</label>
+        <input id="iinBin" formControlName="iinBin" class="form-input">
+        <div *ngIf="organisationEditForm.get('iinBin')?.invalid && organisationEditForm.get('iinBin')?.touched" class="error-message-inline">
+          ИИН/БИН должен состоять из 12 цифр.
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="cityId">Город</label>
+        <select id="cityId" formControlName="cityId" class="form-input">
+          <option [value]="null" disabled>Выберите город</option>
+          <option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</option>
+        </select>
+        <div *ngIf="organisationEditForm.get('cityId')?.invalid && organisationEditForm.get('cityId')?.touched" class="error-message-inline">
+          Город обязателен.
+        </div>
+      </div>
+
+      <hr>
+
+      <h4>Данные организации</h4>
+      <div class="form-group">
+        <label for="organization">Название организации</label>
+        <input id="organization" formControlName="organization" class="form-input">
+        <div *ngIf="organisationEditForm.get('organization')?.invalid && organisationEditForm.get('organization')?.touched" class="error-message-inline">
+          Название организации обязательно.
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="judAddress">Юридический адрес</label>
+        <input id="judAddress" formControlName="judAddress" class="form-input">
+        <div *ngIf="organisationEditForm.get('judAddress')?.invalid && organisationEditForm.get('judAddress')?.touched" class="error-message-inline">
+          Юридический адрес обязателен.
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="position">Должность администратора</label>
+        <input id="position" formControlName="position" class="form-input">
+        <div *ngIf="organisationEditForm.get('position')?.invalid && organisationEditForm.get('position')?.touched" class="error-message-inline">
+          Должность обязательна.
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="type">Тип организации</label>
+        <select id="type" formControlName="type" class="form-input">
+          <option [value]="null" disabled>Выберите тип организации</option>
+          <option *ngFor="let option of organisationTypeOptions" [value]="option.key">{{ option.value }}</option>
+        </select>
+        <div *ngIf="organisationEditForm.get('type')?.invalid && organisationEditForm.get('type')?.touched" class="error-message-inline">
+          Тип организации обязателен.
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="field">Сфера деятельности</label>
+        <input id="field" formControlName="field" class="form-input">
+        <div *ngIf="organisationEditForm.get('field')?.invalid && organisationEditForm.get('field')?.touched" class="error-message-inline">
+          Сфера деятельности обязательна.
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Специализации</label>
+        <div formGroupName="specialization" class="specialization-checkbox-group">
+          <div *ngFor="let option of specializationOptions" class="checkbox-container">
+            <input type="checkbox" [formControlName]="option.key" [id]="'org-spec-' + option.key">
+            <label [for]="'org-spec-' + option.key">{{ option.value }}</label>
+          </div>
+        </div>
+        <div *ngIf="organisationEditForm.get('specialization')?.invalid && organisationEditForm.get('specialization')?.touched" class="error-message-inline">
+          Выберите хотя бы одну специализацию.
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="yearsOfExperience">Опыт работы (лет)</label>
+        <input id="yearsOfExperience" type="number" formControlName="yearsOfExperience" class="form-input">
+        <div *ngIf="organisationEditForm.get('yearsOfExperience')?.invalid && organisationEditForm.get('yearsOfExperience')?.touched" class="error-message-inline">
+          Опыт работы обязателен и должен быть числом.
+        </div>
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+      <div *ngIf="successMessage" class="success-message">
+        {{ successMessage }}
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="organisationEditForm.invalid">Сохранить</button>
+        <button type="button" class="btn btn-secondary" (click)="onClose()">Отмена</button>
+      </div>
+    </form>
+  </div>
+</div>

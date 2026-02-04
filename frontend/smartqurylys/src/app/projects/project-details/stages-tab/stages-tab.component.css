@@ -185,6 +185,14 @@
   margin-top: 0.5rem;
 }
 
+.required-indicator {
+  color: #dc3545;
+  font-size: 0.875rem;
+  font-weight: 400;
+  margin-left: 0.25rem;
+}
+
+
 .form-actions {
   display: flex;
   gap: 1rem;
@@ -220,7 +228,8 @@
 }
 
 .large-modal-content {
-  max-width: 1200px; /* Adjust width for the tasks modal */
+  max-width: 1200px;
+  /* Adjust width for the tasks modal */
   width: 90%;
 }
 

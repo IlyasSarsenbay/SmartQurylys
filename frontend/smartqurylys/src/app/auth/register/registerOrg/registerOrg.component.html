@@ -6,33 +6,22 @@
       <h2>Регистрация юридического лица</h2>
     </div>
 
-    <form
-      [formGroup]="organisationForm"
-      (ngSubmit)="onSubmit()"
-      class="space-y-5"
-    >
+    <form [formGroup]="organisationForm" (ngSubmit)="onSubmit()" class="space-y-5">
       <ng-container *ngIf="!emailVerified">
         <!-- Поля email и verificationCode без изменений -->
         <div class="form-group">
           <label for="orgEmail">Email</label>
           <div class="email-verification-group">
-            <input
-              type="email"
-              id="orgEmail"
-              formControlName="email"
-              class="form-input email-verification-input"
-              placeholder="Ваш email"
-            />
-            <button
-              type="button"
-              (click)="sendVerificationCode()"
-              [disabled]="organisationForm.get('email')?.invalid || emailSent"
-              class="email-verification-button send"
-            >
+            <input type="email" id="orgEmail" formControlName="email" class="form-input email-verification-input"
+              placeholder="Ваш email" />
+            <button type="button" (click)="sendVerificationCode()"
+              [disabled]="organisationForm.get('email')?.invalid || emailSent" class="email-verification-button send">
               {{ emailSent ? 'Отправлено' : 'Отправить код' }}
             </button>
           </div>
-          <div *ngIf="organisationForm.get('email')?.invalid && (organisationForm.get('email')?.dirty || organisationForm.get('email')?.touched)" class="form-input-error">
+          <div
+            *ngIf="organisationForm.get('email')?.invalid && (organisationForm.get('email')?.dirty || organisationForm.get('email')?.touched)"
+            class="form-input-error">
             <div *ngIf="organisationForm.get('email')?.errors?.['required']">Email обязателен.</div>
             <div *ngIf="organisationForm.get('email')?.errors?.['email']">Некорректный формат email.</div>
           </div>
@@ -41,23 +30,17 @@
         <div *ngIf="emailSent" class="form-group">
           <label for="orgVerificationCode">Код подтверждения</label>
           <div class="email-verification-group">
-            <input
-              type="text"
-              id="orgVerificationCode"
-              formControlName="verificationCode"
-              class="form-input email-verification-input"
-              placeholder="Введите код из письма"
-            />
-            <button
-              type="button"
-              (click)="verifyCode()"
+            <input type="text" id="orgVerificationCode" formControlName="verificationCode"
+              class="form-input email-verification-input" placeholder="Введите код из письма" />
+            <button type="button" (click)="verifyCode()"
               [disabled]="organisationForm.get('verificationCode')?.invalid || emailVerified"
-              class="email-verification-button verify"
-            >
+              class="email-verification-button verify">
               {{ emailVerified ? 'Подтверждено' : 'Подтвердить' }}
             </button>
           </div>
-          <div *ngIf="organisationForm.get('verificationCode')?.invalid && (organisationForm.get('verificationCode')?.dirty || organisationForm.get('verificationCode')?.touched)" class="form-input-error">
+          <div
+            *ngIf="organisationForm.get('verificationCode')?.invalid && (organisationForm.get('verificationCode')?.dirty || organisationForm.get('verificationCode')?.touched)"
+            class="form-input-error">
             <div *ngIf="organisationForm.get('verificationCode')?.errors?.['required']">Код обязателен.</div>
           </div>
         </div>
@@ -70,28 +53,23 @@
       <ng-container *ngIf="emailVerified">
         <div class="form-group">
           <label for="orgOrganization">Полное наименование организации</label>
-          <input
-            type="text"
-            id="orgOrganization"
-            formControlName="organization"
-            class="form-input"
-            placeholder="Введите полное наименование организации"
-          />
-          <div *ngIf="organisationForm.get('organization')?.invalid && (organisationForm.get('organization')?.dirty || organisationForm.get('organization')?.touched)" class="form-input-error">
-            <div *ngIf="organisationForm.get('organization')?.errors?.['required']">Название организации обязательно.</div>
+          <input type="text" id="orgOrganization" formControlName="organization" class="form-input"
+            placeholder="Введите полное наименование организации" />
+          <div
+            *ngIf="organisationForm.get('organization')?.invalid && (organisationForm.get('organization')?.dirty || organisationForm.get('organization')?.touched)"
+            class="form-input-error">
+            <div *ngIf="organisationForm.get('organization')?.errors?.['required']">Название организации обязательно.
+            </div>
           </div>
         </div>
 
         <div class="form-group">
           <label for="orgIinBin">БИН</label>
-          <input
-            type="text"
-            id="orgIinBin"
-            formControlName="iinBin"
-            class="form-input"
-            placeholder="Введите БИН организации"
-          />
-          <div *ngIf="organisationForm.get('iinBin')?.invalid && (organisationForm.get('iinBin')?.dirty || organisationForm.get('iinBin')?.touched)" class="form-input-error">
+          <input type="text" id="orgIinBin" formControlName="iinBin" class="form-input"
+            placeholder="Введите БИН организации" />
+          <div
+            *ngIf="organisationForm.get('iinBin')?.invalid && (organisationForm.get('iinBin')?.dirty || organisationForm.get('iinBin')?.touched)"
+            class="form-input-error">
             <div *ngIf="organisationForm.get('iinBin')?.errors?.['required']">БИН обязателен.</div>
             <div *ngIf="organisationForm.get('iinBin')?.errors?.['pattern']">БИН должен состоять из 12 цифр.</div>
           </div>
@@ -99,54 +77,41 @@
 
         <div class="form-group">
           <label for="orgJudAddress">Юридический адрес</label>
-          <input
-            type="text"
-            id="orgJudAddress"
-            formControlName="judAddress"
-            class="form-input"
-            placeholder="Введите юридический адрес организации"
-          />
-          <div *ngIf="organisationForm.get('judAddress')?.invalid && (organisationForm.get('judAddress')?.dirty || organisationForm.get('judAddress')?.touched)" class="form-input-error">
+          <input type="text" id="orgJudAddress" formControlName="judAddress" class="form-input"
+            placeholder="Введите юридический адрес организации" />
+          <div
+            *ngIf="organisationForm.get('judAddress')?.invalid && (organisationForm.get('judAddress')?.dirty || organisationForm.get('judAddress')?.touched)"
+            class="form-input-error">
             <div *ngIf="organisationForm.get('judAddress')?.errors?.['required']">Юридический адрес обязателен.</div>
           </div>
         </div>
 
         <div class="form-group">
           <label for="orgFullName">Ф.И.О.</label>
-          <input
-            type="text"
-            id="orgFullName"
-            formControlName="fullName"
-            class="form-input"
-            placeholder="Введите Ф.И.О."
-          />
-          <div *ngIf="organisationForm.get('fullName')?.invalid && (organisationForm.get('fullName')?.dirty || organisationForm.get('fullName')?.touched)" class="form-input-error">
+          <input type="text" id="orgFullName" formControlName="fullName" class="form-input"
+            placeholder="Введите Ф.И.О." />
+          <div
+            *ngIf="organisationForm.get('fullName')?.invalid && (organisationForm.get('fullName')?.dirty || organisationForm.get('fullName')?.touched)"
+            class="form-input-error">
             <div *ngIf="organisationForm.get('fullName')?.errors?.['required']">Ф.И.О. обязательно.</div>
           </div>
         </div>
 
         <div class="form-group">
           <label for="orgPosition">Должность</label>
-          <input
-            type="text"
-            id="orgPosition"
-            formControlName="position"
-            class="form-input"
-            placeholder="Введите должность"
-          />
-          <div *ngIf="organisationForm.get('position')?.invalid && (organisationForm.get('position')?.dirty || organisationForm.get('position')?.touched)" class="form-input-error">
+          <input type="text" id="orgPosition" formControlName="position" class="form-input"
+            placeholder="Введите должность" />
+          <div
+            *ngIf="organisationForm.get('position')?.invalid && (organisationForm.get('position')?.dirty || organisationForm.get('position')?.touched)"
+            class="form-input-error">
             <div *ngIf="organisationForm.get('position')?.errors?.['required']">Должность обязательна.</div>
           </div>
         </div>
 
         <div class="form-group file-upload-group">
           <label for="representativeDocuments">Документы представителя</label>
-          <input
-            type="file"
-            id="representativeDocuments"
-            (change)="onRepresentativeDocumentsSelected($event)"
-            class="form-input-file"
-          />
+          <input type="file" id="representativeDocuments" (change)="onRepresentativeDocumentsSelected($event)"
+            class="form-input-file" />
           <span *ngIf="representativeDocumentsFile" class="file-name">
             {{ representativeDocumentsFile.name }}
           </span>
@@ -154,29 +119,24 @@
 
         <div class="form-group">
           <label for="orgType">Тип организации</label>
-          <select
-            id="orgType"
-            formControlName="type"
-            class="form-input"
-          >
+          <select id="orgType" formControlName="type" class="form-input">
             <option [ngValue]="null" disabled>Выберите тип</option>
             <option *ngFor="let option of organisationTypeOptions" [ngValue]="option.key">{{ option.value }}</option>
           </select>
-          <div *ngIf="organisationForm.get('type')?.invalid && (organisationForm.get('type')?.dirty || organisationForm.get('type')?.touched)" class="form-input-error">
+          <div
+            *ngIf="organisationForm.get('type')?.invalid && (organisationForm.get('type')?.dirty || organisationForm.get('type')?.touched)"
+            class="form-input-error">
             <div *ngIf="organisationForm.get('type')?.errors?.['required']">Тип организации обязателен.</div>
           </div>
         </div>
 
         <div class="form-group">
           <label for="orgField">Сфера деятельности</label>
-          <input
-            type="text"
-            id="orgField"
-            formControlName="field"
-            class="form-input"
-            placeholder="Введите сферу деятельности"
-          />
-          <div *ngIf="organisationForm.get('field')?.invalid && (organisationForm.get('field')?.dirty || organisationForm.get('field')?.touched)" class="form-input-error">
+          <input type="text" id="orgField" formControlName="field" class="form-input"
+            placeholder="Введите сферу деятельности" />
+          <div
+            *ngIf="organisationForm.get('field')?.invalid && (organisationForm.get('field')?.dirty || organisationForm.get('field')?.touched)"
+            class="form-input-error">
             <div *ngIf="organisationForm.get('field')?.errors?.['required']">Область деятельности обязательна.</div>
           </div>
         </div>
@@ -189,73 +149,58 @@
               <label [for]="'spec-' + option.key">{{ option.value }}</label>
             </div>
           </div>
-          <div *ngIf="organisationForm.get('specialization')?.invalid && (organisationForm.get('specialization')?.dirty || organisationForm.get('specialization')?.touched)" class="form-input-error">
-            <div *ngIf="organisationForm.get('specialization')?.errors?.['required']">Необходимо выбрать хотя бы одну специализацию.</div>
+          <div
+            *ngIf="organisationForm.get('specialization')?.invalid && (organisationForm.get('specialization')?.dirty || organisationForm.get('specialization')?.touched)"
+            class="form-input-error">
+            <div *ngIf="organisationForm.get('specialization')?.errors?.['required']">Необходимо выбрать хотя бы одну
+              специализацию.</div>
           </div>
         </div>
-        
+
         <div class="form-group">
           <label for="orgYears">Общий стаж</label>
-          <input
-            type="number"
-            id="orgYears"
-            formControlName="yearsOfExperience"
-            class="form-input"
-            placeholder="Введите общий стаж на рынке"
-          />
-          <div *ngIf="organisationForm.get('yearsOfExperience')?.invalid && (organisationForm.get('yearsOfExperience')?.dirty || organisationForm.get('yearsOfExperience')?.touched)" class="form-input-error">
+          <input type="number" id="orgYears" formControlName="yearsOfExperience" class="form-input"
+            placeholder="Введите общий стаж на рынке" />
+          <div
+            *ngIf="organisationForm.get('yearsOfExperience')?.invalid && (organisationForm.get('yearsOfExperience')?.dirty || organisationForm.get('yearsOfExperience')?.touched)"
+            class="form-input-error">
             <div *ngIf="organisationForm.get('yearsOfExperience')?.errors?.['required']">Общий стаж обязателен.</div>
-            <div *ngIf="organisationForm.get('yearsOfExperience')?.errors?.['min']">Опыт работы не может быть отрицательным.</div>
+            <div *ngIf="organisationForm.get('yearsOfExperience')?.errors?.['min']">Опыт работы не может быть
+              отрицательным.</div>
           </div>
         </div>
 
         <div class="form-group file-upload-group">
           <label for="license">Лицензия</label>
-          <input
-            type="file"
-            id="license"
-            (change)="onLicenseSelected($event)"
-            class="form-input-file"
-          />
+          <input type="file" id="license" (change)="onLicenseSelected($event)" class="form-input-file" />
           <span *ngIf="licenseFile" class="file-name">{{ licenseFile.name }}</span>
         </div>
 
         <div class="form-group">
           <label for="orgCity">Город</label>
-          <select
-            id="orgCity"
-            formControlName="cityId"
-            class="form-input"
-          >
+          <select id="orgCity" formControlName="cityId" class="form-input">
             <option [ngValue]="null" disabled>Выберите город</option>
             <option *ngFor="let city of cities$ | async" [ngValue]="city.id">{{ city.name }}</option>
           </select>
-          <div *ngIf="organisationForm.get('cityId')?.invalid && (organisationForm.get('cityId')?.dirty || organisationForm.get('cityId')?.touched)" class="form-input-error">
+          <div
+            *ngIf="organisationForm.get('cityId')?.invalid && (organisationForm.get('cityId')?.dirty || organisationForm.get('cityId')?.touched)"
+            class="form-input-error">
             <div *ngIf="organisationForm.get('cityId')?.errors?.['required']">Город обязателен.</div>
           </div>
         </div>
 
         <div class="form-group">
           <label for="orgEmailVerified">Почта</label>
-          <input
-            type="email"
-            id="orgEmailVerified"
-            formControlName="email"
-            class="form-input"
-            readonly
-          />
+          <input type="email" id="orgEmailVerified" formControlName="email" class="form-input" readonly />
         </div>
 
         <div class="form-group">
           <label for="orgPhone">Контактный номер</label>
-          <input
-            type="tel"
-            id="orgPhone"
-            formControlName="phone"
-            class="form-input"
-            placeholder="Введите контактный номер телефона"
-          />
-          <div *ngIf="organisationForm.get('phone')?.invalid && (organisationForm.get('phone')?.dirty || organisationForm.get('phone')?.touched)" class="form-input-error">
+          <input type="tel" id="orgPhone" formControlName="phone" class="form-input"
+            placeholder="Введите контактный номер телефона" />
+          <div
+            *ngIf="organisationForm.get('phone')?.invalid && (organisationForm.get('phone')?.dirty || organisationForm.get('phone')?.touched)"
+            class="form-input-error">
             <div *ngIf="organisationForm.get('phone')?.errors?.['required']">Номер телефона обязателен.</div>
             <div *ngIf="organisationForm.get('phone')?.errors?.['pattern']">Некорректный формат номера телефона.</div>
           </div>
@@ -263,16 +208,14 @@
 
         <div class="form-group">
           <label for="orgPassword">Пароль</label>
-          <input
-            type="password"
-            id="orgPassword"
-            formControlName="password"
-            class="form-input"
-            placeholder="Ваш пароль (минимум 8 символов)"
-          />
-          <div *ngIf="organisationForm.get('password')?.invalid && (organisationForm.get('password')?.dirty || organisationForm.get('password')?.touched)" class="form-input-error">
+          <input type="password" id="orgPassword" formControlName="password" class="form-input"
+            placeholder="Ваш пароль (минимум 8 символов)" />
+          <div
+            *ngIf="organisationForm.get('password')?.invalid && (organisationForm.get('password')?.dirty || organisationForm.get('password')?.touched)"
+            class="form-input-error">
             <div *ngIf="organisationForm.get('password')?.errors?.['required']">Пароль обязателен.</div>
-            <div *ngIf="organisationForm.get('password')?.errors?.['minlength']">Пароль должен содержать не менее 8 символов.</div>
+            <div *ngIf="organisationForm.get('password')?.errors?.['minlength']">Пароль должен содержать не менее 8
+              символов.</div>
           </div>
         </div>
       </ng-container>
@@ -282,12 +225,9 @@
       </div>
 
       <div>
-        <button
-          type="submit"
-          [disabled]="!emailVerified || organisationForm.invalid"
-          class="form-button"
-        >
-          Зарегистрироваться
+        <button type="submit" [disabled]="!emailVerified || organisationForm.invalid || isUploading"
+          class="form-button">
+          {{ isUploading ? 'Загрузка документов...' : 'Зарегистрироваться' }}
         </button>
       </div>
     </form>

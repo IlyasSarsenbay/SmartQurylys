@@ -1,0 +1,125 @@
+<div class="dashboard-layout">
+  <div class="sidebar">
+    <div class="sidebar-item" routerLink="/dashboard" routerLinkActive="active"
+      [routerLinkActiveOptions]="{exact: false}">
+      <i class="fas fa-list-alt"></i>
+      <span>Проекты</span>
+    </div>
+    <div class="sidebar-item" routerLink="/contractor-registry" routerLinkActive="active">
+      <i class="fas fa-hard-hat"></i>
+      <span>Найти Подрядчика</span>
+    </div>
+    <div class="sidebar-item" routerLink="/chat" routerLinkActive="active">
+      <i class="fas fa-comments"></i>
+      <span>Чат</span>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="contractor-registry">
+      <div class="header">
+        <h1>РЕЕСТР ПОДРЯДЧИКОВ</h1>
+      </div>
+
+      <!-- Фильтры -->
+      <div class="filters-section">
+        <div class="filter-row">
+          <div class="filter-group">
+            <input type="text" [(ngModel)]="searchTerm" (input)="applyFilters()"
+              placeholder="Поиск по названию, ФИО или области..." class="search-input">
+          </div>
+
+          <div class="filter-group">
+            <select [(ngModel)]="selectedCity" (change)="applyFilters()" class="filter-select">
+              <option value="">Все города</option>
+              <option *ngFor="let city of cities" [value]="city">{{city}}</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <select [(ngModel)]="selectedSpecialization" (change)="applyFilters()" class="filter-select">
+              <option value="">Все специализации</option>
+              <option *ngFor="let spec of specializations" [value]="spec">{{spec}}</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <select [(ngModel)]="selectedExperience" (change)="applyFilters()" class="filter-select">
+              <option value="">Любой стаж</option>
+              <option *ngFor="let exp of experienceRanges" [value]="exp">{{exp}}</option>
+            </select>
+          </div>
+
+          <div class="filter-group checkbox-filter">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="onlyWithApprovedLicenses" (change)="applyFilters()">
+              <span>Только с одобренными лицензиями</span>
+            </label>
+          </div>
+
+          <button (click)="clearFilters()" class="clear-btn">Очистить</button>
+        </div>
+      </div>
+
+      <!-- Загрузка -->
+      <div *ngIf="loading" class="loading">
+        Загрузка данных...
+      </div>
+
+      <!-- Ошибка -->
+      <div *ngIf="errorMessage" class="error-message">
+        {{errorMessage}}
+      </div>
+
+      <!-- Таблица -->
+      <div *ngIf="!loading" class="table-container">
+        <table class="contractor-table">
+          <thead>
+            <tr>
+              <th>Наименование</th>
+              <th>Тип лицензии</th>
+              <th>Тип работ</th>
+              <th>Общий стаж</th>
+              <th>Город</th>
+              <th>Контакты</th>
+              <th>Статус</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let org of filteredOrganisations" class="contractor-row">
+              <td class="organization-name">
+                <strong>{{org.organization}}</strong>
+              </td>
+              <td>
+                <span [ngClass]="{
+                  'license-approved': getLicenseTypes(org) !== 'Лицензия отсутствует' && getLicenseTypes(org) !== 'Лицензия не одобрена',
+                  'license-pending': getLicenseTypes(org) === 'Лицензия не одобрена',
+                  'license-missing': getLicenseTypes(org) === 'Лицензия отсутствует'
+                }">
+                  {{getLicenseTypes(org)}}
+                </span>
+              </td>
+              <td>{{getWorkTypes(org)}}</td>
+              <td>{{org.yearsOfExperience}} лет</td>
+              <td>{{org.city || 'Не указан'}}</td>
+              <td class="contacts">
+                <div class="phone">{{org.phone}}</div>
+                <div class="email">{{org.email}}</div>
+              </td>
+              <td>
+                <div *ngIf="org.status" [class]="'availability-badge ' + org.status.toLowerCase()">
+                  {{ org.status === 'AVAILABLE' ? 'Свободен' : 'Занят' }}
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Пустой результат -->
+        <div *ngIf="filteredOrganisations.length === 0" class="no-results">
+          Подрядчики по заданным критериям не найдены
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -66,7 +66,8 @@
               "buildTarget": "smartqurylys:build:production"
             },
             "development": {
-              "buildTarget": "smartqurylys:build:development"
+              "buildTarget": "smartqurylys:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

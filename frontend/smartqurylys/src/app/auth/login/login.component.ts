@@ -27,7 +27,12 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/home']);
+      const userRole = this.authService.getUserRole();
+      if (userRole === 'ADMIN') { // Corrected comparison
+        this.router.navigate(['/admin']);
+      } else {
+        this.router.navigate(['/home']);
+      }
     }
   }
 
@@ -38,7 +43,12 @@ export class LoginComponent implements OnInit {
       this.authService.login(request).subscribe({
         next: (token) => {
           console.log('Login successful, token:', token);
-          this.router.navigate(['/home']);
+          const userRole = this.authService.getUserRole();
+          if (userRole === 'ADMIN') { // Corrected comparison
+            this.router.navigate(['/admin']);
+          } else {
+            this.router.navigate(['/home']);
+          }
         },
         error: (err: HttpErrorResponse) => { 
           console.error('Login failed:', err);

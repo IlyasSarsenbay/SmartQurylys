@@ -8,7 +8,7 @@ import { StageResponse, CreateStageRequest, UpdateStageRequest } from '../core/m
   providedIn: 'root'
 })
 export class StageService {
-  private apiUrl = `${environment.apiUrl}/schedules`; 
+  private apiUrl = `${environment.apiUrl}/schedules`;
 
   constructor(private http: HttpClient) { }
 
@@ -37,7 +37,7 @@ export class StageService {
   }
 
   // Метод для возврата этапа в активный статус
-  returnStageToActive(scheduleId: number, stageId: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${scheduleId}/stages/${stageId}/return-to-active`, {});
+  returnStageToActive(scheduleId: number, stageId: number, reason: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${scheduleId}/stages/${stageId}/return-to-active`, { reason });
   }
 }

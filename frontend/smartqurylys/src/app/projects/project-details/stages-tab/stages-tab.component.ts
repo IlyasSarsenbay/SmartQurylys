@@ -25,22 +25,22 @@ export class StagesTabComponent implements OnInit, OnChanges {
 
   stages: StageResponse[] = [];
   schedule: ScheduleResponse | null = null;
-  
+
   isLoading: boolean = true;
   isCreatingOrUpdatingStage: boolean = false;
-  
+
   errorMessage: string | null = null;
   successMessage: string | null = null;
-  
+
   showCreateOrEditStageForm: boolean = false;
   editingStageId: number | null = null; // ID этапа, который сейчас редактируется
-  
+
   stageForm: FormGroup;
 
   // New properties for the tasks modal
   showTasksModal = false;
   currentStageForTasks: StageResponse | null = null;
-  
+
   constructor(
     private router: Router,
     private stageService: StageService,
@@ -50,13 +50,13 @@ export class StagesTabComponent implements OnInit, OnChanges {
   ) {
     this.stageForm = this.fb.group({
       name: ['', Validators.required],
-      description: [''],
+      description: ['', Validators.required],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required]
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['projectId'] && this.projectId) {
@@ -149,7 +149,7 @@ export class StagesTabComponent implements OnInit, OnChanges {
     this.successMessage = null;
     this.errorMessage = null;
   }
-  
+
   /**
    * Открывает форму для редактирования существующего этапа.
    * @param stage Объект этапа для редактирования.
@@ -180,7 +180,7 @@ export class StagesTabComponent implements OnInit, OnChanges {
       this.setActionMessage('Пожалуйста, заполните все обязательные поля.', 'error');
       return;
     }
-    
+
     this.isCreatingOrUpdatingStage = true;
     this.errorMessage = null;
     this.successMessage = null;
@@ -194,7 +194,7 @@ export class StagesTabComponent implements OnInit, OnChanges {
       }
       const scheduleName = `Расписание проекта ${this.projectId}`;
       const createScheduleRequest: CreateScheduleRequest = { name: scheduleName };
-      
+
       this.scheduleService.createSchedule(this.projectId, createScheduleRequest).pipe(
         switchMap(newSchedule => {
           this.schedule = newSchedule;
@@ -217,7 +217,7 @@ export class StagesTabComponent implements OnInit, OnChanges {
           this.setActionMessage('Расписание и этап успешно созданы!', 'success');
         }
       });
-      
+
     } else if (this.schedule.id) {
       if (this.editingStageId) {
         // Логика обновления существующего этапа
@@ -289,7 +289,7 @@ export class StagesTabComponent implements OnInit, OnChanges {
     this.successMessage = null;
     this.errorMessage = null;
   }
-  
+
   openTasksModal(stage: StageResponse): void {
     if (stage) {
       this.currentStageForTasks = stage;
@@ -298,7 +298,7 @@ export class StagesTabComponent implements OnInit, OnChanges {
       this.setActionMessage('Не удалось открыть задачи. У этапа отсутствует ID.', 'error');
     }
   }
-  
+
   closeTasksModal(): void {
     this.showTasksModal = false;
     this.currentStageForTasks = null;

@@ -18,7 +18,7 @@ import { CommonModule } from '@angular/common';
           </button>
         </div>
         <!-- Содержимое модального окна передается через ng-content -->
-        <div class="py-4">
+        <div class="py-4 max-h-[80vh] overflow-y-auto">
           <ng-content></ng-content>
         </div>
       </div>

@@ -4,12 +4,12 @@
     <span class="logo-smartqurylys">SMARTQURYLYS</span>
   </div>
   <div class="header-right-nav">
-    <a routerLink="/instruction" class="nav-link">Инструкция</a>
+    <a routerLink="/dashboard" class="nav-link home-link"><i class="fas fa-home"></i></a>
     <div class="icon-button-wrapper">
-      <button class="icon-button"><i class="fas fa-bell"></i></button>
-      <span class="notification-badge">1</span>
+      <button class="icon-button" (click)="onToggleNotifications()"><i class="fas fa-bell"></i></button>
+      <span class="notification-badge" *ngIf="notificationCount > 0">{{ notificationCount }}</span>
     </div>
-    <button class="icon-button"><i class="fas fa-user-circle"></i></button>
+    <button class="icon-button" (click)="goToPersonalCabinet()"><i class="fas fa-user-circle"></i></button>
     <button class="icon-button logout-button" (click)="logout()"><i class="fas fa-sign-out-alt"></i></button>
   </div>
 </header>

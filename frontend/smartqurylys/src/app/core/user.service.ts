@@ -1,44 +1,60 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { UserResponse, ChangePasswordRequest, ChangeEmailRequest, UpdateUserRequest } from './models/user';
 import { environment } from '../../environments/environment';
-import { UserResponse, ChangeEmailRequest, ChangePasswordRequest } from './models/user';
 import { RegisterRequest } from './models/auth';
-import { AuthService } from '../auth/auth.service'; // Import AuthService to get token
-
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = `${environment.apiUrl}/users`;
+  private apiUrl = `${environment.apiUrl}`;
 
-  constructor(private http: HttpClient, private authService: AuthService) { }
+  constructor(private http: HttpClient) { }
 
-  private getAuthHeaders(): HttpHeaders {
-    const token = this.authService.getToken();
-    if (token) {
-      return new HttpHeaders({
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      });
-    }
-    return new HttpHeaders({ 'Content-Type': 'application/json' });
-  }
-
- 
+  // General user methods
   getCurrentUser(): Observable<UserResponse> {
-    return this.http.get<UserResponse>(`${this.apiUrl}/me`, { headers: this.getAuthHeaders() });
+    return this.http.get<UserResponse>(`${this.apiUrl}/users/me`);
   }
 
-  updateUser(request: RegisterRequest): Observable<UserResponse> {
-    return this.http.put<UserResponse>(`${this.apiUrl}/me`, request, { headers: this.getAuthHeaders() });
+  updateUser(id: number, request: UpdateUserRequest): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/users/${id}`, request);
   }
 
-  changeEmail(request: ChangeEmailRequest): Observable<UserResponse> {
-    return this.http.patch<UserResponse>(`${this.apiUrl}/change-email`, request, { headers: this.getAuthHeaders() });
+  updateMyUser(id: number, request: RegisterRequest): Observable<UserResponse> {
+    return this.http.put<UserResponse>(`${this.apiUrl}/users/${id}`, request);
+  }
+
+  updateCurrentUserProfile(request: RegisterRequest): Observable<UserResponse> {
+    return this.http.put<UserResponse>(`${this.apiUrl}/users/me`, request);
+  }
+
+  // Admin methods
+  getAllUsers(): Observable<UserResponse[]> {
+    return this.http.get<UserResponse[]>(`${this.apiUrl}/admin/users`);
+  }
+
+  getUserById(id: number): Observable<UserResponse> {
+    return this.http.get<UserResponse>(`${this.apiUrl}/admin/users/${id}`);
+  }
+
+  getUserRole(id: number): Observable<string> {
+    return this.http.get(`${this.apiUrl}/admin/users/${id}/role`, { responseType: 'text' });
+  }
+
+  updateUserRole(id: number, role: string): Observable<UserResponse> {
+    return this.http.put<UserResponse>(`${this.apiUrl}/admin/users/${id}/role`, role, { headers: { 'Content-Type': 'text/plain' } });
+  }
+
+  deleteUser(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/admin/users/${id}`);
   }
 
   changePassword(request: ChangePasswordRequest): Observable<string> {
-    return this.http.patch(`${this.apiUrl}/change-password`, request, { responseType: 'text', headers: this.getAuthHeaders() });
+    return this.http.patch(`${this.apiUrl}/users/change-password`, request, { responseType: 'text' });
+  }
+
+  changeEmail(request: ChangeEmailRequest): Observable<string> {
+    return this.http.patch(`${this.apiUrl}/users/change-email`, request, { responseType: 'text' });
   }
 }
