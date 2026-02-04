@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+// Сущность для представления беседы в чате.
 @Entity
 @Table(name = "conversations")
 @Data
@@ -23,34 +24,32 @@ public class Conversation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // Уникальный идентификатор беседы.
 
-    // Тип беседы: PROJECT_CHAT (для проекта), PRIVATE_CHAT (для личного сообщения)
+    // Тип беседы: PROJECT_CHAT (для проекта) или PRIVATE_CHAT (для личного сообщения).
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ConversationType type;
 
-    // Для PROJECT_CHAT: ссылка на проект. Nullable для PRIVATE_CHAT.
+    // Ссылка на проект, если это чат проекта (может быть null для личных бесед).
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
     private Project project;
 
-    // Для PRIVATE_CHAT: название беседы (например, "Иванов И.И. & Петров П.П.")
-    // Для PROJECT_CHAT: может быть null или "Чат проекта"
+    // Название беседы (например, "Иванов И.И. & Петров П.П." для личных чатов, или "Чат проекта").
     private String name;
 
-    // Для PRIVATE_CHAT: участники беседы (обычно 2).
-    // Для PROJECT_CHAT: участники определяются через Project.participants, это поле не используется.
+    // Участники беседы (для личных чатов). Для чатов проекта участники определяются через Project.participants.
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "conversation_participants",
             joinColumns = @JoinColumn(name = "conversation_id"),
             inverseJoinColumns = @JoinColumn(name = "participant_id")
     )
-    private Set<User> participants = new HashSet<>(); // Используем User, т.к. Participant - это User в контексте проекта
+    private Set<User> participants = new HashSet<>(); // Набор пользователей, участвующих в беседе.
 
-    private LocalDateTime lastMessageTimestamp;
+    private LocalDateTime lastMessageTimestamp; // Время последнего сообщения в беседе.
 
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ChatMessage> chatMessages = new ArrayList<>();
+    private List<ChatMessage> chatMessages = new ArrayList<>(); // Список сообщений в данной беседе.
 }

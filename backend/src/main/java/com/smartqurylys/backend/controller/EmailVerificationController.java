@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+// Контроллер для верификации электронной почты.
 @RestController
 @RequestMapping("/api/email")
 @RequiredArgsConstructor
@@ -15,12 +16,14 @@ public class EmailVerificationController {
 
     private final EmailService emailService;
 
+    // Отправка кода подтверждения на указанную почту.
     @PostMapping("/send-code")
     public ResponseEntity<String> sendCode(@Valid @RequestBody SendEmailCodeRequest request) {
         emailService.sendVerificationCode(request.getEmail());
         return ResponseEntity.ok("Код отправлен на: " + request.getEmail());
     }
 
+    // Проверка кода, полученного по почте.
     @PostMapping("/verify-code")
     public ResponseEntity<String> verifyCode(@Valid @RequestBody VerifyEmailRequest request) {
         boolean success = emailService.verifyEmailCode(request.getEmail(), request.getCode());

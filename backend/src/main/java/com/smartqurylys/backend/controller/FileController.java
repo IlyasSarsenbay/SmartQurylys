@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
+// Контроллер для работы с файлами.
 @RestController
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
@@ -18,33 +19,36 @@ public class FileController {
 
     private final FileService fileService;
 
+    // Получение информации о файле по ID.
     @GetMapping("/{id}")
     public ResponseEntity<FileResponse> getFileInfo(@PathVariable Long id) {
         return ResponseEntity.ok(fileService.getFileInfo(id));
     }
 
+    // Скачивание файла по ID.
     @GetMapping("/download/{id}")
     public ResponseEntity<byte[]> downloadFile(@PathVariable Long id) throws IOException {
-        // Получаем объект File из базы данных, чтобы иметь доступ к полному пути
+        // Получаем информацию о файле из базы.
         File fileEntity = fileService.getFileEntity(id);
 
-        // Читаем весь файл в массив байтов
+        // Читаем файл в виде массива байт.
         byte[] fileBytes = fileService.loadFileAsByteArray(fileEntity);
 
-        // Определяем MIME-тип
+        // Определяем тип контента для корректной отдачи файла браузеру.
         String contentType = fileService.getContentTypeByFilename(fileEntity.getFilepath());
         if (contentType == null) {
             contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
         }
 
-        // Возвращаем файл в виде массива байтов
+        // Возвращаем файл.
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileEntity.getName() + "\"")
-                .contentLength(fileBytes.length) // Устанавливаем размер файла
+                .contentLength(fileBytes.length)
                 .body(fileBytes);
     }
 
+    // Удаление файла по ID.
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFile(@PathVariable Long id) throws IOException {
         fileService.deleteFile(id);

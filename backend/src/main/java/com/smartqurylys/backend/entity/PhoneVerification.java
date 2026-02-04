@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+// Сущность для хранения кодов подтверждения номера телефона.
 @Entity
 @Data
 @NoArgsConstructor
@@ -13,11 +14,11 @@ public class PhoneVerification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // Уникальный идентификатор записи.
 
-    private String phone;
+    private String phone; // Номер телефона.
 
-    private String code;
+    private String code; // Код подтверждения.
 
-    private LocalDateTime expirationTime;
+    private LocalDateTime expirationTime; // Время истечения срока действия кода.
 }

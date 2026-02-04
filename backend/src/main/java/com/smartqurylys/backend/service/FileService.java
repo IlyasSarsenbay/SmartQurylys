@@ -14,14 +14,17 @@ import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
+// Сервис для управления файлами: загрузка, получение, удаление и определение MIME-типов.
 @Service
 @RequiredArgsConstructor
 public class FileService {
 
     private final FileRepository fileRepository;
 
+    // Корневая директория для хранения загруженных файлов.
     private final Path rootLocation = Paths.get("uploads");
 
+    // Статическая карта для определения MIME-типов по расширениям файлов.
     private static final Map<String, String> MIME_TYPE_MAP;
     static {
         Map<String, String> map = new HashMap<>();
@@ -45,6 +48,7 @@ public class FileService {
         MIME_TYPE_MAP = Collections.unmodifiableMap(map);
     }
 
+    // Подготавливает и сохраняет загруженный файл, создавая запись в базе данных.
     public File prepareFile(MultipartFile file, User currentUser) throws IOException {
         if (!Files.exists(rootLocation)) {
             Files.createDirectories(rootLocation);
@@ -52,6 +56,7 @@ public class FileService {
 
         String originalFilename = file.getOriginalFilename();
         String extension = getFileExtension(file);
+        // Если расширение не определено, пытаемся угадать его по MIME-типу.
         if (extension == null || extension.isEmpty()) {
             extension = guessExtensionFromContentType(file.getContentType());
         }
@@ -73,16 +78,19 @@ public class FileService {
         return fileRepository.save(savedFile);
     }
 
+    // Получает сущность файла по его ID.
     public File getFileEntity(Long id) {
         return fileRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Файл не найден"));
     }
 
+    // Загружает содержимое файла в виде массива байтов.
     public byte[] loadFileAsByteArray(File file) throws IOException {
         Path path = Paths.get(file.getFilepath());
         return Files.readAllBytes(path);
     }
 
+    // Определяет MIME-тип файла по его имени.
     public String getContentTypeByFilename(String filename) {
         String fileExtension = Optional.ofNullable(filename)
                 .filter(f -> f.contains("."))
@@ -100,17 +108,20 @@ public class FileService {
         return URLConnection.guessContentTypeFromName(filename);
     }
 
+    // Получает информацию о файле по его ID в формате DTO.
     public FileResponse getFileInfo(Long id) {
         File file = getFileEntity(id);
         return mapToFileResponse(file);
     }
 
+    // Удаляет файл из файловой системы и его запись из базы данных.
     public void deleteFile(Long id) throws IOException {
         File file = getFileEntity(id);
         Files.deleteIfExists(Paths.get(file.getFilepath()));
         fileRepository.delete(file);
     }
 
+    // Преобразует сущность File в DTO FileResponse.
     public FileResponse mapToFileResponse(File file) {
         return FileResponse.builder()
                 .id(file.getId())
@@ -122,6 +133,7 @@ public class FileService {
                 .build();
     }
 
+    // Вспомогательный метод для получения расширения файла из его имени.
     private String getFileExtension(MultipartFile file) {
         String originalName = file.getOriginalFilename();
         if (originalName != null && originalName.contains(".")) {
@@ -130,6 +142,7 @@ public class FileService {
         return "";
     }
 
+    // Вспомогательный метод для угадывания расширения файла по его MIME-типу.
     private String guessExtensionFromContentType(String contentType) {
         if (contentType == null) return "";
         for (Map.Entry<String, String> entry : MIME_TYPE_MAP.entrySet()) {

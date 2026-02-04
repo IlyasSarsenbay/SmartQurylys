@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// Сервис для управления графиками работ (ГПР) в рамках проектов.
 @Service
 @RequiredArgsConstructor
 public class ScheduleService {
@@ -32,6 +33,7 @@ public class ScheduleService {
     private final UserRepository userRepository;
     private final FileService fileService;
 
+    // Создает новый график работ для указанного проекта. Доступно только владельцу проекта.
     public ScheduleResponse createSchedule(Long projectId, CreateScheduleRequest request) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
@@ -42,8 +44,8 @@ public class ScheduleService {
             throw new SecurityException("Вы не являетесь владельцем проекта");
         }
 
-        if (!scheduleRepository.findByProject(project).isEmpty()) {
-            throw new IllegalArgumentException("ГПР уже существует для этого проекта");
+        if (scheduleRepository.findByProject(project).isPresent()) {
+            throw new IllegalArgumentException("ГПР уже существует для этого проекта"); // Проверяем уникальность ГПР для проекта.
         }
 
         Schedule schedule = Schedule.builder()
@@ -55,6 +57,7 @@ public class ScheduleService {
         return mapToResponse(scheduleRepository.save(schedule));
     }
 
+    // Получает графики работ для указанного проекта.
     public List<ScheduleResponse> getSchedulesByProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
@@ -67,10 +70,10 @@ public class ScheduleService {
                 .collect(Collectors.toList());
     }
 
+    // Обновляет информацию о графике работ. Доступно только владельцу проекта.
     public ScheduleResponse updateSchedule(Long projectId, UpdateScheduleRequest request) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
-
 
         User currentUser = getAuthenticatedUser();
         if (!project.getOwner().getId().equals(currentUser.getId())) {
@@ -85,6 +88,8 @@ public class ScheduleService {
 
         return mapToResponse(schedule);
     }
+
+    // Удаляет график работ для указанного проекта. Доступно только владельцу проекта.
     @Transactional
     public void deleteSchedule(Long projectId) {
         Project project = projectRepository.findById(projectId)
@@ -97,10 +102,11 @@ public class ScheduleService {
         Schedule schedule =  scheduleRepository.findByProject(project)
                 .orElseThrow(() -> new IllegalArgumentException("ГПР не найден"));
         scheduleRepository.delete(schedule);
-        project.setSchedule(null);
+        project.setSchedule(null); // Отвязываем график от проекта.
         projectRepository.save(project);
     }
 
+    // Преобразует сущность Schedule в DTO ScheduleResponse.
     private ScheduleResponse mapToResponse(Schedule schedule) {
         return ScheduleResponse.builder()
                 .id(schedule.getId())
@@ -110,6 +116,7 @@ public class ScheduleService {
                 .build();
     }
 
+    // Получает аутентифицированного пользователя из контекста безопасности.
     private User getAuthenticatedUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email = (principal instanceof UserDetails userDetails)
@@ -120,6 +127,7 @@ public class ScheduleService {
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
     }
 
+    // Добавляет файл к графику работ.
     public void addFileToScedule(Long projectId, MultipartFile file) throws IOException {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
@@ -139,6 +147,7 @@ public class ScheduleService {
         scheduleRepository.save(schedule);
     }
 
+    // Получает список файлов, связанных с графиком работ.
     public List<File> getFilesBySchedule(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
@@ -148,5 +157,5 @@ public class ScheduleService {
 
         return schedule.getFiles();
     }
-
 }
+

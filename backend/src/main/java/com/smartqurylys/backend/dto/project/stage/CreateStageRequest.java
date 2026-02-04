@@ -7,21 +7,22 @@ import lombok.Data;
 
 import java.time.LocalDate;
 
+// Объект передачи данных для запроса на создание нового этапа в графике работ.
 @Data
 public class CreateStageRequest {
     @NotBlank
-    private String name;
+    private String name; // Название этапа.
 
     @NotBlank
-    private String description;
+    private String description; // Описание этапа.
 
     @NotNull
-    private LocalDate startDate;
+    private LocalDate startDate; // Дата начала этапа.
 
     @NotNull
-    private LocalDate endDate;
+    private LocalDate endDate; // Дата окончания этапа.
 
-    private String contractors;
+    private String contractors; // Подрядчики, ответственные за этап.
 
 //    @NotBlank
 //    private String resources;

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+// Сущность для хранения записей журнала активности.
 @Entity
 @Table(name = "activity_logs")
 @Data
@@ -21,33 +22,33 @@ public class ActivityLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // Уникальный идентификатор записи.
 
     @Column(nullable = false)
-    private LocalDateTime timestamp;
+    private LocalDateTime timestamp; // Время выполнения действия.
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "actor_id", nullable = false)
-    private User actor;
+    private User actor; // Пользователь, совершивший действие.
 
     @Column(nullable = false)
-    private String actorFullName;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ActivityActionType actionType;
+    private String actorFullName; // Полное имя пользователя.
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ActivityEntityType entityType;
+    private ActivityActionType actionType; // Тип действия (например, CREATE, UPDATE).
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ActivityEntityType entityType; // Тип сущности, над которой совершено действие (например, PROJECT, TASK).
 
     @Column(nullable = false)
-    private Long entityId;
+    private Long entityId; // Идентификатор сущности.
 
     @Column(nullable = false)
-    private String entityName;
+    private String entityName; // Название сущности.
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
-    private Project project;
+    private Project project; // Проект, к которому относится активность.
 }

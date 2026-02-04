@@ -6,12 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+// Объект передачи данных для запроса на обновление информации о лицензии.
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
 public class LicenseUpdateRequest {
-    private String name;
-    private String licenseCategoryDisplay;
-    private FileReviewStatus reviewStatus;
+    private String name; // Новое название лицензии.
+    private String licenseCategoryDisplay; // Новое отображаемое название категории лицензии.
+    private FileReviewStatus reviewStatus; // Новый статус проверки лицензии.
+    private String rejectionReason; // Причина отклонения лицензии.
 }

@@ -15,12 +15,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+// Фильтр для обработки JWT-токенов в каждом запросе.
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtUtils jwtUtils;
-    private final CustomUserDetailsService userDetailsService;
+    private final JwtUtils jwtUtils; // Утилиты для работы с JWT.
+    private final CustomUserDetailsService userDetailsService; // Сервис для загрузки данных пользователя.
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -30,6 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
+        // Пропускаем запросы аутентификации без проверки токена.
         if (path.startsWith("/api/auth")) {
             filterChain.doFilter(request, response);
             return;
@@ -37,14 +39,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
 
+        // Если заголовок авторизации отсутствует или не начинается с "Bearer ", пропускаем фильтр.
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7);
+        String token = authHeader.substring(7); // Извлекаем сам токен.
         String email;
 
+        // Извлекаем email из токена; при ошибке пропускаем фильтр.
         try {
             email = jwtUtils.extractUsername(token);
         } catch (Exception e) {
@@ -52,9 +56,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Если email получен и пользователь еще не аутентифицирован.
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
+            // Если токен валиден, устанавливаем аутентификацию в контексте безопасности.
             if (jwtUtils.isTokenValid(token, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,

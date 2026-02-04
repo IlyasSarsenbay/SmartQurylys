@@ -6,16 +6,17 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+// Объект передачи данных для ответа с информацией о приглашении в проект.
 @Data
 @Builder
 @AllArgsConstructor
 public class InvitationResponse {
-    private Long id;
-    private String projectName;
-    private String userFullName;
-    private String role;
-    private boolean canUploadDocuments;
-    private boolean canSendNotifications;
-    private LocalDateTime createdAt;
-    private LocalDateTime expiresAt;
+    private Long id; // Идентификатор приглашения.
+    private String projectName; // Название проекта, в который приглашают.
+    private String userFullName; // Полное имя пользователя, которого приглашают.
+    private String role; // Роль, предлагаемая приглашенному.
+    private boolean canUploadDocuments; // Может ли приглашенный загружать документы.
+    private boolean canSendNotifications; // Может ли приглашенный отправлять уведомления.
+    private LocalDateTime createdAt; // Дата и время создания приглашения.
+    private LocalDateTime expiresAt; // Дата и время истечения срока действия приглашения.
 }

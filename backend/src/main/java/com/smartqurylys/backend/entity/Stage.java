@@ -7,7 +7,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.List;
 
-
+// Сущность для представления этапа в графике работ.
 @Entity
 @Table(name = "stages")
 @Getter
@@ -18,28 +18,27 @@ import java.util.List;
 public class Stage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // Уникальный идентификатор этапа.
 
     @ManyToOne
     @JoinColumn(name = "schedule_id")
-    private Schedule schedule;
+    private Schedule schedule; // График работ, к которому относится этап.
 
-    private String name;
+    private String name; // Название этапа.
 
-    private String description;
+    private String description; // Описание этапа.
 
-    private LocalDate startDate;
+    private LocalDate startDate; // Дата начала этапа.
 
-    private LocalDate endDate;
+    private LocalDate endDate; // Дата окончания этапа.
 
-    private String contractors;
+    private String contractors; // Подрядчики, ответственные за выполнение этапа.
 
 //    private String resources;
 
     @Enumerated(EnumType.STRING)
-    private StageStatus status;
+    private StageStatus status; // Текущий статус этапа.
 
     @OneToMany(mappedBy = "stage", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Task> tasks;
-
+    private List<Task> tasks; // Список задач, входящих в этот этап.
 }

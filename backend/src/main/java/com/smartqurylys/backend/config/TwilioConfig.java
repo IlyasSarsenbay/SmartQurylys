@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+// Конфигурация для интеграции с Twilio.
 @Configuration
 @RequiredArgsConstructor
 public class TwilioConfig {
@@ -16,6 +17,7 @@ public class TwilioConfig {
     @Value("${twilio.auth.token}")
     private String authToken;
 
+    // Инициализация Twilio SDK при старте приложения.
     @PostConstruct
     public void init() {
         Twilio.init(accountSid, authToken);

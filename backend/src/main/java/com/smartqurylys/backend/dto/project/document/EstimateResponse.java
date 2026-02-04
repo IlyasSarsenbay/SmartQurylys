@@ -4,16 +4,17 @@ import lombok.*;
 
 import java.util.List;
 
+// Объект передачи данных для ответа со сметой.
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class EstimateResponse {
-    private Long id;
-    private String name;
+    private Long id; // Идентификатор сметы.
+    private String name; // Название сметы.
 //    private boolean includeNDS;
-    private float totalCost;
-    private float totalCostWithoutNDS;
-    private List<EstimateItemDto> items;
+    private float totalCost; // Общая стоимость сметы.
+    private float totalCostWithoutNDS; // Общая стоимость сметы без НДС.
+    private List<EstimateItemDto> items; // Список пунктов сметы.
 }

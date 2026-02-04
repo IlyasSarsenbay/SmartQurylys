@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+// Сервис для управления приглашениями участников в проекты.
 @Service
 @RequiredArgsConstructor
 public class ParticipantInvitationService {
@@ -24,14 +25,18 @@ public class ParticipantInvitationService {
     private final UserRepository userRepository;
     private final ParticipantInvitationRepository invitationRepository;
     private final ParticipantRepository participantRepository;
+    private final NotificationService notificationService;
+    private final com.smartqurylys.backend.repository.NotificationRepository notificationRepository;
 
-    public InvitationResponse sendInvitation(Long projectId, CreateInvitationRequest request) {
+    // Отправляет приглашение пользователю в проект.
+    public InvitationResponse sendInvitation(Long projectId, CreateInvitationRequest request, User sender) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
 
         User user = userRepository.findByIinBin(request.getIinBin())
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь с таким ИИН/БИН не найден"));
 
+        // Проверяем, не был ли пользователь уже приглашен или не является ли он уже участником.
         if (invitationRepository.findByProjectAndUser(project, user).isPresent()) {
             throw new IllegalArgumentException("Пользователь уже приглашен в проект");
         }
@@ -42,15 +47,18 @@ public class ParticipantInvitationService {
         ParticipantInvitation invitation = ParticipantInvitation.builder()
                 .project(project)
                 .user(user)
+                .sender(sender)
                 .role(request.getRole())
                 .canUploadDocuments(request.isCanUploadDocuments())
                 .canSendNotifications(request.isCanSendNotifications())
                 .accepted(false)
                 .createdAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusDays(3))
+                .expiresAt(LocalDateTime.now().plusDays(3)) // Приглашение действует 3 дня.
                 .build();
 
         invitationRepository.save(invitation);
+
+        notificationService.createInvitationNotification(invitation);
 
         return InvitationResponse.builder()
                 .id(invitation.getId())
@@ -64,6 +72,7 @@ public class ParticipantInvitationService {
                 .build();
     }
 
+    // Принимает приглашение в проект.
     @Transactional
     public void acceptInvitation(Long invitationId, User currentUser) {
         ParticipantInvitation invitation = invitationRepository.findByIdAndUser(invitationId, currentUser)
@@ -86,14 +95,24 @@ public class ParticipantInvitationService {
                 .canSendNotifications(invitation.isCanSendNotifications())
                 .build();
 
-        participantRepository.save(participant);
-        invitationRepository.delete(invitation);
+        participantRepository.save(participant); // Создаем нового участника проекта.
+        invitationRepository.delete(invitation); // Удаляем приглашение после принятия.
+
+        // Удаляем связанное уведомление
+        notificationRepository.findByTypeAndRelatedEntityId(com.smartqurylys.backend.entity.NotificationType.INVITATION, invitationId)
+                .ifPresent(notificationRepository::delete);
     }
 
+    // Отклоняет приглашение в проект.
+    @Transactional
     public void declineInvitation(Long invitationId, User currentUser) {
         ParticipantInvitation invitation = invitationRepository.findByIdAndUser(invitationId, currentUser)
                 .orElseThrow(() -> new IllegalArgumentException("Приглашение не найдено или недоступно"));
 
-        invitationRepository.delete(invitation);
+        invitationRepository.delete(invitation); // Удаляем приглашение.
+
+        // Удаляем связанное уведомление
+        notificationRepository.findByTypeAndRelatedEntityId(com.smartqurylys.backend.entity.NotificationType.INVITATION, invitationId)
+                .ifPresent(notificationRepository::delete);
     }
 }

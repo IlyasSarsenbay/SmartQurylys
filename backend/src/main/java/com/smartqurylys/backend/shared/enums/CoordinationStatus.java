@@ -1,8 +1,8 @@
 package com.smartqurylys.backend.shared.enums;
 
-// Enum для статуса согласования
+// Перечисление для статуса согласования.
 public enum CoordinationStatus {
-    PENDING,
-    APPROVED,
-    REJECTED
+    PENDING, // Ожидает согласования.
+    APPROVED, // Согласовано.
+    REJECTED // Отклонено.
 }

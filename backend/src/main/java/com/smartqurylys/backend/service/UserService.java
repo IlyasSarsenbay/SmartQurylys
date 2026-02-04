@@ -5,6 +5,7 @@ import com.smartqurylys.backend.dto.user.ChangePasswordRequest;
 import com.smartqurylys.backend.dto.auth.RegisterRequest;
 import com.smartqurylys.backend.dto.user.UserResponse;
 import com.smartqurylys.backend.entity.City;
+import com.smartqurylys.backend.entity.Organisation;
 import com.smartqurylys.backend.entity.User;
 import com.smartqurylys.backend.repository.CityRepository;
 import com.smartqurylys.backend.repository.UserRepository;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// Сервис для управления учетными записями пользователей: получение, обновление, изменение пароля и email, а также административные операции.
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -27,9 +29,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final CityRepository cityRepository;
     private final PasswordEncoder passwordEncoder;
-//    private final PhoneService phoneService;
+//    private final PhoneService phoneService; // Закомментировано, возможно, временно.
     private final EmailService emailService;
 
+    // Получает информацию о текущем аутентифицированном пользователе.
     public UserResponse getCurrentUserInfo() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -46,12 +49,21 @@ public class UserService {
         return mapToUserResponse(user);
     }
 
+    // Получает информацию о пользователе по его ID.
     public UserResponse getUserById(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден с ID: " + userId));
         return mapToUserResponse(user);
     }
 
+    // Получает роль пользователя по его ID.
+    public String getUserRole(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден с ID: " + userId));
+        return user.getRole();
+    }
+
+    // Обновляет информацию о пользователе. Проверяет уникальность ИИН/БИН и телефона.
     public UserResponse updateUser(Long userId, RegisterRequest updateRequest) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
@@ -79,7 +91,7 @@ public class UserService {
         user.setPhone(updateRequest.getPhone());
         user.setIinBin(updateRequest.getIinBin());
         if (isAdmin) {
-            user.setEmail(updateRequest.getEmail());
+            user.setEmail(updateRequest.getEmail()); // Администратор может менять email пользователя.
         }
 
         if (updateRequest.getCityId() != null) {
@@ -88,14 +100,31 @@ public class UserService {
             user.setCity(city);
         }
 
-
-
         User updatedUser = userRepository.save(user);
 
         return mapToUserResponse(updatedUser);
     }
 
+    // Обновляет информацию о пользователе (для администраторов, через ID).
+    public UserResponse updateUser(Long userId, com.smartqurylys.backend.dto.user.UpdateUserRequest updateRequest) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
 
+        if (updateRequest.getFullName() != null) user.setFullName(updateRequest.getFullName());
+        if (updateRequest.getPhone() != null) user.setPhone(updateRequest.getPhone());
+        if (updateRequest.getIinBin() != null) user.setIinBin(updateRequest.getIinBin());
+        
+        if (updateRequest.getCityId() != null) {
+            City city = cityRepository.findById(updateRequest.getCityId())
+                    .orElseThrow(() -> new EntityNotFoundException("Город не найден"));
+            user.setCity(city);
+        }
+
+        User updatedUser = userRepository.save(user);
+        return mapToUserResponse(updatedUser);
+    }
+
+    // Изменяет адрес электронной почты текущего пользователя.
     public UserResponse changeEmail(ChangeEmailRequest request) {
         String currentEmail = getAuthenticatedEmail();
 
@@ -116,6 +145,7 @@ public class UserService {
         return mapToUserResponse(updatedUser);
     }
 
+    // Изменяет пароль текущего пользователя.
     public void changePassword(ChangePasswordRequest request) {
         String email = getAuthenticatedEmail();
 
@@ -130,12 +160,14 @@ public class UserService {
         userRepository.save(user);
     }
 
+    // Вспомогательный метод для получения аутентифицированного пользователя.
     private User getAuthenticatedUser() {
         String email = getAuthenticatedEmail();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
     }
 
+    // Вспомогательный метод для получения email аутентифицированного пользователя.
     private String getAuthenticatedEmail() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -144,15 +176,16 @@ public class UserService {
         } else {
             return principal.toString();
         }
-
     }
 
+    // Получает сущность текущего аутентифицированного пользователя.
     public User getCurrentUserEntity() {
         String email = getAuthenticatedEmail();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
     }
 
+    // Создает нового пользователя (используется, например, администратором).
     public UserResponse createUser(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Пользователь с этой почтой уже существует");
@@ -184,18 +217,21 @@ public class UserService {
         return mapToUserResponse(savedUser);
     }
 
+    // Получает список всех пользователей.
     @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::mapToUserResponse)
                 .collect(Collectors.toList());
     }
+
+    // Обновляет роль пользователя (административная функция).
     @Transactional
     public UserResponse updateUserRole(Long userId, String newRole) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
 
-        if (!newRole.equals("USER") && !newRole.equals("ADMIN")) { // Добавьте другие роли, если есть
+        if (!newRole.equals("USER") && !newRole.equals("ADMIN")) { // Добавьте другие роли, если есть.
             throw new IllegalArgumentException("Недопустимая роль: " + newRole);
         }
 
@@ -205,6 +241,7 @@ public class UserService {
         return mapToUserResponse(updatedUser);
     }
 
+    // Удаляет пользователя по его ID.
     @Transactional
     public void deleteUser(Long userId) {
         if (!userRepository.existsById(userId)) {
@@ -212,9 +249,20 @@ public class UserService {
         }
         userRepository.deleteById(userId);
     }
+    
+    // Поиск пользователей по имени или почте (исключая текущего пользователя).
+    @Transactional(readOnly = true)
+    public List<UserResponse> searchUsers(String query) {
+        User currentUser = getCurrentUserEntity();
+        return userRepository.findAll().stream()
+                .filter(user -> !user.getId().equals(currentUser.getId()))
+                .filter(user -> (user.getFullName() != null && user.getFullName().toLowerCase().contains(query.toLowerCase())) ||
+                                (user.getEmail() != null && user.getEmail().toLowerCase().contains(query.toLowerCase())))
+                .map(this::mapToUserResponse)
+                .collect(Collectors.toList());
+    }
 
-
-
+    // Преобразует сущность User в DTO UserResponse.
     UserResponse mapToUserResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())
@@ -223,10 +271,9 @@ public class UserService {
                 .phone(user.getPhone())
                 .iinBin(user.getIinBin())
                 .city(user.getCity() != null ? user.getCity().getName() : null)
+                .organization(user.getOrganization())
+                .role(user.getRole())
+                .userType(user instanceof Organisation ? "ORGANISATION" : "USER") // Populate userType
                 .build();
     }
-
-
-
-
 }

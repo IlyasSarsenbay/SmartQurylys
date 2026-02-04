@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+// Сервис для управления задачами в рамках этапов проекта, включая создание, обновление, удаление, управление зависимостями, требованиями и файлами.
 @Service
 @RequiredArgsConstructor
 public class TaskService {
@@ -31,7 +32,7 @@ public class TaskService {
     private final ActivityLogService activityLogService;
     private final UserRepository userRepository;
 
-
+    // Преобразует сущность Requirement в DTO RequirementResponse.
     private RequirementResponse mapToRequirementResponse(Requirement requirement) {
         FileResponse sampleFileResponse = null;
         if (requirement.getSampleFile() != null) {
@@ -44,18 +45,22 @@ public class TaskService {
                 .build();
     }
 
-
+    // Преобразует сущность Participant в DTO ParticipantResponse.
     private ParticipantResponse mapToParticipantResponse(Participant participant) {
         return ParticipantResponse.builder()
                 .id(participant.getId())
                 .fullName(participant.getUser().getFullName())
                 .iinBin(participant.getUser().getIinBin())
+                .organization(participant.getUser().getOrganization())
+                .phone(participant.getUser().getPhone())
+                .email(participant.getUser().getEmail())
                 .role(participant.getRole())
                 .canUploadDocuments(participant.isCanUploadDocuments())
                 .canSendNotifications(participant.isCanSendNotifications())
                 .build();
     }
 
+    // Создает новую задачу в рамках указанного этапа.
     @Transactional
     public TaskResponse createTask(Long stageId, CreateTaskRequest request, List<MultipartFile> requirementSampleFiles) throws IOException {
         Stage stage = stageRepository.findById(stageId)
@@ -90,7 +95,7 @@ public class TaskService {
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .responsiblePersons(responsiblePersons)
-                .isPriority(false)
+                .isPriority(request.isPriority())
                 .executionRequested(false)
                 .executed(false)
                 .build();
@@ -107,7 +112,7 @@ public class TaskService {
                         )) :
                 Collections.emptyMap();
 
-
+        // Создаем требования и связываем их с файлами, если они есть.
         if (request.getRequirements() != null && !request.getRequirements().isEmpty()) {
             for (CreateRequirementRequest reqDto : request.getRequirements()) {
                 Requirement requirement = Requirement.builder()
@@ -133,7 +138,7 @@ public class TaskService {
         return mapToResponse(savedTask);
     }
 
-
+    // Получает информацию о задаче по ее ID.
     @Transactional(readOnly = true)
     public TaskResponse getTaskById(Long taskId) {
         Task task = taskRepository.findById(taskId)
@@ -141,6 +146,7 @@ public class TaskService {
         return mapToResponse(task);
     }
 
+    // Получает список всех задач для указанного этапа.
     @Transactional(readOnly = true)
     public List<TaskResponse> getTasksByStage(Long stageId) {
         Stage stage = stageRepository.findById(stageId)
@@ -151,6 +157,7 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
+    // Обновляет информацию о существующей задаче.
     @Transactional
     public TaskResponse updateTask(Long taskId, UpdateTaskRequest request) {
         Task task = taskRepository.findById(taskId)
@@ -162,7 +169,7 @@ public class TaskService {
         Optional.ofNullable(request.getStartDate()).ifPresent(task::setStartDate);
         Optional.ofNullable(request.getEndDate()).ifPresent(task::setEndDate);
 
-        // Обновление ответственных лиц
+        // Обновление ответственных лиц, с проверкой существования.
         if (request.getResponsiblePersonIds() != null) {
             Set<Participant> newResponsiblePersons = new HashSet<>(participantRepository.findAllById(request.getResponsiblePersonIds()));
             if (newResponsiblePersons.size() != request.getResponsiblePersonIds().size()) {
@@ -171,27 +178,30 @@ public class TaskService {
             task.setResponsiblePersons(newResponsiblePersons);
         }
 
+        Optional.ofNullable(request.getIsPriority()).ifPresent(task::setPriority);
+
         Task updatedTask = taskRepository.save(task);
         return mapToResponse(updatedTask);
     }
 
+    // Удаляет задачу по ее ID.
     @Transactional
     public void deleteTask(Long taskId) {
         if (!taskRepository.existsById(taskId)) {
             throw new EntityNotFoundException("Задача не найдена с ID: " + taskId);
         }
-        // 1. Удаляем все зависимости, где эта задача является зависимой
+        // Удаляем все зависимости, где эта задача является зависимой.
         removeAllDependenciesForTask(taskId);
 
-        // 2. Удаляем все зависимости, где эта задача является основной
+        // Удаляем все зависимости, где эта задача является основной.
         removeAllDependenciesFromTask(taskId);
         
         taskRepository.deleteById(taskId);
     }
 
+    // Удаляет все зависимости, где указанная задача является зависимой (другие задачи зависят от этой).
     @Transactional
     public void removeAllDependenciesForTask(Long taskId) {
-        // Удаляем все зависимости, где эта задача является зависимой (другие задачи зависят от этой)
         List<Task> tasksThatDependOnThis = taskRepository.findTasksThatDependOn(taskId);
         for (Task dependentTask : tasksThatDependOnThis) {
             dependentTask.getDependsOn().removeIf(dep -> dep.getId().equals(taskId));
@@ -199,9 +209,9 @@ public class TaskService {
         }
     }
 
+    // Удаляет все зависимости, которые текущая задача имеет (от других задач).
     @Transactional
     public void removeAllDependenciesFromTask(Long taskId) {
-        // Удаляем все зависимости этой задачи (задачи, от которых зависит эта задача)
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
 
@@ -211,14 +221,16 @@ public class TaskService {
         }
     }
 
+    // Помечает задачу как приоритетную.
     @Transactional
-    public void markAsPriority(Long taskId) {
+    public void togglePriority(Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
-        task.setPriority(true);
+        task.setPriority(!task.isPriority());
         taskRepository.save(task);
     }
 
+    // Запрашивает выполнение задачи. Проверяет зависимости.
     @Transactional
     public void requestExecution(Long taskId) {
         Task task = taskRepository.findById(taskId)
@@ -243,6 +255,7 @@ public class TaskService {
         taskRepository.save(task);
     }
 
+    // Подтверждает выполнение задачи.
     @Transactional
     public TaskResponse confirmExecution(Long taskId) {
         Task task = taskRepository.findById(taskId)
@@ -261,6 +274,7 @@ public class TaskService {
         return mapToResponse(task);
     }
 
+    // Отклоняет выполнение задачи.
     @Transactional
     public TaskResponse declineExecution(Long taskId) {
         Task task = taskRepository.findById(taskId)
@@ -280,7 +294,7 @@ public class TaskService {
         return mapToResponse(task);
     }
 
-
+    // Добавляет файл к задаче.
     @Transactional
     public FileResponse addFileToTask(Long taskId, MultipartFile file) throws IOException {
         Task task = taskRepository.findById(taskId)
@@ -298,6 +312,7 @@ public class TaskService {
         return fileService.mapToFileResponse(savedFile);
     }
 
+    // Получает список файлов, связанных с задачей.
     @Transactional(readOnly = true)
     public List<FileResponse> getFilesByTask(Long taskId) {
         Task task = taskRepository.findById(taskId)
@@ -308,6 +323,7 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
+    // Добавляет зависимость между задачами.
     @Transactional
     public void addDependency(Long taskId, Long dependencyTaskId) {
         Task task = taskRepository.findById(taskId)
@@ -332,9 +348,10 @@ public class TaskService {
         taskRepository.save(task);
     }
 
+    // Удаляет зависимость между задачами.
     @Transactional
     public void removeDependency(Long taskId, Long dependencyTaskId) {
-        // Проверяем существование задач
+        // Проверяем существование задач.
         if (!taskRepository.existsById(taskId)) {
             throw new EntityNotFoundException("Задача не найдена с ID: " + taskId);
         }
@@ -342,7 +359,7 @@ public class TaskService {
             throw new EntityNotFoundException("Зависимая задача не найдена с ID: " + dependencyTaskId);
         }
 
-        // Удаляем связь через native query
+        // Удаляем связь через нативный SQL-запрос.
         int deletedCount = taskRepository.removeDependencyRelation(taskId, dependencyTaskId);
 
         if (deletedCount == 0) {
@@ -352,6 +369,7 @@ public class TaskService {
         System.out.println("Удалена " + deletedCount + " зависимость(ей)");
     }
 
+    // Создает новое требование для задачи.
     @Transactional
     public RequirementResponse createRequirement(Long taskId, CreateRequirementRequest request, MultipartFile sampleFile) throws IOException {
         Task task = taskRepository.findById(taskId)
@@ -378,6 +396,7 @@ public class TaskService {
         return mapToRequirementResponse(savedRequirement);
     }
 
+    // Обновляет существующее требование.
     @Transactional
     public RequirementResponse updateRequirement(Long requirementId, UpdateRequirementRequest request, MultipartFile newSampleFile) throws IOException {
         Requirement requirement = requirementRepository.findById(requirementId)
@@ -404,6 +423,7 @@ public class TaskService {
         return mapToRequirementResponse(updatedRequirement);
     }
 
+    // Удаляет требование.
     @Transactional
     public void deleteRequirement(Long requirementId) throws IOException {
         Requirement requirementToDelete = requirementRepository.findById(requirementId)
@@ -422,6 +442,7 @@ public class TaskService {
         requirementRepository.delete(requirementToDelete);
     }
 
+    // Получает список всех требований для указанной задачи.
     @Transactional(readOnly = true)
     public List<RequirementResponse> getRequirementsByTaskId(Long taskId) {
         Task task = taskRepository.findById(taskId)
@@ -431,7 +452,7 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
-
+    // Вспомогательный метод для получения аутентифицированного пользователя.
     private User getAuthenticatedUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email = (principal instanceof UserDetails userDetails)
@@ -442,16 +463,13 @@ public class TaskService {
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
     }
 
-
+    // Преобразует сущность Task в DTO TaskResponse.
     private TaskResponse mapToResponse(Task task) {
-
         List<ParticipantResponse> responsiblePersons = task.getResponsiblePersons() != null ?
                 task.getResponsiblePersons().stream()
                         .map(this::mapToParticipantResponse)
                         .collect(Collectors.toList()) :
                 new ArrayList<>();
-
-
 
         List<RequirementResponse> requirements = task.getRequirements() != null ?
                 task.getRequirements().stream()

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+// Контроллер для управления сметой проекта.
 @RestController
 @RequestMapping("/api/projects/{projectId}/estimate")
 @RequiredArgsConstructor
@@ -16,11 +17,13 @@ public class EstimateController {
 
     private final EstimateService estimateService;
 
+    // Получение сметы для проекта.
     @GetMapping
     public ResponseEntity<EstimateResponse> getEstimate(@PathVariable Long projectId) {
         return ResponseEntity.ok(estimateService.getEstimateByProject(projectId));
     }
 
+    // Создание или обновление сметы.
     @PostMapping
     public ResponseEntity<EstimateResponse> createOrUpdateEstimate(
             @PathVariable Long projectId,
@@ -29,12 +32,14 @@ public class EstimateController {
         return ResponseEntity.ok(estimateService.createOrUpdateEstimate(projectId, request));
     }
 
+    // Удаление сметы.
     @DeleteMapping
     public ResponseEntity<Void> deleteEstimate(@PathVariable Long projectId) {
         estimateService.deleteEstimate(projectId);
         return ResponseEntity.noContent().build();
     }
 
+    // Добавление пункта в смету.
     @PostMapping("/items")
     public ResponseEntity<Void> addEstimateItem(
             @PathVariable Long projectId,
@@ -44,6 +49,7 @@ public class EstimateController {
         return ResponseEntity.ok().build();
     }
 
+    // Удаление пункта из сметы.
     @DeleteMapping("/items/{itemId}")
     public ResponseEntity<Void> deleteEstimateItem(
             @PathVariable Long projectId,
@@ -53,6 +59,7 @@ public class EstimateController {
         return ResponseEntity.noContent().build();
     }
 
+    // Обновление накладных расходов.
     @PutMapping("/overheads")
     public ResponseEntity<Void> setOverheads(
             @PathVariable Long projectId,
@@ -62,6 +69,7 @@ public class EstimateController {
         return ResponseEntity.ok().build();
     }
 
+    // Обновление резервных средств.
     @PutMapping("/reserve")
     public ResponseEntity<Void> setReserve(
             @PathVariable Long projectId,
@@ -71,6 +79,7 @@ public class EstimateController {
         return ResponseEntity.ok().build();
     }
 
+    // Обновление транспортных расходов.
     @PutMapping("/transport")
     public ResponseEntity<Void> setTransport(
             @PathVariable Long projectId,

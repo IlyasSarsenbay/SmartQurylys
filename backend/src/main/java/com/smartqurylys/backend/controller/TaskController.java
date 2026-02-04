@@ -14,6 +14,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
+// Контроллер для управления задачами в рамках этапа.
 @RestController
 @RequestMapping("/api/stages/{stageId}/tasks")
 @RequiredArgsConstructor
@@ -21,6 +22,7 @@ public class TaskController {
 
     private final TaskService taskService;
 
+    // Создание новой задачи.
     @PostMapping
     public ResponseEntity<TaskResponse> createTask(
             @PathVariable Long stageId,
@@ -39,22 +41,24 @@ public class TaskController {
         }
     }
 
+    // Получение всех задач этапа.
     @GetMapping
     public ResponseEntity<List<TaskResponse>> getTasks(@PathVariable Long stageId) {
             List<TaskResponse> tasks = taskService.getTasksByStage(stageId);
             return ResponseEntity.ok(tasks);
     }
 
+    // Получение задачи по ID.
     @GetMapping("/{taskId}")
     public ResponseEntity<TaskResponse> getTask(
             @PathVariable Long stageId,
             @PathVariable Long taskId
     ) {
-
             TaskResponse response = taskService.getTaskById(taskId);
             return ResponseEntity.ok(response);
     }
 
+    // Обновление задачи.
     @PutMapping("/{taskId}")
     public ResponseEntity<TaskResponse> updateTask(
             @PathVariable Long stageId,
@@ -65,6 +69,7 @@ public class TaskController {
             return ResponseEntity.ok(response);
     }
 
+    // Удаление задачи.
     @DeleteMapping("/{taskId}")
     public ResponseEntity<Void> deleteTask(
             @PathVariable Long stageId,
@@ -74,26 +79,27 @@ public class TaskController {
             return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{taskId}/priority")
-    public ResponseEntity<Void> markAsPriority(
+    // Переключить статус приоритета задачи.
+    @PostMapping("/{taskId}/priority/toggle")
+    public ResponseEntity<Void> togglePriority(
             @PathVariable Long stageId,
             @PathVariable Long taskId
     ) {
-            taskService.markAsPriority(taskId);
+            taskService.togglePriority(taskId);
             return ResponseEntity.ok().build();
     }
 
+    // Запросить выполнение задачи.
     @PostMapping("/{taskId}/request-execution")
     public ResponseEntity<Void> requestExecution(
             @PathVariable Long stageId,
             @PathVariable Long taskId
     ) {
-
             taskService.requestExecution(taskId);
             return ResponseEntity.ok().build();
-
     }
 
+    // Подтвердить выполнение задачи.
     @PostMapping("/{taskId}/confirm-execution")
     public ResponseEntity<TaskResponse> confirmExecution(
             @PathVariable Long stageId,
@@ -103,6 +109,7 @@ public class TaskController {
             return ResponseEntity.ok(response);
     }
 
+    // Отклонить выполнение задачи.
     @PostMapping("/{taskId}/decline-execution")
     public ResponseEntity<TaskResponse> declineExecution(
             @PathVariable Long stageId,
@@ -112,7 +119,7 @@ public class TaskController {
         return ResponseEntity.ok(response);
     }
 
-
+    // Добавить файл к задаче.
     @PostMapping("/{taskId}/files")
     public ResponseEntity<FileResponse> addFileToTask(
                                                        @PathVariable Long stageId,
@@ -129,6 +136,7 @@ public class TaskController {
         }
     }
 
+    // Получить файлы задачи.
     @GetMapping("/{taskId}/files")
     public ResponseEntity<List<FileResponse>> getFilesByTask(
                                                               @PathVariable Long stageId,
@@ -138,6 +146,7 @@ public class TaskController {
             return ResponseEntity.ok(files);
     }
 
+    // Добавить зависимость между задачами.
     @PostMapping("/{taskId}/dependencies/{dependencyTaskId}")
     public ResponseEntity<Void> addDependency(
             @PathVariable Long stageId,
@@ -148,6 +157,7 @@ public class TaskController {
             return ResponseEntity.ok().build();
     }
 
+    // Удалить зависимость между задачами.
     @DeleteMapping("/{taskId}/dependencies/{dependencyTaskId}")
     public ResponseEntity<Void> removeDependency(
             @PathVariable Long taskId,
@@ -162,6 +172,7 @@ public class TaskController {
         }
     }
 
+    // Создать требование для задачи.
     @PostMapping("/{taskId}/requirements")
     public ResponseEntity<RequirementResponse> createRequirement(
             @PathVariable Long stageId,
@@ -181,6 +192,7 @@ public class TaskController {
         }
     }
 
+    // Обновить требование.
     @PutMapping("/requirements/{requirementId}")
     public ResponseEntity<RequirementResponse> updateRequirement(
             @PathVariable Long stageId,
@@ -200,6 +212,7 @@ public class TaskController {
         }
     }
 
+    // Удалить требование.
     @DeleteMapping("/requirements/{requirementId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteRequirement(
@@ -209,6 +222,7 @@ public class TaskController {
         taskService.deleteRequirement(requirementId);
     }
 
+    // Получить все требования для задачи.
     @GetMapping("/{taskId}/requirements")
     public ResponseEntity<List<RequirementResponse>> getRequirementsByTaskId(
             @PathVariable Long stageId,

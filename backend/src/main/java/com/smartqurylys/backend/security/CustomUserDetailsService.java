@@ -10,12 +10,14 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 
+// Пользовательский сервис для загрузки данных пользователя для Spring Security.
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
+    // Загружает данные пользователя по его электронной почте.
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)

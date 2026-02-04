@@ -1,9 +1,10 @@
 package com.smartqurylys.backend.shared.enums;
 
+// Перечисление, определяющее тип организации.
 public enum OrganistaionType {
-    CUSTOMER,
-    CONTRACTOR,
-    AUTHOR_SUPERVISON,
-    TECHNICAL_SUPERVISON,
-    SUPPLIER
+    CUSTOMER, // Заказчик.
+    CONTRACTOR, // Подрядчик.
+    AUTHOR_SUPERVISON, // Авторский надзор.
+    TECHNICAL_SUPERVISON, // Технический надзор.
+    SUPPLIER // Поставщик.
 }

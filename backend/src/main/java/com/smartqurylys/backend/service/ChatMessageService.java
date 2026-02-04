@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+// Сервис для управления сообщениями в чате, включая отправку, историю и обработку различных типов сообщений.
 @Service
 @RequiredArgsConstructor
 public class ChatMessageService {
@@ -45,38 +46,51 @@ public class ChatMessageService {
     private final UserService userService;
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationService notificationService; // Added NotificationService
 
+    // Отправляет новое сообщение в указанную беседу.
     @Transactional
     public ChatMessageResponse sendMessage(ChatMessageRequest request, MultipartFile attachedFile) throws IOException {
         User sender = userService.getCurrentUserEntity();
         Conversation conversation = conversationRepository.findById(request.getConversationId())
                 .orElseThrow(() -> new EntityNotFoundException("Беседа не найдена с ID: " + request.getConversationId()));
 
+        // Проверяем доступ к личной беседе.
         if (conversation.getType() == ConversationType.PRIVATE_CHAT && !conversation.getParticipants().contains(sender)) {
             throw new SecurityException("Доступ запрещен: Вы не являетесь участником этой беседы.");
         }
 
         File savedFile = null;
         if (attachedFile != null && !attachedFile.isEmpty()) {
-            savedFile = fileService.prepareFile(attachedFile, sender);
+            savedFile = fileService.prepareFile(attachedFile, sender); // Подготавливаем и сохраняем прикрепленный файл.
         } else if (request.getTempFileId() != null) {
+            // Если есть временный ID файла, возможно, он был загружен ранее и теперь ассоциируется с сообщением.
+            // Здесь может быть логика для связывания временного файла с сообщением.
         }
 
-
+        // Обработка упомянутых пользователей.
         Set<User> mentionedUsers = new HashSet<>();
         if (request.getMentionedUserIds() != null && !request.getMentionedUserIds().isEmpty()) {
             mentionedUsers = new HashSet<>(userRepository.findAllById(request.getMentionedUserIds()));
             if (mentionedUsers.size() != request.getMentionedUserIds().size()) {
                 throw new IllegalArgumentException("Один или несколько отмеченных пользователей не найдены.");
             }
+            // Create notifications for mentioned users
+            for (User mentionedUser : mentionedUsers) {
+                if (!mentionedUser.equals(sender)) {
+                    notificationService.createMentionNotification(sender, mentionedUser, conversation);
+                }
+            }
         }
 
+        // Обработка связанного сообщения (например, ответ на другое сообщение).
         ChatMessage relatedMessage = null;
         if (request.getRelatedMessageId() != null) {
             relatedMessage = chatMessageRepository.findById(request.getRelatedMessageId())
                     .orElseThrow(() -> new EntityNotFoundException("Связанное сообщение не найдено с ID: " + request.getRelatedMessageId()));
         }
 
+        // Сериализация метаданных в JSON.
         String metaDataJson = null;
         if (request.getMetaData() != null && !request.getMetaData().isEmpty()) {
             try {
@@ -86,6 +100,7 @@ public class ChatMessageService {
             }
         }
 
+        // Создание объекта ChatMessage.
         ChatMessage message = ChatMessage.builder()
                 .conversation(conversation)
                 .sender(sender)
@@ -100,6 +115,7 @@ public class ChatMessageService {
                 .metaData(metaDataJson)
                 .build();
 
+        // Установка статусов для различных типов сообщений.
         if (message.getMessageType() == MessageType.COORDINATION_REQUEST) {
             message.setCoordinationStatus(CoordinationStatus.PENDING);
         } else if (message.getMessageType() == MessageType.ACKNOWLEDGEMENT_REQUEST) {
@@ -126,23 +142,25 @@ public class ChatMessageService {
 
         ChatMessage savedMessage = chatMessageRepository.save(message);
 
+        // Обновляем время последнего сообщения в беседе.
         conversation.setLastMessageTimestamp(savedMessage.getTimestamp());
         conversationRepository.save(conversation);
 
+        // Преобразуем сохраненное сообщение в формат ответа и отправляем через WebSocket.
         ChatMessageResponse response = mapToChatMessageResponse(savedMessage);
-
         messagingTemplate.convertAndSend("/topic/conversations/" + response.getConversationId() + "/messages", response);
 
         return response;
     }
 
-
+    // Получает историю сообщений для указанной беседы.
     @Transactional(readOnly = true)
     public List<ChatMessageResponse> getMessageHistory(Long conversationId) {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new EntityNotFoundException("Беседа не найдена с ID: " + conversationId));
 
         User currentUser = userService.getCurrentUserEntity();
+        // Проверяем, является ли текущий пользователь участником беседы.
         if (conversation.getType() == ConversationType.PRIVATE_CHAT && !conversation.getParticipants().contains(currentUser)) {
             throw new SecurityException("Доступ запрещен: Вы не являетесь участником этой беседы.");
         }
@@ -152,6 +170,7 @@ public class ChatMessageService {
                 .collect(Collectors.toList());
     }
 
+    // Преобразует сущность ChatMessage в DTO ChatMessageResponse.
     private ChatMessageResponse mapToChatMessageResponse(ChatMessage message) {
         UserResponse senderResponse = userService.mapToUserResponse(message.getSender());
 

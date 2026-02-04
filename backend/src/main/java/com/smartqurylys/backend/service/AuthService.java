@@ -13,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections; // Added import for Collections
+
+// Сервис для аутентификации и регистрации пользователей.
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -24,7 +27,9 @@ public class AuthService {
     private final PhoneService phoneService;
     private final EmailService mailService;
 
+    // Регистрирует нового пользователя и сразу же его аутентифицирует.
     public AuthResponse registerAndAuthenticate(RegisterRequest request) {
+        // Проверяем, существует ли пользователь с такой почтой, ИИН/БИН или телефоном.
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Пользователь с этой почтой уже существует");
         }
@@ -36,6 +41,7 @@ public class AuthService {
             throw new IllegalArgumentException("Пользователь с этим телефоном уже существует");
         }
 
+        // Проверяем, подтверждена ли почта.
         if (!mailService.isEmailVerified(request.getEmail())) {
             throw new IllegalArgumentException("Почта не потдверждена");
         }
@@ -56,21 +62,25 @@ public class AuthService {
                 .build();
 
         User savedUser = userRepository.save(user);
-        phoneService.removeVerifiedPhone(request.getPhone());
-        String token = jwtUtils.generateToken(savedUser.getEmail());
+        phoneService.removeVerifiedPhone(request.getPhone()); // Удаляем временный код после успешной регистрации.
+        // Pass roles to generateToken
+        String token = jwtUtils.generateToken(savedUser.getEmail(), Collections.singletonList(savedUser.getRole()));
 
-        UserResponse userResponse = new UserResponse(
-                savedUser.getId(),
-                savedUser.getFullName(),
-                savedUser.getEmail(),
-                savedUser.getPhone(),
-                savedUser.getIinBin(),
-                savedUser.getCity().getName()
-        );
+        UserResponse userResponse = UserResponse.builder()
+                .id(savedUser.getId())
+                .fullName(savedUser.getFullName())
+                .email(savedUser.getEmail())
+                .phone(savedUser.getPhone())
+                .iinBin(savedUser.getIinBin())
+                .city(savedUser.getCity().getName())
+                .organization(savedUser.getOrganization())
+                .role(savedUser.getRole())
+                .build();
 
         return new AuthResponse(token, userResponse);
     }
 
+    // Аутентифицирует пользователя и возвращает JWT-токен.
     public String login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
@@ -79,6 +89,7 @@ public class AuthService {
             throw new IllegalArgumentException("Неверный пароль");
         }
 
-        return jwtUtils.generateToken(user.getEmail());
+        // Pass roles to generateToken
+        return jwtUtils.generateToken(user.getEmail(), Collections.singletonList(user.getRole()));
     }
 }

@@ -7,19 +7,21 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.util.List;
 
+// Объект передачи данных для ответа с информацией о задаче.
 @Data
 @Builder
 public class TaskResponse {
-    private Long id;
-    private String name;
-    private String description;
-    private String info;
-    private List<ParticipantResponse> responsiblePersons;
-    private LocalDate startDate;
-    private LocalDate endDate;
-    private boolean isPriority;
-    private boolean executionRequested;
-    private boolean executionConfirmed;
-    private List<Long> dependsOnTaskIds;
-    private List<RequirementResponse> requirements;
+    private Long id; // Идентификатор задачи.
+    private String name; // Название задачи.
+    private String description; // Описание задачи.
+    private String info; // Дополнительная информация.
+    private List<ParticipantResponse> responsiblePersons; // Список ответственных лиц.
+    private LocalDate startDate; // Дата начала задачи.
+    private LocalDate endDate; // Дата окончания задачи.
+    @com.fasterxml.jackson.annotation.JsonProperty("isPriority")
+    private boolean isPriority; // Флаг приоритета задачи.
+    private boolean executionRequested; // Флаг запроса на выполнение.
+    private boolean executionConfirmed; // Флаг подтверждения выполнения.
+    private List<Long> dependsOnTaskIds; // Список ID задач, от которых зависит текущая.
+    private List<RequirementResponse> requirements; // Список требований к задаче.
 }

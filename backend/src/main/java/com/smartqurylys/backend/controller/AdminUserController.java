@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+// Контроллер для администрирования пользователей. Доступ только для администраторов.
 @RestController
 @RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class AdminUserController {
     private final UserService userService;
     private final OrganisationService organisationService;
 
+    // Создание нового пользователя.
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody RegisterRequest request) {
@@ -30,6 +32,7 @@ public class AdminUserController {
             return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    // Получение списка всех пользователей.
     @GetMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<UserResponse>> getAllUsers() {
@@ -37,6 +40,7 @@ public class AdminUserController {
         return ResponseEntity.ok(users);
     }
 
+    // Получение пользователя по ID.
     @GetMapping("/{userId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long userId) {
@@ -44,7 +48,15 @@ public class AdminUserController {
             return ResponseEntity.ok(user);
     }
 
+    // Получение роли пользователя по ID.
+    @GetMapping("/{userId}/role")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<String> getUserRole(@PathVariable Long userId) {
+        String role = userService.getUserRole(userId);
+        return ResponseEntity.ok(role);
+    }
 
+    // Обновление роли пользователя.
     @PutMapping("/{userId}/role")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<UserResponse> updateUserRole(@PathVariable Long userId, @RequestBody String newRole) {
@@ -52,6 +64,7 @@ public class AdminUserController {
             return ResponseEntity.ok(updatedUser);
     }
 
+    // Обновление данных пользователя.
     @PutMapping("/{userId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<UserResponse> updateUser(@PathVariable Long userId, @RequestBody RegisterRequest request) {
@@ -59,6 +72,7 @@ public class AdminUserController {
             return ResponseEntity.ok(updatedUser);
     }
 
+    // Удаление пользователя.
     @DeleteMapping("/{userId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+// Контроллер для получения логов активности по проекту.
 @RestController
 @RequestMapping("/api/projects/{projectId}/activity-log")
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class ActivityLogController {
 
     private final ActivityLogService activityLogService;
 
+    // Получение списка всех записей в логе активности для указанного проекта.
     @GetMapping
     public ResponseEntity<List<ActivityLogResponse>> getProjectActivityLog(@PathVariable Long projectId) {
         try {

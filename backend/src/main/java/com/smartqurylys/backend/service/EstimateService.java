@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+// Сервис для управления сметами проектов.
 @Service
 @RequiredArgsConstructor
 public class EstimateService {
@@ -20,6 +21,7 @@ public class EstimateService {
     private final EstimateRepository estimateRepository;
     private final ProjectRepository projectRepository;
 
+    // Создает новую смету или обновляет существующую для проекта.
     public EstimateResponse createOrUpdateEstimate(Long projectId, EstimateRequest request) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
@@ -38,6 +40,7 @@ public class EstimateService {
         return mapToResponse(saved);
     }
 
+    // Получает смету для указанного проекта.
     public EstimateResponse getEstimateByProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
@@ -48,6 +51,7 @@ public class EstimateService {
         return mapToResponse(estimate);
     }
 
+    // Удаляет смету для указанного проекта.
     @Transactional
     public void deleteEstimate(Long projectId) {
         Project project = projectRepository.findById(projectId)
@@ -59,6 +63,7 @@ public class EstimateService {
         estimateRepository.delete(estimate);
     }
 
+    // Добавляет новый пункт в смету проекта.
     @Transactional
     public void addEstimateItem(Long projectId, EstimateItemDto dto) {
         Estimate estimate = getEstimateEntity(projectId);
@@ -74,6 +79,7 @@ public class EstimateService {
         estimateRepository.save(estimate);
     }
 
+    // Удаляет пункт из сметы проекта.
     @Transactional
     public void deleteEstimateItem(Long projectId, Long itemId) {
         Estimate estimate = getEstimateEntity(projectId);
@@ -86,6 +92,7 @@ public class EstimateService {
         estimateRepository.save(estimate);
     }
 
+    // Вспомогательный метод для получения сущности сметы по ID проекта.
     private Estimate getEstimateEntity(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
@@ -94,19 +101,24 @@ public class EstimateService {
                 .orElseThrow(() -> new IllegalArgumentException("Смета не найдена"));
     }
 
+    // Вычисляет общую стоимость сметы, включая накладные, резерв, транспорт и НДС.
     private float calculateTotal(Estimate estimate) {
         float total = estimate.getItems().stream()
                 .map(i -> i.getUnitPrice() * i.getQuantity())
                 .reduce(0f, Float::sum);
 
+        // Предполагается, что НДС 12% применяется после всех надбавок.
         total = (total + estimate.getOverheadsAmount() + estimate.getReserveAmount() + estimate.getTransportAmount())*1.12f;
 
         return total;
     }
 
+    // Вычисляет общую стоимость сметы без учета НДС.
     private float calculateTotalWithoutNDS(Estimate estimate) {
         return calculateTotal(estimate) / 1.12f; // Пример: НДС 12%
     }
+
+    // Обновляет сумму накладных расходов в смете.
     @Transactional
     public void updateOverheads(Long projectId, float amount) {
         Estimate estimate = getEstimateEntity(projectId);
@@ -114,6 +126,7 @@ public class EstimateService {
         estimateRepository.save(estimate);
     }
 
+    // Обновляет сумму резервных средств в смете.
     @Transactional
     public void updateReserve(Long projectId, float amount) {
         Estimate estimate = getEstimateEntity(projectId);
@@ -121,6 +134,7 @@ public class EstimateService {
         estimateRepository.save(estimate);
     }
 
+    // Обновляет сумму транспортных расходов в смете.
     @Transactional
     public void updateTransport(Long projectId, float amount) {
         Estimate estimate = getEstimateEntity(projectId);
@@ -128,6 +142,7 @@ public class EstimateService {
         estimateRepository.save(estimate);
     }
 
+    // Преобразует сущность Estimate в DTO EstimateResponse.
     private EstimateResponse mapToResponse(Estimate estimate) {
         return EstimateResponse.builder()
                 .id((long) estimate.getId())

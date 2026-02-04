@@ -6,12 +6,13 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+// Объект передачи данных для ответа с информацией о графике работ.
 @Data
 @Builder
 @AllArgsConstructor
 public class ScheduleResponse {
-    private Long id;
-    private String name;
-    private String projectName;
-    private LocalDateTime createdAt;
+    private Long id; // Идентификатор графика работ.
+    private String name; // Название графика работ.
+    private String projectName; // Название проекта, к которому относится график.
+    private LocalDateTime createdAt; // Дата и время создания графика.
 }

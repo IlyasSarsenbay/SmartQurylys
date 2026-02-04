@@ -7,15 +7,16 @@ import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
+// Объект передачи данных для ответа с информацией о файле.
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
 public class FileResponse {
-    private Long id;
-    private String name;
-    private String filepath;
-    private Long size;
-    private LocalDateTime createdAt;
-    private String creatorIinBin;
+    private Long id; // Идентификатор файла.
+    private String name; // Имя файла.
+    private String filepath; // Путь к файлу на сервере.
+    private Long size; // Размер файла в байтах.
+    private LocalDateTime createdAt; // Дата и время создания файла.
+    private String creatorIinBin; // ИИН/БИН пользователя, загрузившего файл.
 }

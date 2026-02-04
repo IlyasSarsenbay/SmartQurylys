@@ -5,13 +5,14 @@ import lombok.Data;
 
 import java.time.LocalDate;
 
+// Объект передачи данных для запроса на обновление существующего проекта.
 @Data
 public class UpdateProjectRequest {
-    private String name;
-    private String description;
-    private LocalDate startDate;
-    private LocalDate endDate;
-    private String type;
-    private ProjectStatus status;
-    private Long cityId;
+    private String name; // Новое название проекта.
+    private String description; // Новое описание проекта.
+    private LocalDate startDate; // Новая дата начала проекта.
+    private LocalDate endDate; // Новая дата окончания проекта.
+    private String type; // Новый тип проекта.
+    private ProjectStatus status; // Новый статус проекта.
+    private Long cityId; // Идентификатор нового города, связанного с проектом.
 }

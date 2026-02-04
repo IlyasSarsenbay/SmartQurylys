@@ -1,7 +1,7 @@
 package com.smartqurylys.backend.controller;
 
 import com.smartqurylys.backend.dto.chat.ConversationResponse;
-import com.smartqurylys.backend.dto.chat.CreatePrivateConversationRequest; // <-- ИМПОРТ НОВОГО DTO
+import com.smartqurylys.backend.dto.chat.CreatePrivateConversationRequest;
 import com.smartqurylys.backend.entity.User;
 import com.smartqurylys.backend.service.ConversationService;
 import com.smartqurylys.backend.service.UserService;
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+// Контроллер для управления беседами в чате.
 @RestController
 @RequestMapping("/api/conversations")
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class ConversationController {
     private final ConversationService conversationService;
     private final UserService userService;
 
+    // Создание или получение существующей беседы для проекта.
     @PostMapping("/project/{projectId}")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ResponseEntity<ConversationResponse> createProjectConversation(@PathVariable Long projectId) {
@@ -36,12 +38,12 @@ public class ConversationController {
         }
     }
 
+    // Создание или получение существующей личной беседы между двумя пользователями.
     @PostMapping("/private")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public ResponseEntity<ConversationResponse> createPrivateConversation(@Valid @RequestBody CreatePrivateConversationRequest request) { // <-- ИСПОЛЬЗУЕМ НОВЫЙ DTO
+    public ResponseEntity<ConversationResponse> createPrivateConversation(@Valid @RequestBody CreatePrivateConversationRequest request) {
         try {
             User currentUser = userService.getCurrentUserEntity();
-
             ConversationResponse response = conversationService.getOrCreatePrivateChat(currentUser.getId(), request.getTargetUserId());
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (EntityNotFoundException e) {
@@ -51,6 +53,7 @@ public class ConversationController {
         }
     }
 
+    // Получение списка всех бесед текущего пользователя.
     @GetMapping("/my")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ResponseEntity<List<ConversationResponse>> getMyConversations() {
@@ -58,6 +61,7 @@ public class ConversationController {
         return ResponseEntity.ok(conversations);
     }
 
+    // Получение информации о беседе по ID.
     @GetMapping("/{conversationId}")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ResponseEntity<ConversationResponse> getConversationById(@PathVariable Long conversationId) {

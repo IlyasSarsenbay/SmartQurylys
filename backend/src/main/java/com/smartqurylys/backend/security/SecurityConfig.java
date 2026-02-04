@@ -16,6 +16,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
+// Конфигурация безопасности для Spring Security.
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -26,24 +29,28 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
 
+    // Определяет цепочку фильтров безопасности.
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) // Отключаем CSRF, так как используем JWT.
+                .cors(withDefaults()) // Включаем CORS с конфигурацией по умолчанию.
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/phone/**", "/api/email/**", "/api/cities/**","/api/organisations/register").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/ws/**").permitAll()
-                        .anyRequest().authenticated()
+                        // Разрешаем доступ без аутентификации к этим эндпоинтам.
+                        .requestMatchers("/api/auth/**", "/api/phone/**", "/api/email/**", "/api/cities/**","/api/organisations/register", "/api/organisations/public/licenses/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Разрешаем pre-flight OPTIONS запросы.
+                        .requestMatchers("/ws/**").permitAll() // Веб-сокеты тоже без аутентификации.
+                        .anyRequest().authenticated() // Все остальные запросы требуют аутентификации.
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Не создаем сессию, так как используем JWT.
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Добавляем наш JWT фильтр.
 
         return http.build();
     }
 
+    // Настраиваем менеджер аутентификации.
     @Bean
     public AuthenticationManager authenticationManager() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -51,6 +58,4 @@ public class SecurityConfig {
         authProvider.setPasswordEncoder(passwordEncoder);
         return new ProviderManager(authProvider);
     }
-
-
 }

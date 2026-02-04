@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
-
+// Сущность для представления задачи в рамках этапа.
 @Entity
 @Table(name = "tasks")
 @Getter
@@ -18,13 +18,13 @@ import java.util.Set;
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // Уникальный идентификатор задачи.
 
     @ManyToOne
     @JoinColumn(name = "stage_id")
-    private Stage stage;
+    private Stage stage; // Этап, к которому относится задача.
 
-    private String name;
+    private String name; // Название задачи.
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -32,21 +32,22 @@ public class Task {
             joinColumns = @JoinColumn(name = "task_id"),
             inverseJoinColumns = @JoinColumn(name = "participant_id")
     )
-    private Set<Participant> responsiblePersons;
+    private Set<Participant> responsiblePersons; // Ответственные за задачу.
 
-    private LocalDate startDate;
+    private LocalDate startDate; // Дата начала задачи.
 
-    private LocalDate endDate;
+    private LocalDate endDate; // Дата окончания задачи.
 
-    private String info;
+    private String info; // Дополнительная информация о задаче.
 
-    private String description;
+    private String description; // Описание задачи.
 
-    private boolean isPriority;
+    @com.fasterxml.jackson.annotation.JsonProperty("isPriority")
+    private boolean isPriority; // Флаг, указывающий на приоритетность задачи.
 
-    private boolean executionRequested;
+    private boolean executionRequested; // Флаг запроса на выполнение задачи.
 
-    private boolean executed;
+    private boolean executed; // Флаг, указывающий, выполнена ли задача.
 
     @ManyToMany
     @JoinTable(
@@ -54,12 +55,12 @@ public class Task {
             joinColumns = @JoinColumn(name = "task_id"),
             inverseJoinColumns = @JoinColumn(name = "depends_on_task_id")
     )
-    private List<Task> dependsOn;
+    private List<Task> dependsOn; // Список задач, от которых зависит текущая.
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "task_id")
-    private List<File> files;
+    private List<File> files; // Файлы, прикрепленные к задаче.
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Requirement> requirements;
+    private List<Requirement> requirements; // Требования к задаче.
 }

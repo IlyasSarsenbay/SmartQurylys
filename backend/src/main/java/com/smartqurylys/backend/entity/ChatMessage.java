@@ -44,42 +44,35 @@ public class ChatMessage {
     @JoinColumn(name = "attached_file_id")
     private File attachedFile;
 
-    @Column(nullable = false)
+    @Column(name = "timestamp")
     private LocalDateTime timestamp;
 
-    // Тип сообщения (TEXT, COORDINATION_REQUEST, ACKNOWLEDGEMENT_REQUEST, COORDINATION_RESPONSE, ACKNOWLEDGEMENT_RESPONSE, SYSTEM_ACTION)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "message_type")
     private MessageType messageType;
 
-    // Для сообщений типа COORDINATION_REQUEST или ACKNOWLEDGEMENT_REQUEST:
-    // Участники, которых нужно отметить в сообщении (для @упоминаний)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "chat_message_mentions",
             joinColumns = @JoinColumn(name = "message_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<User> mentionedUsers = new HashSet<>(); // Отмеченные пользователи
+    @Builder.Default
+    private Set<User> mentionedUsers = new HashSet<>();
 
-    // Для COORDINATION_REQUEST: статус согласования
     @Enumerated(EnumType.STRING)
+    @Column(name = "coordination_status")
     private CoordinationStatus coordinationStatus;
 
-    // Для ACKNOWLEDGEMENT_REQUEST: статус ознакомления
     @Enumerated(EnumType.STRING)
+    @Column(name = "acknowledgement_status")
     private AcknowledgementStatus acknowledgementStatus;
 
-    // Если это ответ на другое сообщение (например, "согласовал смету" на "прошу согласовать смету")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "related_message_id")
     @JsonIgnore
     private ChatMessage relatedMessage;
 
-    // Дополнительные метаданные в формате JSON (например, имя сметы для согласования)
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "meta_data", columnDefinition = "text")
     private String metaData;
-
-
-
 }

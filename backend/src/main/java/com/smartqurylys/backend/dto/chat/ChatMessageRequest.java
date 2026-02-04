@@ -9,25 +9,26 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 import java.util.Map;
 
+// Объект передачи данных для запроса на отправку сообщения в чат.
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ChatMessageRequest {
     @NotNull(message = "Требуется ID беседы")
-    private Long conversationId; // К какой беседе относится сообщение
+    private Long conversationId; // Идентификатор беседы, к которой относится сообщение.
 
-    private String content; // Текст сообщения (может быть null для сообщений только с файлом)
-    private String tempFileId; // Временный ID для прикрепленного файла (если есть)
+    private String content; // Текст сообщения (может быть пустым, если прикреплен только файл).
+    private String tempFileId; // Временный ID для прикрепленного файла, если таковой имеется.
 
-    // Тип сообщения (TEXT, COORDINATION_REQUEST, ACKNOWLEDGEMENT_REQUEST и т.д.)
+    // Тип сообщения (например, TEXT, COORDINATION_REQUEST, ACKNOWLEDGEMENT_REQUEST).
     @NotNull(message = "Требуется тип сообщения")
     private String messageType;
 
-    private List<Long> mentionedUserIds; // ID пользователей для @упоминаний
+    private List<Long> mentionedUserIds; // ID пользователей, упомянутых в сообщении.
 
-    private Long relatedMessageId; // ID сообщения, на которое это сообщение является ответом/действием
+    private Long relatedMessageId; // ID сообщения, на которое текущее сообщение является ответом или действием.
 
-    // Дополнительные метаданные в формате JSON (например, {"documentName": "смета"}, {"status": "APPROVED"})
+    // Дополнительные метаданные в формате ключ-значение (например, {"documentName": "смета"}, {"status": "APPROVED"}).
     private Map<String, String> metaData;
 }

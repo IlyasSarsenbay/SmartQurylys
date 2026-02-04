@@ -3,6 +3,7 @@ package com.smartqurylys.backend.dto.auth;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+// DTO для запроса на регистрацию нового пользователя.
 @Data
 public class RegisterRequest {
 
@@ -13,8 +14,6 @@ public class RegisterRequest {
     @Email(message = "Некорректный формат почты")
     private String email;
 
-    @NotBlank(message = "Требуется пароль")
-    @Size(min = 8, message = "Пароль должен стоять как минимум из 8 символов")
     private String password;
 
     @NotBlank(message = "Требуется номер телефона")

@@ -8,6 +8,7 @@ import lombok.experimental.SuperBuilder;
 import java.util.Date;
 import java.util.List;
 
+// Сущность для представления документа в системе.
 @Entity
 @Data
 @NoArgsConstructor
@@ -19,24 +20,24 @@ public class Document {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Integer id; // Уникальный идентификатор документа.
 
     @ManyToOne
     @JoinColumn(name = "project_id")
-    private Project project;
+    private Project project; // Проект, к которому относится документ.
 
-    private String name;
-    private String filePath;
+    private String name; // Название документа.
+    private String filePath; // Путь к файлу документа на сервере.
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date uploadDate;
+    private Date uploadDate; // Дата и время загрузки документа.
 
     @Enumerated(EnumType.STRING)
-    private DocumentStatus status;
+    private DocumentStatus status; // Текущий статус документа.
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "document_id")
-    private List<File> files;
+    private List<File> files; // Прикрепленные к документу файлы.
 
     @ManyToMany
     @JoinTable(
@@ -44,7 +45,7 @@ public class Document {
             joinColumns = @JoinColumn(name = "document_id"),
             inverseJoinColumns = @JoinColumn(name = "participant_id")
     )
-    private List<Participant> haveToSign;
+    private List<Participant> haveToSign; // Список участников, которым предстоит подписать документ.
 
     @ManyToMany
     @JoinTable(
@@ -52,8 +53,8 @@ public class Document {
             joinColumns = @JoinColumn(name = "document_id"),
             inverseJoinColumns = @JoinColumn(name = "participant_id")
     )
-    private List<Participant> signed;
+    private List<Participant> signed; // Список участников, уже подписавших документ.
 
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments;
+    private List<Comment> comments; // Комментарии к документу.
 }

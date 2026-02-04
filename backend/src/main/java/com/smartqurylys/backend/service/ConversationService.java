@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+// Сервис для управления беседами в чате, включая создание и получение чатов проектов и личных чатов.
 @Service
 @RequiredArgsConstructor
 public class ConversationService {
@@ -31,6 +32,7 @@ public class ConversationService {
     private final UserRepository userRepository;
     private final UserService userService;
 
+    // Получает или создает чат для указанного проекта.
     @Transactional
     public ConversationResponse getOrCreateProjectChat(Long projectId) {
         Project project = projectRepository.findById(projectId)
@@ -39,8 +41,9 @@ public class ConversationService {
         Optional<Conversation> existingChat = conversationRepository.findByTypeAndProjectId(ConversationType.PROJECT_CHAT, projectId);
 
         if (existingChat.isPresent()) {
-            return mapToConversationResponse(existingChat.get());
+            return mapToConversationResponse(existingChat.get()); // Возвращаем существующий чат.
         } else {
+            // Создаем новый чат проекта, если его нет.
             Conversation newChat = Conversation.builder()
                     .type(ConversationType.PROJECT_CHAT)
                     .project(project)
@@ -52,6 +55,7 @@ public class ConversationService {
         }
     }
 
+    // Получает или создает личный чат между двумя пользователями.
     @Transactional
     public ConversationResponse getOrCreatePrivateChat(Long user1Id, Long user2Id) {
         if (user1Id.equals(user2Id)) {
@@ -66,8 +70,9 @@ public class ConversationService {
         Optional<Conversation> existingChat = conversationRepository.findPrivateChatBetweenUsers(user1, user2);
 
         if (existingChat.isPresent()) {
-            return mapToConversationResponse(existingChat.get());
+            return mapToConversationResponse(existingChat.get()); // Возвращаем существующий личный чат.
         } else {
+            // Создаем новый личный чат, если его нет.
             Set<User> participants = new HashSet<>();
             participants.add(user1);
             participants.add(user2);
@@ -75,7 +80,7 @@ public class ConversationService {
             Conversation newChat = Conversation.builder()
                     .type(ConversationType.PRIVATE_CHAT)
                     .participants(participants)
-                    .name(user1.getFullName() + " & " + user2.getFullName())
+                    .name(user1.getFullName() + " & " + user2.getFullName()) // Генерируем название чата.
                     .lastMessageTimestamp(LocalDateTime.now())
                     .build();
             Conversation savedChat = conversationRepository.save(newChat);
@@ -83,14 +88,16 @@ public class ConversationService {
         }
     }
 
+    // Получает все беседы, в которых участвует текущий пользователь.
     @Transactional(readOnly = true)
     public List<ConversationResponse> getUserConversations() {
-        User currentUser = userService.getCurrentUserEntity(); // Используем ВАШ метод
-        return conversationRepository.findByParticipantsContainsOrderByLastMessageTimestampDesc(currentUser).stream()
+        User currentUser = userService.getCurrentUserEntity(); // Используем метод получения текущего пользователя.
+        return conversationRepository.findUserConversations(currentUser).stream()
                 .map(this::mapToConversationResponse)
                 .collect(Collectors.toList());
     }
 
+    // Получает информацию о беседе по ее ID.
     @Transactional(readOnly = true)
     public ConversationResponse getConversationById(Long conversationId) {
         Conversation conversation = conversationRepository.findById(conversationId)
@@ -98,9 +105,28 @@ public class ConversationService {
         return mapToConversationResponse(conversation);
     }
 
+    // Преобразует сущность Conversation в DTO ConversationResponse.
     private ConversationResponse mapToConversationResponse(Conversation conversation) {
         List<UserResponse> participantResponses = Collections.emptyList();
-        if (conversation.getParticipants() != null && !conversation.getParticipants().isEmpty()) {
+        
+        // For project chats, get participants from project + owner
+        if (conversation.getType() == ConversationType.PROJECT_CHAT && conversation.getProject() != null) {
+            participantResponses = conversation.getProject().getParticipants().stream()
+                    .map(participant -> userService.mapToUserResponse(participant.getUser()))
+                    .collect(Collectors.toList());
+            
+            // Add project owner if not already in participants
+            User owner = conversation.getProject().getOwner();
+            if (owner != null) {
+                boolean ownerAlreadyIncluded = participantResponses.stream()
+                        .anyMatch(p -> p.getId().equals(owner.getId()));
+                if (!ownerAlreadyIncluded) {
+                    participantResponses.add(userService.mapToUserResponse(owner));
+                }
+            }
+        } 
+        // For private chats, get participants from conversation
+        else if (conversation.getParticipants() != null && !conversation.getParticipants().isEmpty()) {
             participantResponses = conversation.getParticipants().stream()
                     .map(userService::mapToUserResponse)
                     .collect(Collectors.toList());
