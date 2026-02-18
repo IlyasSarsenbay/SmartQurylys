@@ -43,7 +43,7 @@ export class AuthService {
   uploadRepresentativeDocuments(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post(`${this.orgApiUrl}/me/files`, formData);
+    return this.http.post(`${this.orgApiUrl}/me/representative-documents`, formData);
   }
 
   uploadLicense(file: File, licenseCategoryDisplay: string): Observable<any> {

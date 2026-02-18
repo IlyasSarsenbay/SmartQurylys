@@ -1,6 +1,10 @@
+<!-- Контейнер детальной информации организации -->
 <div class="admin-detail-container">
     <h2>Детали организации</h2>
+    
+    <!-- Форма редактирования данных организации -->
     <form [formGroup]="organisationForm" (ngSubmit)="onSubmit()">
+        <!-- Основные поля формы -->
         <div class="form-group">
             <label for="fullName">Полное наименование</label>
             <input id="fullName" formControlName="fullName" class="form-input">
@@ -45,6 +49,7 @@
             <label for="field">Сфера деятельности</label>
             <input id="field" formControlName="field" class="form-input">
         </div>
+        <!-- Специализации (чекбоксы) -->
         <div class="form-group">
             <label>Специализации</label>
             <div formGroupName="specialization" class="specialization-checkbox-group">
@@ -65,6 +70,7 @@
         </div>
     </form>
 
+<!-- Секция управления лицензиями -->
     <div class="licenses-section">
         <h3>Управление лицензиями</h3>
 
@@ -117,12 +123,47 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <div *ngIf="successMessage" class="success-message">
-        {{ successMessage }}
+   <!-- Секция документов представителя -->
+        <div class="licenses-section">
+            <h3>Управление документами представителя</h3>
+            <div class="licenses-list-container">
+                <div *ngIf="representativeDocuments.length === 0" class="no-licenses">
+                    <p>У организации нет загруженных документов представителя</p>
+                </div>
+                <div *ngIf="representativeDocuments.length > 0" class="licenses-list">
+                    <div *ngFor="let doc of representativeDocuments" class="license-card">
+                        <div class="license-info">
+                            <h4>{{ doc.name }}</h4>
+                            <p><strong>Дата загрузки:</strong> {{ doc.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
+                            <p><strong>Размер:</strong> {{ (doc.size / 1024).toFixed(2) }} KB</p>
+                            <span class="status-badge" [ngClass]="getStatusBadgeClass(doc.reviewStatus)">
+                                {{ getStatusText(doc.reviewStatus) }}
+                            </span>
+                            <p *ngIf="doc.rejectionReason" class="rejection-reason-text">
+                                <strong>Причина отклонения:</strong> {{ doc.rejectionReason }}
+                            </p>
+                        </div>
+                        <div class="license-actions">
+                            <button class="btn-download" (click)="downloadRepDoc(doc)">Скачать</button>
+                            <button *ngIf="doc.reviewStatus !== 'APPROVED'" class="btn-approve"
+                                (click)="approveRepDoc(doc.id)">
+                                Одобрить
+                            </button>
+                            <button *ngIf="doc.reviewStatus !== 'REJECTED'" class="btn-reject"
+                                (click)="rejectRepDoc(doc.id)">
+                                Отклонить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+ <!-- Сообщения об успехе/ошибке -->
+        <div *ngIf="successMessage" class="success-message">
+            {{ successMessage }}
+        </div>
+        <div *ngIf="errorMessage" class="error-message">
+            {{ errorMessage }}
+        </div>
     </div>
-    <div *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
-    </div>
-</div>

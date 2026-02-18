@@ -1,4 +1,4 @@
-
+/* ===== ОСНОВНОЙ КОНТЕЙНЕР ДЭШБОРДА ===== */
 .dashboard-container {
   flex-grow: 2; 
   display: flex;
@@ -6,12 +6,14 @@
   align-items: center;
   gap: 4rem; 
   padding: 2rem;
+  /* Фоновое изображение (заглушка) */
   background-image: url('https://placehold.co/1920x1080/F8F8F8/F8F8F8?text=Background'); 
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
 
+/* ===== КАРТОЧКИ ДЭШБОРДА ===== */
 .dashboard-card {
   background-color: var(--color-card-background);
   padding: 2rem;
@@ -22,52 +24,59 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  width: 350px; /* Increased from 250px */
-  height: 350px; /* Increased from 250px */
+  width: 350px;
+  height: 350px;
   cursor: pointer;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   border: 1px solid var(--color-border-light);
 }
 
+/* Эффект при наведении на карточку */
 .dashboard-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 15px 30px rgba(0,0,0,0.15);
 }
 
+/* Иконка внутри карточки */
 .card-icon {
-  width: 180px; /* Increased from 120px */
-  height: 180px; /* Increased from 120px */
-  margin-bottom: 1.5rem; /* Slightly increased */
-  object-fit: contain; 
+  width: 180px;
+  height: 180px;
+  margin-bottom: 1.5rem;
+  object-fit: contain; /* Сохраняет пропорции иконки */
 }
 
+/* Заголовок карточки */
 .card-title {
-  font-size: 1.5rem; /* Increased from 1.25rem */
+  font-size: 1.5rem;
   font-weight: 600;
   color: var(--color-primary-dark);
 }
 
+/* ===== АДАПТИВНОСТЬ (МОБИЛЬНЫЕ УСТРОЙСТВА) ===== */
 @media (max-width: 768px) {
   .dashboard-container {
     flex-direction: column;
     gap: 2rem;
     padding: 1rem;
   }
+  
   .dashboard-card {
-    width: 280px; /* Increased from 200px */
-    height: 280px; /* Increased from 200px */
+    width: 280px;
+    height: 280px;
     padding: 1.5rem;
   }
+  
   .card-icon {
-    width: 140px; /* Increased from 100px */
-    height: 140px; /* Increased from 100px */
+    width: 140px;
+    height: 140px;
   }
+  
   .card-title {
-    font-size: 1.3rem; /* Increased from 1.1rem */
+    font-size: 1.3rem;
   }
-
 }
 
+/* ===== ХЕДЕР ПРИЛОЖЕНИЯ ===== */
 .app-header {
   background-color: var(--color-card-background); 
   padding: 0.5rem 1.5rem; 
@@ -77,12 +86,14 @@
   color: var(--color-primary-dark);
 }
 
+/* Секция с логотипом */
 .app-header .logo-section {
   display: flex;
-  align-items: baseline; 
+  align-items: baseline; /* Выравнивание по базовой линии для разного размера шрифта */
   gap: 0.25rem; 
 }
 
+/* Крупный логотип "SQ" */
 .app-header .logo-sq {
   font-size: 2.2rem; 
   font-weight: 800; 
@@ -90,6 +101,7 @@
   line-height: 1;
 }
 
+/* Текст "SMARTQURYLYS" рядом с логотипом */
 .app-header .logo-smartqurylys {
   font-size: 0.8rem; 
   font-weight: 500;
@@ -98,13 +110,14 @@
   margin-left: 0.2rem; 
 }
 
-
+/* Нижняя линия хедера */
 .header-bottom-line {
   height: 2px;
   background-color: #E0E0E0;
   width: 100%;
 }
 
+/* ===== АДАПТИВНОСТЬ ХЕДЕРА ===== */
 @media (max-width: 768px) {
   .app-header {
     flex-direction: column;

@@ -3,6 +3,7 @@ import { HttpClient, HttpParams, HttpHeaders, HttpResponse } from '@angular/comm
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { OrganisationResponse, OrganisationUpdateRequest, LicenseUpdateRequest } from './models/organisation';
+import { RepresentativeDocumentResponse } from './models/representative-document';
 import { OrganisationRegisterRequest } from './models/auth';
 import { FileResponse } from './models/file';
 import { LicenseResponse } from './models/license';
@@ -139,6 +140,33 @@ export class OrganisationService {
     if (licenseCategoryDisplay) formData.append('licenseCategoryDisplay', licenseCategoryDisplay);
 
     return this.http.put<LicenseResponse>(`${this.apiUrl}/me/licenses/${id}`, formData, { headers: this.getFileAuthHeaders() });
+  }
+
+  // Получение документов представителя текущей организации.
+  getMyRepresentativeDocuments(): Observable<RepresentativeDocumentResponse[]> {
+    return this.http.get<RepresentativeDocumentResponse[]>(`${this.apiUrl}/me/representative-documents`, { headers: this.getAuthHeaders() });
+  }
+
+  // Добавление документа представителя для текущей организации.
+  addRepresentativeDocumentToMyOrganisation(file: File): Observable<RepresentativeDocumentResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<RepresentativeDocumentResponse>(`${this.apiUrl}/me/representative-documents`, formData, { headers: this.getFileAuthHeaders() });
+  }
+
+  // Удаление документа представителя текущей организации.
+  deleteMyRepresentativeDocument(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/me/representative-documents/${id}`, { headers: this.getAuthHeaders() });
+  }
+
+  // Получение документов представителя организации по ID (только для администраторов).
+  getRepresentativeDocumentsAdmin(organisationId: number): Observable<RepresentativeDocumentResponse[]> {
+    return this.http.get<RepresentativeDocumentResponse[]>(`${this.apiUrl}/${organisationId}/representative-documents`, { headers: this.getAuthHeaders() });
+  }
+
+  // Обновление статуса документа представителя (только для администраторов).
+  updateRepresentativeDocumentStatus(id: number, request: LicenseUpdateRequest): Observable<RepresentativeDocumentResponse> {
+    return this.http.put<RepresentativeDocumentResponse>(`${this.apiUrl}/representative-documents/${id}/status`, request, { headers: this.getAuthHeaders() });
   }
 
   // Получение списка подрядчиков (публичный доступ).

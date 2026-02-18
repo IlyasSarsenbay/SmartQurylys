@@ -142,4 +142,32 @@ public class NotificationService {
 
         notificationRepository.save(notification);
     }
+
+    public void createRepresentativeDocumentReviewNotification(User recipient, String documentName, boolean approved, Long documentId, String rejectionReason) {
+        String status = approved ? "одобрен" : "отклонен";
+        String message;
+        
+        if (approved) {
+            message = String.format("Ваш документ представителя \"%s\" был %s администратором", documentName, status);
+        } else {
+            if (rejectionReason != null && !rejectionReason.trim().isEmpty()) {
+                message = String.format("Ваш документ представителя \"%s\" был %s администратором. Причина: %s", documentName, status, rejectionReason);
+            } else {
+                message = String.format("Ваш документ представителя \"%s\" был %s администратором", documentName, status);
+            }
+        }
+
+        Notification notification = Notification.builder()
+                .recipient(recipient)
+                .sender(null) // Admin notification, no specific sender
+                .project(null)
+                .message(message)
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .type(approved ? NotificationType.LICENSE_APPROVED : NotificationType.LICENSE_REJECTED)
+                .relatedEntityId(documentId)
+                .build();
+
+        notificationRepository.save(notification);
+    }
 }

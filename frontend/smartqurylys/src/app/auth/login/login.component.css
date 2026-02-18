@@ -1,5 +1,4 @@
-
- 
+/* ===== ХЕДЕР ПРИЛОЖЕНИЯ ===== */
 .app-header {
   background-color: var(--color-card-background); 
   padding: 0.5rem 1.5rem; 
@@ -9,12 +8,14 @@
   color: var(--color-primary-dark);
 }
 
+/* ===== СЕКЦИЯ ЛОГОТИПА ===== */
 .app-header .logo-section {
   display: flex;
-  align-items: baseline; 
+  align-items: baseline; /* Выравнивание по базовой линии для разного размера шрифта */
   gap: 0.25rem; 
 }
 
+/* Крупный логотип "SQ" */
 .app-header .logo-sq {
   font-size: 2.2rem; 
   font-weight: 800; 
@@ -22,6 +23,7 @@
   line-height: 1;
 }
 
+/* Текст "SMARTQURYLYS" рядом с логотипом */
 .app-header .logo-smartqurylys {
   font-size: 0.8rem; 
   font-weight: 500;
@@ -30,13 +32,14 @@
   margin-left: 0.2rem; 
 }
 
-
+/* ===== НИЖНЯЯ ЛИНИЯ ХЕДЕРА ===== */
 .header-bottom-line {
   height: 2px;
   background-color: #E0E0E0;
   width: 100%;
 }
 
+/* ===== АДАПТИВНОСТЬ (МОБИЛЬНЫЕ УСТРОЙСТВА) ===== */
 @media (max-width: 768px) {
   .app-header {
     flex-direction: column;

@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -46,6 +47,10 @@ public class Organisation extends User{
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "organisation_id")
     private List<License> licenses; // Лицензии организации.
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "organisation_id")
+    private List<RepresentativeDocument> representativeDocuments; // Документы представителя организации.
 
     @Enumerated(EnumType.STRING)
     @Builder.Default

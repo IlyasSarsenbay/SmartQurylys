@@ -3,6 +3,7 @@ package com.smartqurylys.backend.service;
 import com.smartqurylys.backend.dto.auth.AuthResponse;
 import com.smartqurylys.backend.dto.project.FileResponse;
 import com.smartqurylys.backend.dto.project.LicenseResponse;
+import com.smartqurylys.backend.dto.project.RepresentativeDocumentResponse;
 import com.smartqurylys.backend.dto.user.organisation.LicenseUpdateRequest;
 import com.smartqurylys.backend.dto.user.organisation.OrganisationCreateRequest;
 import com.smartqurylys.backend.dto.user.organisation.OrganisationResponse;
@@ -39,6 +40,7 @@ public class OrganisationService {
     private final OrganisationRepository organisationRepository;
     private final CityRepository cityRepository;
     private final LicenseRepository licenseRepository;
+    private final RepresentativeDocumentRepository representativeDocumentRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final UserService userService;
@@ -485,6 +487,13 @@ public class OrganisationService {
                     .map(this::mapToLicenseResponse)
                     .collect(Collectors.toList()));
         }
+
+        // Добавляем документы представителя
+        if (organisation.getRepresentativeDocuments() != null && !organisation.getRepresentativeDocuments().isEmpty()) {
+            builder.representativeDocuments(organisation.getRepresentativeDocuments().stream()
+                    .map(this::mapToRepresentativeDocumentResponse)
+                    .collect(Collectors.toList()));
+        }
         
         return builder.build();
     }
@@ -502,5 +511,94 @@ public class OrganisationService {
                 .reviewStatus(license.getReviewStatus())
                 .rejectionReason(license.getRejectionReason())
                 .build();
+    }
+
+    // Преобразует сущность RepresentativeDocument в DTO RepresentativeDocumentResponse.
+    private RepresentativeDocumentResponse mapToRepresentativeDocumentResponse(RepresentativeDocument doc) {
+        return RepresentativeDocumentResponse.builder()
+                .id(doc.getId())
+                .name(doc.getName())
+                .filepath(doc.getFilepath())
+                .size(doc.getSize())
+                .createdAt(doc.getCreatedAt())
+                .creatorIinBin(doc.getUser() != null ? doc.getUser().getIinBin() : null)
+                .reviewStatus(doc.getReviewStatus())
+                .rejectionReason(doc.getRejectionReason())
+                .build();
+    }
+
+    // Добавляет документ представителя к организации.
+    @Transactional
+    public RepresentativeDocumentResponse addRepresentativeDocumentToOrganisation(Long organisationId, MultipartFile multipartFile) throws IOException {
+        Organisation organisation = organisationRepository.findById(organisationId)
+                .orElseThrow(() -> new EntityNotFoundException("Организация не найдена: " + organisationId));
+
+        RepresentativeDocument doc = RepresentativeDocument.builder()
+                .name(multipartFile.getOriginalFilename())
+                .filepath(fileService.prepareFile(multipartFile, organisation).getFilepath())
+                .size(multipartFile.getSize())
+                .createdAt(LocalDateTime.now())
+                .reviewStatus(FileReviewStatus.PENDING_REVIEW)
+                .user(organisation)
+                .build();
+
+        if (organisation.getRepresentativeDocuments() == null) {
+            organisation.setRepresentativeDocuments(new ArrayList<>());
+        }
+        organisation.getRepresentativeDocuments().add(doc);
+
+        organisationRepository.save(organisation);
+
+        return mapToRepresentativeDocumentResponse(doc);
+    }
+
+    // Получает список документов представителя для указанной организации.
+    @Transactional(readOnly = true)
+    public List<RepresentativeDocumentResponse> getRepresentativeDocumentsByOrganisation(Long organisationId) {
+        return representativeDocumentRepository.findByOrganisationId(organisationId).stream()
+                .map(this::mapToRepresentativeDocumentResponse)
+                .collect(Collectors.toList());
+    }
+
+    // Удаляет документ представителя.
+    @Transactional
+    public void deleteRepresentativeDocument(Long docId) throws IOException {
+        RepresentativeDocument doc = representativeDocumentRepository.findById(docId)
+                .orElseThrow(() -> new EntityNotFoundException("Документ не найден: " + docId));
+        
+        Organisation organisation = (Organisation) doc.getUser();
+        if (organisation != null && organisation.getRepresentativeDocuments() != null) {
+            organisation.getRepresentativeDocuments().remove(doc);
+            organisationRepository.save(organisation);
+        }
+        
+        fileService.deleteFile(docId);
+    }
+
+    // Обновляет статус документа представителя (админ).
+    @Transactional
+    public RepresentativeDocumentResponse updateRepresentativeDocumentStatus(Long id, LicenseUpdateRequest request) {
+        RepresentativeDocument doc = representativeDocumentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Документ не найден: " + id));
+
+        FileReviewStatus oldStatus = doc.getReviewStatus();
+
+        if (request.getReviewStatus() != null) {
+            doc.setReviewStatus(FileReviewStatus.valueOf(String.valueOf(request.getReviewStatus())));
+        }
+        Optional.ofNullable(request.getRejectionReason()).ifPresent(doc::setRejectionReason);
+
+        RepresentativeDocument updatedDoc = representativeDocumentRepository.save(doc);
+
+        // Уведомление
+        if (request.getReviewStatus() != null && !FileReviewStatus.valueOf(String.valueOf(request.getReviewStatus())).equals(oldStatus)) {
+            User recipient = doc.getUser();
+            if (recipient != null) {
+                boolean approved = FileReviewStatus.valueOf(String.valueOf(request.getReviewStatus())) == FileReviewStatus.APPROVED;
+                notificationService.createRepresentativeDocumentReviewNotification(recipient, doc.getName(), approved, doc.getId(), request.getRejectionReason());
+            }
+        }
+
+        return mapToRepresentativeDocumentResponse(updatedDoc);
     }
 }

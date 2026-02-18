@@ -1,3 +1,4 @@
+<!-- ===== ХЕДЕР СТРАНИЦЫ ===== -->
 <header class="app-header">
   <div class="logo-section">
     <span class="logo-sq">SQ</span>
@@ -5,14 +6,26 @@
   </div>
 </header>
 
+<!-- ===== КОНТЕЙНЕР ДЭШБОРДА С КАРТОЧКАМИ ВЫБОРА ===== -->
 <div class="dashboard-container">
+  
+  <!-- Карточка для юридических лиц -->
   <div class="dashboard-card" routerLink="/registerOrg">
-    <img src="https://static.tildacdn.com/tild3365-6136-4931-b038-613666303838/architect_17234330.png" alt="Создать новый проект" class="card-icon">
+    <img 
+      src="https://static.tildacdn.com/tild3365-6136-4931-b038-613666303838/architect_17234330.png" 
+      alt="Регистрация юридического лица" 
+      class="card-icon"
+    >
     <span class="card-title">ЮРИДИЧЕСКОЕ ЛИЦО</span>
   </div>
 
+  <!-- Карточка для физических лиц -->
   <div class="dashboard-card" routerLink="/registerUser">
-    <img src="https://cdn2.iconfinder.com/data/icons/real-estate-1-0-1/1024/building_construction-512.png" alt="Мои проекты" class="card-icon">
+    <img 
+      src="https://cdn2.iconfinder.com/data/icons/real-estate-1-0-1/1024/building_construction-512.png" 
+      alt="Регистрация физического лица" 
+      class="card-icon"
+    >
     <span class="card-title">ФИЗИЧЕСКОЕ ЛИЦО</span>
   </div>
 </div>

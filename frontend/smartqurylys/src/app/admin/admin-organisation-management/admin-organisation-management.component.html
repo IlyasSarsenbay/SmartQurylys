@@ -1,18 +1,23 @@
+<!-- ===== КОНТЕЙНЕР УПРАВЛЕНИЯ ОРГАНИЗАЦИЯМИ ===== -->
 <div class="admin-management-container">
   <h2>Управление организациями</h2>
 
+  <!-- Индикатор загрузки -->
   <div *ngIf="loading" class="loading-message">
     Загрузка организаций...
   </div>
 
+  <!-- Сообщение об ошибке -->
   <div *ngIf="errorMessage" class="error-message">
     {{ errorMessage }}
   </div>
 
+  <!-- Пустой список -->
   <div *ngIf="!loading && organisations.length === 0 && !errorMessage" class="no-results">
     Организации не найдены.
   </div>
 
+  <!-- Таблица с организациями -->
   <div *ngIf="!loading && organisations.length > 0" class="table-container">
     <table class="data-table">
       <thead>
@@ -43,6 +48,7 @@
           <td>{{ org.field }}</td>
           <td>{{ org.yearsOfExperience }}</td>
           <td>
+            <!-- Кнопки действий -->
             <button class="action-button view-button" (click)="viewOrganisation(org.id)">Просмотр</button>
             <button class="action-button delete-button" (click)="deleteOrganisation(org.id)">Удалить</button>
           </td>

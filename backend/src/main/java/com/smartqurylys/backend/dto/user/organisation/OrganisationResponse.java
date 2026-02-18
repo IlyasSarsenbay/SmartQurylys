@@ -1,6 +1,7 @@
 package com.smartqurylys.backend.dto.user.organisation;
 
 import com.smartqurylys.backend.dto.project.LicenseResponse;
+import com.smartqurylys.backend.dto.project.RepresentativeDocumentResponse;
 import com.smartqurylys.backend.dto.user.UserResponse;
 import com.smartqurylys.backend.shared.enums.OrganisationStatus;
 import com.smartqurylys.backend.shared.enums.OrganistaionType;
@@ -28,5 +29,6 @@ public class OrganisationResponse extends UserResponse {
     private List<String> specialization; // Список специализаций организации.
     private Long yearsOfExperience; // Опыт работы организации в годах.
     private List<LicenseResponse> licenses; // Список лицензий организации.
+    private List<RepresentativeDocumentResponse> representativeDocuments; // Список документов представителя организации.
     private OrganisationStatus status; // Статус доступности организации.
 }

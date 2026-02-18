@@ -177,5 +177,52 @@
         </div>
       </div>
     </div>
+    <!-- Секция документов представителя -->
+    <div class="representative-docs-section">
+      <hr>
+      <h3>Документы представителя</h3>
+
+      <!-- Загрузка нового документа -->
+      <div class="license-upload-card">
+        <h4>Добавить документ</h4>
+        <div class="license-form">
+          <div class="form-group">
+            <label for="newRepDocFile">Файл документа</label>
+            <input type="file" id="newRepDocFile" (change)="onRepDocFileSelected($event)" class="file-input">
+          </div>
+          <button [disabled]="!selectedRepDocFile || isUploadingRepDoc" (click)="addRepresentativeDocument()"
+            class="add-license-btn">
+            {{ isUploadingRepDoc ? 'Загрузка...' : 'Загрузить документ' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Список документов -->
+      <div class="licenses-list">
+        <div *ngIf="loadingRepresentativeDocuments" class="loading">Загрузка документов...</div>
+
+        <div *ngFor="let doc of representativeDocuments" class="license-item">
+          <div class="license-info">
+            <div class="license-header">
+              <span class="license-name">{{ doc.name }}</span>
+              <span [class]="'status-badge ' + getStatusBadgeClass(doc.reviewStatus)">
+                {{ getStatusText(doc.reviewStatus) }}
+              </span>
+            </div>
+            <div class="license-details">
+              <p><strong>Дата:</strong> {{ doc.createdAt | date:'dd.MM.yyyy' }}</p>
+              <p *ngIf="doc.rejectionReason" class="rejection-reason">
+                <strong>Причина отклонения:</strong> {{ doc.rejectionReason }}
+              </p>
+            </div>
+            <div class="license-actions">
+              <button (click)="downloadRepresentativeDocument(doc)" class="icon-btn" title="Скачать">📥 Скачать</button>
+              <button (click)="deleteRepresentativeDocument(doc.id)" class="icon-btn delete-btn" title="Удалить">🗑️
+                Удалить</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
