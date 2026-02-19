@@ -48,6 +48,7 @@ public class ChatMessage {
     private LocalDateTime timestamp;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "message_type")
     private MessageType messageType;
 
@@ -61,10 +62,12 @@ public class ChatMessage {
     private Set<User> mentionedUsers = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "coordination_status")
     private CoordinationStatus coordinationStatus;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "acknowledgement_status")
     private AcknowledgementStatus acknowledgementStatus;
 

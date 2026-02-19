@@ -8,6 +8,9 @@ import lombok.experimental.SuperBuilder;
 import java.util.Date;
 import java.util.List;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 // Сущность для представления документа в системе.
 @Entity
 @Data
@@ -33,6 +36,7 @@ public class Document {
     private Date uploadDate; // Дата и время загрузки документа.
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private DocumentStatus status; // Текущий статус документа.
 
     @OneToMany(cascade = CascadeType.ALL)
