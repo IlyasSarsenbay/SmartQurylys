@@ -7,6 +7,9 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 // Сущность для представления этапа в графике работ.
 @Entity
 @Table(name = "stages")
@@ -37,6 +40,7 @@ public class Stage {
 //    private String resources;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private StageStatus status; // Текущий статус этапа.
 
     @OneToMany(mappedBy = "stage", cascade = CascadeType.ALL, orphanRemoval = true)

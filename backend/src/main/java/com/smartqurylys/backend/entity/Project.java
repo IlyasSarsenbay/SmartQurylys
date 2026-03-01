@@ -7,6 +7,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 // Сущность для представления проекта.
 @Entity
 @Table(name = "projects")
@@ -32,6 +35,7 @@ public class Project {
     private LocalDate endDate; // Дата окончания проекта.
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private ProjectStatus status; // Текущий статус проекта.
 
     @ManyToOne

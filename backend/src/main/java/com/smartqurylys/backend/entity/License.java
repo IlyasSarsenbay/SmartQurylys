@@ -1,5 +1,8 @@
 package com.smartqurylys.backend.entity;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import com.smartqurylys.backend.shared.enums.FileReviewStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,6 +23,7 @@ public class License extends File {
     private String licenseCategoryDisplay; // Отображаемое название категории лицензии.
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private FileReviewStatus reviewStatus; // Статус проверки лицензии.
     
     @Column(length = 500)

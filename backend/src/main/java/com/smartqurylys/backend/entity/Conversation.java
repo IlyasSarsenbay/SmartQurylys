@@ -13,6 +13,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 // Сущность для представления беседы в чате.
 @Entity
 @Table(name = "conversations")
@@ -28,6 +31,7 @@ public class Conversation {
 
     // Тип беседы: PROJECT_CHAT (для проекта) или PRIVATE_CHAT (для личного сообщения).
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false)
     private ConversationType type;
 
@@ -42,9 +46,9 @@ public class Conversation {
     // Участники беседы (для личных чатов). Для чатов проекта участники определяются через Project.participants.
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "conversation_participants",
+            name = "conversation_users",
             joinColumns = @JoinColumn(name = "conversation_id"),
-            inverseJoinColumns = @JoinColumn(name = "participant_id")
+            inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private Set<User> participants = new HashSet<>(); // Набор пользователей, участвующих в беседе.
 

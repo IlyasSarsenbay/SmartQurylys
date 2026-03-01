@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 // Сущность для представления организации, наследует от User.
 @Entity
 @Table(name = "organisations")
@@ -31,6 +34,7 @@ public class Organisation extends User{
     private List<File> files; // Прикрепленные файлы организации.
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private OrganistaionType type; // Тип организации.
 
     private String field; // Область деятельности организации.
@@ -40,6 +44,7 @@ public class Organisation extends User{
             joinColumns = @JoinColumn(name = "organisation_id"))
     @Column(name = "specialization")
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private Set<Specialization> specialization; // Список специализаций организации.
 
     private Long yearsOfExperience; // Опыт работы организации в годах.
@@ -53,6 +58,7 @@ public class Organisation extends User{
     private List<RepresentativeDocument> representativeDocuments; // Документы представителя организации.
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Builder.Default
     private OrganisationStatus status = OrganisationStatus.AVAILABLE; // Статус доступности организации.
 }
