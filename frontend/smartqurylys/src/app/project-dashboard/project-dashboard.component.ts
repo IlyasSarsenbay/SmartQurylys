@@ -74,6 +74,15 @@ export class ProjectDashboardComponent implements OnInit {
   isExecutorsModalOpen = false;
   isReactivationModalOpen = false;
 
+  // ===== Reason dialog for owner task actions =====
+  isReasonModalOpen = false;
+  pendingAction: 'confirm' | 'decline' | 'return' | null = null;
+  actionReason = '';
+  // ================================================
+
+  // Флаг: выполнена ли задача, открытая в редактировании
+  editingTaskIsConfirmed = false;
+
   selectedStageForModal: StageResponse | null = null;
   selectedStageForExecutors: StageResponse | null = null;
   selectedStageForReactivation: StageResponse | null = null;
@@ -574,36 +583,64 @@ export class ProjectDashboardComponent implements OnInit {
     }
   }
 
-  confirmExecution(): void {
-    if (this.activeTask && this.scheduleId !== null) {
-      this.taskService.confirmExecution(this.scheduleId, this.activeTask.id).subscribe({
+  /** Opens the reason dialog for an owner action. */
+  openReasonModal(action: 'confirm' | 'decline' | 'return'): void {
+    this.pendingAction = action;
+    this.actionReason = '';
+    this.isReasonModalOpen = true;
+  }
+
+  /** Closes the reason dialog without executing the action. */
+  closeReasonModal(): void {
+    this.isReasonModalOpen = false;
+    this.pendingAction = null;
+    this.actionReason = '';
+  }
+
+  /** Submits the owner action (decline or return) with the provided reason. */
+  submitReasonAction(): void {
+    if (!this.activeTask || this.scheduleId === null || !this.pendingAction) return;
+    const reason = this.actionReason.trim() || undefined;
+    const action = this.pendingAction;
+    this.closeReasonModal();
+
+    if (action === 'decline') {
+      this.taskService.declineExecution(this.scheduleId, this.activeTask.id, reason).subscribe({
         next: () => {
-          this.activeTask!.executionConfirmed = true;
-          if (this.selectedStageForModal) {
-            this.fetchStageMapData(this.selectedStageForModal.id);
-          }
+          if (this.selectedStageForModal) this.fetchStageMapData(this.selectedStageForModal.id);
         },
-        error: (error) => {
-          console.error('Ошибка при принятии исполнения:', error);
-        }
+        error: (error) => console.error('Ошибка при отказе принять исполнения:', error)
+      });
+    } else if (action === 'return') {
+      this.taskService.returnToExecution(this.scheduleId, this.activeTask.id, reason).subscribe({
+        next: () => {
+          this.activeTask!.executionConfirmed = false;
+          if (this.selectedStageForModal) this.fetchStageMapData(this.selectedStageForModal.id);
+        },
+        error: (error) => console.error('Ошибка при возврате задачи в работу:', error)
       });
     }
   }
 
-  rejectExecution(): void {
-    if (this.activeTask && this.scheduleId !== null) {
-      this.taskService.declineExecution(this.scheduleId, this.activeTask.id).subscribe({
-        next: () => {
-          if (this.selectedStageForModal) {
-            this.fetchStageMapData(this.selectedStageForModal.id);
-          }
-        },
-        error: (error) => {
-          console.error('Ошибка при отказе принять исполнения:', error);
-        }
-      });
-    }
+  confirmExecution(): void {
+    if (!this.activeTask || this.scheduleId === null) return;
+    this.taskService.confirmExecution(this.scheduleId, this.activeTask.id).subscribe({
+      next: () => {
+        this.activeTask!.executionConfirmed = true;
+        if (this.selectedStageForModal) this.fetchStageMapData(this.selectedStageForModal.id);
+      },
+      error: (error) => console.error('Ошибка при принятии исполнения:', error)
+    });
   }
+
+  rejectExecution(): void {
+    this.openReasonModal('decline');
+  }
+
+  returnTaskToWork(): void {
+    this.openReasonModal('return');
+  }
+
 
   downloadFile(file: FileResponse): void {
     this.taskService.downloadFile(file.id).subscribe({
@@ -832,8 +869,8 @@ export class ProjectDashboardComponent implements OnInit {
   }
 
   editTask(task: TaskResponse): void {
-
     this.selectedTaskForEdit = task;
+    this.editingTaskIsConfirmed = task.executionConfirmed || false;
     this.editableTaskName = task.name;
     this.editableTaskDescription = task.description || '';
     this.editableTaskStartDate = task.startDate || '';

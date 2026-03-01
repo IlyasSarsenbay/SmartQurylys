@@ -381,11 +381,14 @@
             <small class="text-gray-500">Для выбора нескольких человек используйте Ctrl (Cmd) + клик.</small>
           </div>
           <div class="col-span-1 md:col-span-2">
-            <div class="flex items-center">
+            <div class="flex items-center flex-wrap gap-2">
               <input id="editTaskIsPriority" type="checkbox" formControlName="isPriority"
-                class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                [attr.disabled]="editingTaskIsConfirmed ? true : null"
+                class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed">
               <label for="editTaskIsPriority" class="ml-2 block text-sm font-medium text-gray-700">Приоритетная
                 задача</label>
+              <span *ngIf="editingTaskIsConfirmed" class="text-xs text-gray-400 italic">— задача выполнена, приоритет
+                недоступен</span>
             </div>
           </div>
         </div>

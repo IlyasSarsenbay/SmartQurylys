@@ -472,17 +472,25 @@
                 <div class="pt-4 border-t border-gray-200">
                     <div class="flex items-center space-x-2">
                         <input type="checkbox" id="taskPriority" [(ngModel)]="editableTaskPriority"
-                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            [disabled]="editingTaskIsConfirmed"
+                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed">
                         <label for="taskPriority" class="text-sm font-medium text-gray-700">
                             Высокий приоритет
                         </label>
-                        <button *ngIf="selectedTaskForEdit" (click)="togglePriority()"
-                            [class.bg-red-500]="editableTaskPriority" [class.hover:bg-red-600]="editableTaskPriority"
-                            [class.bg-yellow-500]="!editableTaskPriority"
-                            [class.hover:bg-yellow-600]="!editableTaskPriority"
-                            class="ml-4 text-white text-xs font-bold py-1 px-3 rounded transition-colors">
-                            {{ editableTaskPriority ? 'Убрать приоритет' : 'Сделать приоритетной' }}
-                        </button>
+                        <ng-container *ngIf="editingTaskIsConfirmed; else priorityBtn">
+                            <span class="ml-3 text-xs text-gray-400 italic">Задача выполнена — приоритет
+                                недоступен</span>
+                        </ng-container>
+                        <ng-template #priorityBtn>
+                            <button *ngIf="selectedTaskForEdit" (click)="togglePriority()"
+                                [class.bg-red-500]="editableTaskPriority"
+                                [class.hover:bg-red-600]="editableTaskPriority"
+                                [class.bg-yellow-500]="!editableTaskPriority"
+                                [class.hover:bg-yellow-600]="!editableTaskPriority"
+                                class="ml-4 text-white text-xs font-bold py-1 px-3 rounded transition-colors">
+                                {{ editableTaskPriority ? 'Убрать приоритет' : 'Сделать приоритетной' }}
+                            </button>
+                        </ng-template>
                     </div>
                 </div>
 
@@ -801,9 +809,15 @@
                         class="bg-gray-500 text-white font-bold py-2 px-6 rounded-full cursor-not-allowed">
                         Запрос на принятие отправлен
                     </button>
-                    <button *ngIf="activeTask.executionConfirmed"
+                    <button *ngIf="activeTask.executionConfirmed && !isOwner"
                         class="bg-green-600 text-white font-bold py-2 px-6 rounded-full cursor-default w-full text-center">
                         Запрос принят, задание выполнено
+                    </button>
+
+                    <!-- Owner: Вернуть в работу (when task is already confirmed) -->
+                    <button *ngIf="isOwner && activeTask.executionConfirmed" (click)="returnTaskToWork()"
+                        class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-colors">
+                        Вернуть в работу
                     </button>
 
                     <ng-container *ngIf="isOwner && activeTask.executionRequested && !activeTask.executionConfirmed">
@@ -892,4 +906,41 @@
     <app-reactivation-modal *ngIf="isReactivationModalOpen" [isOpen]="isReactivationModalOpen"
         [stageName]="selectedStageForReactivation?.name || ''" (close)="closeReactivationModal()"
         (submit)="submitReactivation($event)"></app-reactivation-modal>
+
+    <!-- Owner Reason Modal (Confirm / Decline / Return) -->
+    <div *ngIf="isReasonModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <h3 class="text-lg font-bold text-gray-900 mb-2">
+                <ng-container [ngSwitch]="pendingAction">
+                    <span *ngSwitchCase="'confirm'">Принять исполнение</span>
+                    <span *ngSwitchCase="'decline'">Отклонить исполнение</span>
+                    <span *ngSwitchCase="'return'">Вернуть задачу в работу</span>
+                </ng-container>
+            </h3>
+            <p class="text-sm text-gray-500 mb-4">
+                Укажите причину (необязательно). Она будет отправлена ответственным участникам.
+            </p>
+            <textarea [(ngModel)]="actionReason" rows="3" placeholder="Причина..."
+                class="w-full rounded-lg border border-gray-300 p-3 text-sm focus:outline-none focus:border-blue-500 resize-none mb-6">
+            </textarea>
+            <div class="flex justify-end space-x-3">
+                <button (click)="closeReasonModal()"
+                    class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-5 rounded-lg transition-colors">
+                    Отмена
+                </button>
+                <button (click)="submitReasonAction()" [ngClass]="{
+                        'bg-green-600 hover:bg-green-700': pendingAction === 'confirm',
+                        'bg-red-600 hover:bg-red-700': pendingAction === 'decline',
+                        'bg-yellow-500 hover:bg-yellow-600': pendingAction === 'return'
+                    }" class="text-white font-medium py-2 px-5 rounded-lg transition-colors">
+                    <ng-container [ngSwitch]="pendingAction">
+                        <span *ngSwitchCase="'confirm'">Принять</span>
+                        <span *ngSwitchCase="'decline'">Отклонить</span>
+                        <span *ngSwitchCase="'return'">Вернуть</span>
+                    </ng-container>
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>

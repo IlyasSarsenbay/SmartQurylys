@@ -59,6 +59,7 @@ export class TasksListComponent implements OnInit, OnChanges {
   addTaskForm: FormGroup;
   editTaskForm: FormGroup;
   currentTaskForEdit: TaskResponse | null = null;
+  editingTaskIsConfirmed = false;
   addRequirementForm: FormGroup;
 
   private mimeTypeMap: { [key: string]: string } = {
@@ -518,6 +519,7 @@ export class TasksListComponent implements OnInit, OnChanges {
   // Edit Task operations
   openEditTaskModal(task: TaskResponse): void {
     this.currentTaskForEdit = task;
+    this.editingTaskIsConfirmed = task.executionConfirmed || false;
     this.editTaskForm.patchValue({
       id: task.id,
       name: task.name,
@@ -528,8 +530,14 @@ export class TasksListComponent implements OnInit, OnChanges {
       isPriority: task.isPriority,
       executionRequested: task.executionRequested,
       executionConfirmed: task.executionConfirmed,
-      responsiblePersons: task.responsiblePersons || [], // Заполняем ответственных
+      responsiblePersons: task.responsiblePersons || [],
     });
+    // Запрещаем редактирование приоритета, если задача уже выполнена
+    if (task.executionConfirmed) {
+      this.editTaskForm.get('isPriority')?.disable();
+    } else {
+      this.editTaskForm.get('isPriority')?.enable();
+    }
     this.editRequirementsFormArray.clear();
     task.requirements?.forEach(req => {
       this.editRequirementsFormArray.push(this.fb.group({
