@@ -31,6 +31,7 @@ public class TaskService {
     private final FileService fileService;
     private final ActivityLogService activityLogService;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     // Преобразует сущность Requirement в DTO RequirementResponse.
     private RequirementResponse mapToRequirementResponse(Requirement requirement) {
@@ -255,14 +256,16 @@ public class TaskService {
         taskRepository.save(task);
     }
 
-    // Подтверждает выполнение задачи.
+    // Подтверждает выполнение задачи с необязательной причиной.
     @Transactional
-    public TaskResponse confirmExecution(Long taskId) {
+    public TaskResponse confirmExecution(Long taskId, String reason) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
         task.setExecuted(true);
+        task.setPriority(false);
         taskRepository.save(task);
 
+        User owner = task.getStage().getSchedule().getProject().getOwner();
         activityLogService.recordActivity(
                 task.getStage().getSchedule().getProject().getId(),
                 ActivityActionType.ACCEPTED_ACCEPTANCE,
@@ -271,18 +274,35 @@ public class TaskService {
                 task.getName()
         );
 
+        // Оповещаем каждого ответственного участника
+        if (task.getResponsiblePersons() != null) {
+            for (Participant participant : task.getResponsiblePersons()) {
+                notificationService.createTaskExecutionNotification(
+                        participant.getUser(),
+                        owner,
+                        task.getStage().getSchedule().getProject(),
+                        task.getId(),
+                        task.getName(),
+                        com.smartqurylys.backend.entity.NotificationType.TASK_ACCEPTED,
+                        reason
+                );
+            }
+        }
+
         return mapToResponse(task);
     }
 
-    // Отклоняет выполнение задачи.
+    // Отклоняет выполнение задачи с необязательной причиной.
     @Transactional
-    public TaskResponse declineExecution(Long taskId) {
+    public TaskResponse declineExecution(Long taskId, String reason) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
         task.setExecuted(false);
         task.setExecutionRequested(false);
         taskRepository.save(task);
         System.out.println("project id: " + task.getStage().getSchedule().getId());
+
+        User owner = task.getStage().getSchedule().getProject().getOwner();
         activityLogService.recordActivity(
                 task.getStage().getSchedule().getProject().getId(),
                 ActivityActionType.REJECTED_ACCEPTANCE,
@@ -290,6 +310,57 @@ public class TaskService {
                 task.getId(),
                 task.getName()
         );
+
+        // Оповещаем каждого ответственного участника
+        if (task.getResponsiblePersons() != null) {
+            for (Participant participant : task.getResponsiblePersons()) {
+                notificationService.createTaskExecutionNotification(
+                        participant.getUser(),
+                        owner,
+                        task.getStage().getSchedule().getProject(),
+                        task.getId(),
+                        task.getName(),
+                        com.smartqurylys.backend.entity.NotificationType.TASK_DECLINED,
+                        reason
+                );
+            }
+        }
+
+        return mapToResponse(task);
+    }
+
+    // Возвращает задачу в работу из состояния "выполнена".
+    @Transactional
+    public TaskResponse returnToExecution(Long taskId, String reason) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
+        task.setExecuted(false);
+        task.setExecutionRequested(false);
+        taskRepository.save(task);
+
+        User owner = task.getStage().getSchedule().getProject().getOwner();
+        activityLogService.recordActivity(
+                task.getStage().getSchedule().getProject().getId(),
+                ActivityActionType.REJECTED_ACCEPTANCE,
+                ActivityEntityType.PROJECT,
+                task.getId(),
+                task.getName()
+        );
+
+        // Оповещаем каждого ответственного участника
+        if (task.getResponsiblePersons() != null) {
+            for (Participant participant : task.getResponsiblePersons()) {
+                notificationService.createTaskExecutionNotification(
+                        participant.getUser(),
+                        owner,
+                        task.getStage().getSchedule().getProject(),
+                        task.getId(),
+                        task.getName(),
+                        com.smartqurylys.backend.entity.NotificationType.TASK_RETURNED,
+                        reason
+                );
+            }
+        }
 
         return mapToResponse(task);
     }
