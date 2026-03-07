@@ -101,7 +101,7 @@ body {
     background-color: white;
     border-radius: 0.5rem;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    padding: 3rem;
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -177,8 +177,8 @@ body {
 
 /* Общие стили для всех кругов этапов */
 .stage-circle {
-    width: 18rem;
-    height: 18rem;
+    width: 15rem;
+    height: 15rem;
     border-radius: 50%;
     display: flex;
     flex-direction: column;
@@ -230,7 +230,7 @@ body {
 
 .stage-name {
     font-weight: bold;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     margin-bottom: 0.5rem;
     max-width: 100%;
     overflow-wrap: break-word;
@@ -238,7 +238,7 @@ body {
 }
 
 .stage-description {
-    font-size: 1rem;
+    font-size: 0.875rem;
     max-width: 100%;
     overflow-wrap: break-word;
     word-break: break-word;
@@ -292,7 +292,7 @@ body {
 
     .stage-row {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 18rem minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) 15rem minmax(0, 1fr);
         align-items: center;
         justify-items: center;
         gap: 0;
@@ -302,7 +302,7 @@ body {
     .stage-spacer {
         grid-column: 1;
         width: 280px;
-        margin-right: 4rem;
+        margin-right: 2rem;
         display: block;
     }
 
@@ -313,7 +313,7 @@ body {
     .button-grid {
         grid-column: 3;
         width: 280px;
-        margin-left: 4rem;
+        margin-left: 2rem;
         display: flex;
         justify-self: start;
     }

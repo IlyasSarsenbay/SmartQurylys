@@ -424,6 +424,7 @@ export class ProjectDashboardComponent implements OnInit {
     this.selectedStageForModal = stage;
     switch (action) {
       case 'showTimeline':
+        this.fetchStageTasks(stage.id);
         this.isTimelineModalOpen = true;
         break;
       case 'showMap':
@@ -533,6 +534,36 @@ export class ProjectDashboardComponent implements OnInit {
     return circumference - (percentage / 100) * circumference;
   }
 
+  /** Returns tasks that have been submitted for acceptance but not yet confirmed/declined. */
+  getDelayedTasks(): TaskResponse[] {
+    return this.tasks.filter(t => t.executionRequested && !t.executionConfirmed && t.executionRequestedAt);
+  }
+
+  /** Returns a human-readable string of how long since execution was requested. */
+  getDelayDuration(task: TaskResponse): string {
+    if (!task.executionRequestedAt) return '';
+    const requestedAt = new Date(task.executionRequestedAt).getTime();
+    const now = Date.now();
+    const diffMs = Math.max(0, now - requestedAt);
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays >= 1) {
+      const remHours = diffHours % 24;
+      return remHours > 0
+        ? `${diffDays} дн. ${remHours} ч.`
+        : `${diffDays} дн.`;
+    }
+    if (diffHours >= 1) {
+      const remMins = diffMins % 60;
+      return remMins > 0
+        ? `${diffHours} ч. ${remMins} мин.`
+        : `${diffHours} ч.`;
+    }
+    return diffMins <= 0 ? 'менее минуты' : `${diffMins} мин.`;
+  }
+
   openEditTimelineModal(): void {
     if (this.selectedStageForModal) {
       this.editableStartDate = this.selectedStageForModal.startDate ?? '';
@@ -540,6 +571,7 @@ export class ProjectDashboardComponent implements OnInit {
       this.isEditTimelineModalOpen = true;
     }
   }
+
 
   closeEditTimelineModal(): void {
     this.isEditTimelineModalOpen = false;

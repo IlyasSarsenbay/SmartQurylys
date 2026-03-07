@@ -1,18 +1,19 @@
 import { ParticipantResponse } from "../models/participant";
 import { FileResponse } from "../models/file";
-import { RequirementResponse, CreateRequirementRequest, UpdateRequirementRequest} from "../models/requirement";
+import { RequirementResponse, CreateRequirementRequest, UpdateRequirementRequest } from "../models/requirement";
 export interface TaskResponse {
   id: number;
-  stageId: number; 
+  stageId: number;
   name: string;
   description?: string;
   info?: string;
-  responsiblePersons: ParticipantResponse[]; 
+  responsiblePersons: ParticipantResponse[];
   startDate?: string;
   endDate?: string;
   isPriority: boolean;
   executionRequested: boolean;
-  executionConfirmed: boolean; 
+  executionRequestedAt?: string; // ISO datetime when execution was requested
+  executionConfirmed: boolean;
   dependsOnTaskIds?: number[];
   dependsOnTasks?: TaskResponse[];
   files?: FileResponse[];
@@ -24,7 +25,7 @@ export interface CreateTaskRequest {
   description?: string;
   startDate: string;
   endDate: string;
-  responsiblePersonIds?: number[]; 
+  responsiblePersonIds?: number[];
   info?: string;
   isPriority?: boolean;
   executionRequested?: boolean;
@@ -38,11 +39,11 @@ export interface UpdateTaskRequest {
   description?: string;
   startDate?: string;
   endDate?: string;
-  responsiblePersonIds?: number[]; 
+  responsiblePersonIds?: number[];
   info?: string;
   isPriority?: boolean;
   executionRequested?: boolean;
-  executed?: boolean; 
+  executed?: boolean;
   dependsOnTaskIds?: number[];
   requirements?: UpdateRequirementRequest[];
 }
