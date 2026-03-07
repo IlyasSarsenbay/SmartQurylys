@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -46,6 +47,8 @@ public class Task {
     private boolean isPriority; // Флаг, указывающий на приоритетность задачи.
 
     private boolean executionRequested; // Флаг запроса на выполнение задачи.
+
+    private LocalDateTime executionRequestedAt; // Время подачи запроса на принятие.
 
     private boolean executed; // Флаг, указывающий, выполнена ли задача.
 

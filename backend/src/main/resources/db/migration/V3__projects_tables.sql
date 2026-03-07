@@ -26,7 +26,8 @@ ALTER TABLE public.projects OWNER TO postgres;
 
 INSERT INTO public.projects (id, description, end_date, name, start_date, status, type, city_id, user_id) VALUES
 (23, 'test', '2026-02-28', 'test', '2026-02-03', 'DRAFT', 'test', 22, 17),
-(18, 'Новое описание', '2025-09-15', 'Обновленное имя', '2025-07-15', 'ACTIVE', 'Реконструкция', 23, 17);
+(18, 'Новое описание', '2025-09-15', 'Обновленное имя', '2025-07-15', 'ACTIVE', 'Реконструкция', 23, 17)
+ON CONFLICT DO NOTHING;
 
 SELECT pg_catalog.setval('public.projects_id_seq', 23, true);
 
@@ -49,7 +50,8 @@ INSERT INTO public.project_notes (id, content, created_at, author_id, project_id
 (2, 'тест2', '2026-01-28 15:38:20.336299', 17, 18),
 (3, 'тест3', '2026-01-28 15:38:34.36189', 13, 18),
 (5, 'тест', '2026-02-04 16:22:50.000803', 17, 23),
-(6, 'тест', '2026-02-04 16:23:17.597183', 13, 18);
+(6, 'тест', '2026-02-04 16:23:17.597183', 13, 18)
+ON CONFLICT DO NOTHING;
 
 SELECT pg_catalog.setval('public.project_notes_id_seq', 6, true);
 

@@ -56,7 +56,8 @@ INSERT INTO public.organisations
 VALUES
 (36, 'Гражданское строительство', 'г. Алматы, пр. Абая 15', 'ТОО "СтройПлюс"', 'Главный инженер', 'CONTRACTOR', 10, NULL),
 (17, 'Строительство', 'г. Алматы, ул. Абая, 100', 'ТОО ''Строительные Технологии''', 'Исполнительный директор', 'CONTRACTOR', 20, NULL),
-(39, 'dr', 'syfa', 'TOO mydre', 'dre', 'CUSTOMER', 3, 'AVAILABLE');
+(39, 'dr', 'syfa', 'TOO mydre', 'dre', 'CUSTOMER', 3, 'AVAILABLE')
+ON CONFLICT DO NOTHING;
 
 SELECT pg_catalog.setval('public.organisations_id_seq', 39, true);
 
@@ -83,4 +84,5 @@ VALUES
 (39, 'PLASTERING_AND_PAINTING_WORKS'),
 (39, 'DEMOLITION_WORKS'),
 (17, 'EARTHWORKS'),
-(17, 'TILE_LAYING');
+(17, 'TILE_LAYING')
+ON CONFLICT DO NOTHING;

@@ -51,7 +51,7 @@ public class StageService {
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("ГПР не найден"));
 
-        return stageRepository.findBySchedule(schedule).stream()
+        return stageRepository.findByScheduleOrderByIdAsc(schedule).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -97,10 +97,7 @@ public class StageService {
 
         currentStage.setStatus(StageStatus.COMPLETED); // Устанавливаем статус "Завершено".
 
-        List<Stage> allStagesInSchedule = stageRepository.findBySchedule(currentStage.getSchedule());
-
-        // Сортируем этапы, чтобы найти следующий по порядку.
-        allStagesInSchedule.sort(Comparator.comparing(Stage::getId));
+        List<Stage> allStagesInSchedule = stageRepository.findByScheduleOrderByIdAsc(currentStage.getSchedule());
 
         int currentStageIndex = -1;
         for (int i = 0; i < allStagesInSchedule.size(); i++) {

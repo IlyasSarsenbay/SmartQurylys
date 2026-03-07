@@ -34,8 +34,12 @@ public class ParticipantService {
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
 
         User currentUser = getAuthenticatedUser();
-        if (!project.getOwner().getId().equals(currentUser.getId())) {
-            throw new SecurityException("Доступ запрещён: вы не владелец проекта");
+        boolean isOwner = project.getOwner().getId().equals(currentUser.getId());
+        boolean isParticipant = participantRepository.existsByProjectAndUser(project, currentUser);
+        boolean isAdmin = "ADMIN".equals(currentUser.getRole());
+
+        if (!isOwner && !isParticipant && !isAdmin) {
+            throw new SecurityException("Доступ запрещён: вы не являетесь участником проекта");
         }
 
         return participantRepository.findByProject(project).stream()

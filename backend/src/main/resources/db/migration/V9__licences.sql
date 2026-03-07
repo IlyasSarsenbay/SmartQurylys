@@ -19,5 +19,6 @@ ALTER TABLE public.licenses OWNER TO postgres;
 INSERT INTO public.licenses 
 (file_id, license_category_display, review_status, organisation_id, rejection_reason)
 VALUES
-(112, 'Лицензия', 'APPROVED', 39, NULL);
+(112, 'Лицензия', 'APPROVED', 39, NULL)
+ON CONFLICT DO NOTHING;
 

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -253,6 +254,7 @@ public class TaskService {
         );
 
         task.setExecutionRequested(true);
+        task.setExecutionRequestedAt(LocalDateTime.now());
         taskRepository.save(task);
     }
 
@@ -263,6 +265,7 @@ public class TaskService {
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
         task.setExecuted(true);
         task.setPriority(false);
+        task.setExecutionRequestedAt(null);
         taskRepository.save(task);
 
         User owner = task.getStage().getSchedule().getProject().getOwner();
@@ -299,8 +302,8 @@ public class TaskService {
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
         task.setExecuted(false);
         task.setExecutionRequested(false);
+        task.setExecutionRequestedAt(null);
         taskRepository.save(task);
-        System.out.println("project id: " + task.getStage().getSchedule().getId());
 
         User owner = task.getStage().getSchedule().getProject().getOwner();
         activityLogService.recordActivity(
@@ -336,6 +339,7 @@ public class TaskService {
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
         task.setExecuted(false);
         task.setExecutionRequested(false);
+        task.setExecutionRequestedAt(null);
         taskRepository.save(task);
 
         User owner = task.getStage().getSchedule().getProject().getOwner();
@@ -570,6 +574,7 @@ public class TaskService {
                 .endDate(task.getEndDate())
                 .isPriority(task.isPriority())
                 .executionRequested(task.isExecutionRequested())
+                .executionRequestedAt(task.getExecutionRequestedAt())
                 .executionConfirmed(task.isExecuted())
                 .dependsOnTaskIds(dependsOnTaskIds)
                 .requirements(requirements)
