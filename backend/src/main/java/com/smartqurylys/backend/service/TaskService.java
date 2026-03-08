@@ -7,8 +7,10 @@ import com.smartqurylys.backend.entity.*;
 import com.smartqurylys.backend.repository.*;
 import com.smartqurylys.backend.shared.enums.ActivityActionType;
 import com.smartqurylys.backend.shared.enums.ActivityEntityType;
+import com.smartqurylys.backend.shared.enums.ProjectStatus;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -165,6 +167,12 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
 
+        Project project = task.getStage().getSchedule().getProject();
+        ProjectStatus status = project.getStatus();
+        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED || status == ProjectStatus.CANCELLED) {
+            throw new AccessDeniedException("Изменение задач запрещено в текущем статусе проекта: " + status);
+        }
+
         Optional.ofNullable(request.getName()).ifPresent(task::setName);
         Optional.ofNullable(request.getInfo()).ifPresent(task::setInfo);
         Optional.ofNullable(request.getDescription()).ifPresent(task::setDescription);
@@ -189,9 +197,15 @@ public class TaskService {
     // Удаляет задачу по ее ID.
     @Transactional
     public void deleteTask(Long taskId) {
-        if (!taskRepository.existsById(taskId)) {
-            throw new EntityNotFoundException("Задача не найдена с ID: " + taskId);
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
+
+        Project project = task.getStage().getSchedule().getProject();
+        ProjectStatus status = project.getStatus();
+        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED || status == ProjectStatus.CANCELLED) {
+            throw new AccessDeniedException("Удаление задач запрещено в текущем статусе проекта: " + status);
         }
+
         // Удаляем все зависимости, где эта задача является зависимой.
         removeAllDependenciesForTask(taskId);
 
@@ -228,6 +242,13 @@ public class TaskService {
     public void togglePriority(Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
+
+        Project project = task.getStage().getSchedule().getProject();
+        ProjectStatus status = project.getStatus();
+        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED || status == ProjectStatus.CANCELLED) {
+            throw new AccessDeniedException("Изменение приоритета задач запрещено в текущем статусе проекта: " + status);
+        }
+
         task.setPriority(!task.isPriority());
         taskRepository.save(task);
     }
@@ -237,6 +258,11 @@ public class TaskService {
     public void requestExecution(Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
+
+        Project project = task.getStage().getSchedule().getProject();
+        if (project.getStatus() != ProjectStatus.ACTIVE) {
+            throw new AccessDeniedException("Запрос исполнения возможен только в активном проекте. Текущий статус: " + project.getStatus());
+        }
 
         if (task.getDependsOn() != null) {
             for (Task dependency : task.getDependsOn()) {
@@ -263,6 +289,12 @@ public class TaskService {
     public TaskResponse confirmExecution(Long taskId, String reason) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
+
+        Project project = task.getStage().getSchedule().getProject();
+        if (project.getStatus() != ProjectStatus.ACTIVE) {
+            throw new AccessDeniedException("Подтверждение исполнения возможно только в активном проекте. Текущий статус: " + project.getStatus());
+        }
+
         task.setExecuted(true);
         task.setPriority(false);
         task.setExecutionRequestedAt(null);
@@ -300,6 +332,12 @@ public class TaskService {
     public TaskResponse declineExecution(Long taskId, String reason) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
+
+        Project project = task.getStage().getSchedule().getProject();
+        if (project.getStatus() != ProjectStatus.ACTIVE) {
+            throw new AccessDeniedException("Отклонение исполнения возможно только в активном проекте. Текущий статус: " + project.getStatus());
+        }
+
         task.setExecuted(false);
         task.setExecutionRequested(false);
         task.setExecutionRequestedAt(null);
@@ -337,6 +375,12 @@ public class TaskService {
     public TaskResponse returnToExecution(Long taskId, String reason) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
+
+        Project project = task.getStage().getSchedule().getProject();
+        if (project.getStatus() != ProjectStatus.ACTIVE) {
+            throw new AccessDeniedException("Возврат задачи в работу возможен только в активном проекте. Текущий статус: " + project.getStatus());
+        }
+
         task.setExecuted(false);
         task.setExecutionRequested(false);
         task.setExecutionRequestedAt(null);
@@ -374,6 +418,12 @@ public class TaskService {
     public FileResponse addFileToTask(Long taskId, MultipartFile file) throws IOException {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
+
+        Project project = task.getStage().getSchedule().getProject();
+        ProjectStatus status = project.getStatus();
+        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED || status == ProjectStatus.CANCELLED) {
+            throw new AccessDeniedException("Добавление файлов запрещено в текущем статусе проекта: " + status);
+        }
 
         User currentUser = getAuthenticatedUser();
         File savedFile = fileService.prepareFile(file, currentUser);

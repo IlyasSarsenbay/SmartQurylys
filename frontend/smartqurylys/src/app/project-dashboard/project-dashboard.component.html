@@ -48,7 +48,12 @@
 
     <div class="flex-1 flex flex-col overflow-hidden">
         <header *ngIf="project" class="bg-white shadow-md p-4 flex items-center justify-between">
-            <h1 class="text-xl font-bold text-gray-900">{{ getViewTitle() }}</h1>
+            <div class="flex items-center space-x-4">
+                <h1 class="text-xl font-bold text-gray-900">{{ getViewTitle() }}</h1>
+                <span [class]="'px-3 py-1 rounded-full text-white text-xs font-bold ' + getStatusClass()">
+                    {{ getStatusLabel() }}
+                </span>
+            </div>
             <div class="flex items-center space-x-4">
                 <div class="flex flex-col">
                     <span class="text-sm text-gray-500">До конца проекта</span>
@@ -58,7 +63,18 @@
         </header>
 
         <main
-            class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6 flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-6">
+            class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6 flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-6 relative">
+
+            <!-- Статусный баннер -->
+            <div *ngIf="!isProjectActive"
+                class="absolute top-0 left-0 right-0 z-10 p-2 text-center text-sm font-medium text-white shadow-md"
+                [ngClass]="getStatusClass()">
+                <span *ngIf="isProjectDraft">Проект находится в черновике. Он виден только вам.</span>
+                <span *ngIf="isProjectWaiting">Проект ожидает старта. Действия по задачам заблокированы.</span>
+                <span *ngIf="isProjectOnPause">Проект приостановлен. Действия заблокированы.</span>
+                <span *ngIf="isProjectCompleted">Проект завершен. Режим чтения.</span>
+                <span *ngIf="isProjectCancelled">Проект отменен. Режим чтения.</span>
+            </div>
 
             <ng-container *ngIf="currentView === 'stages'">
                 <!-- Activity Log -->
@@ -134,6 +150,8 @@
                                         Карта этапа
                                     </button>
                                     <button *ngIf="isOwner" (click)="handleStageAction('editStage', stage)"
+                                        [disabled]="!canModifyStructure"
+                                        [ngClass]="{'opacity-50 cursor-not-allowed': !canModifyStructure}"
                                         class="stage-button btn-edit bg-blue-700 hover:bg-blue-800">
                                         Редактировать
                                     </button>
@@ -150,6 +168,8 @@
                                         Исполнители
                                     </button>
                                     <button *ngIf="isOwner" (click)="handleStageAction('completeStage', stage)"
+                                        [disabled]="!isProjectActive"
+                                        [ngClass]="{'opacity-50 cursor-not-allowed': !isProjectActive}"
                                         class="stage-button btn-complete bg-green-500 hover:bg-green-600">
                                         Завершить этап
                                     </button>
@@ -161,6 +181,8 @@
                                         Карта этапа
                                     </button>
                                     <button *ngIf="isOwner" (click)="openReactivationModal(stage)"
+                                        [disabled]="!isProjectActive"
+                                        [ngClass]="{'opacity-50 cursor-not-allowed': !isProjectActive}"
                                         class="stage-button btn-return bg-blue-500 hover:bg-blue-600">
                                         Вернуть в актив
                                     </button>
@@ -797,7 +819,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                     </svg>
-                                    <input type="file" class="hidden" (change)="addFileToTask($event)"
+                                    <input type="file" class="hidden" [disabled]="isProjectReadOnly"
+                                        (change)="addFileToTask($event)"
                                         accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
                                 </label>
                             </h5>
@@ -819,7 +842,8 @@
                 <div class="flex flex-wrap gap-4 mt-6"
                     [ngClass]="{'justify-between': isOwner, 'justify-center': isResponsible}">
                     <button *ngIf="isResponsible && !activeTask.executionRequested && !activeTask.executionConfirmed"
-                        (click)="requestAcceptance()"
+                        (click)="requestAcceptance()" [disabled]="!canPerformExecution"
+                        [ngClass]="{'opacity-50 cursor-not-allowed': !canPerformExecution}"
                         class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-colors">
                         Запросить принятие
                     </button>
@@ -834,16 +858,20 @@
 
                     <!-- Owner: Вернуть в работу (when task is already confirmed) -->
                     <button *ngIf="isOwner && activeTask.executionConfirmed" (click)="returnTaskToWork()"
+                        [disabled]="!canPerformExecution"
+                        [ngClass]="{'opacity-50 cursor-not-allowed': !canPerformExecution}"
                         class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-colors">
                         Вернуть в работу
                     </button>
 
                     <ng-container *ngIf="isOwner && activeTask.executionRequested && !activeTask.executionConfirmed">
-                        <button (click)="confirmExecution()"
+                        <button (click)="confirmExecution()" [disabled]="!canPerformExecution"
+                            [ngClass]="{'opacity-50 cursor-not-allowed': !canPerformExecution}"
                             class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-colors">
                             Принять исполнение
                         </button>
-                        <button (click)="rejectExecution()"
+                        <button (click)="rejectExecution()" [disabled]="!canPerformExecution"
+                            [ngClass]="{'opacity-50 cursor-not-allowed': !canPerformExecution}"
                             class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-colors">
                             Отклонить
                         </button>
@@ -853,7 +881,8 @@
                 <div class="mt-6">
                     <h5 class="text-lg font-semibold text-gray-700 flex items-center justify-between mb-2">
                         <span>Чек-лист</span>
-                        <button (click)="openAddRequirementModal()" class="cursor-pointer">
+                        <button (click)="openAddRequirementModal()" [disabled]="isProjectReadOnly"
+                            class="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 class="h-6 w-6 text-gray-500 hover:text-blue-500 transition-colors" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

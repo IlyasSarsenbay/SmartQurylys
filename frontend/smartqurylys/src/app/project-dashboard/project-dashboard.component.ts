@@ -20,6 +20,7 @@ import { RequirementResponse } from '../core/models/requirement';
 import { UserService } from '../core/user.service';
 import { UserResponse } from '../core/models/user';
 import { StageStatus } from '../core/enums/stage-status.enum';
+import { ProjectStatus } from '../core/enums/project-status.enum';
 import { ParticipantResponse } from '../core/models/participant';
 import { ParticipantService } from './../core/participant.service';
 
@@ -127,6 +128,74 @@ export class ProjectDashboardComponent implements OnInit {
   allTasks: TaskResponse[] = [];
   participantStagesMap: Map<number, Set<string>> = new Map();
   expandedParticipantId: number | null = null;
+
+  // ===== Status Helpers =====
+  get isProjectActive(): boolean {
+    return this.project?.status === ProjectStatus.ACTIVE;
+  }
+
+  get isProjectOnPause(): boolean {
+    return this.project?.status === ProjectStatus.ON_PAUSE;
+  }
+
+  get isProjectWaiting(): boolean {
+    return this.project?.status === ProjectStatus.WAITING;
+  }
+
+  get isProjectDraft(): boolean {
+    return this.project?.status === ProjectStatus.DRAFT;
+  }
+
+  get isProjectCompleted(): boolean {
+    return this.project?.status === ProjectStatus.COMPLETED;
+  }
+
+  get isProjectCancelled(): boolean {
+    return this.project?.status === ProjectStatus.CANCELLED;
+  }
+
+  get isProjectReadOnly(): boolean {
+    const status = this.project?.status;
+    return status === ProjectStatus.ON_PAUSE ||
+      status === ProjectStatus.COMPLETED ||
+      status === ProjectStatus.CANCELLED;
+  }
+
+  // Можно ли менять структуру (этапы, задачи)
+  get canModifyStructure(): boolean {
+    // Владелец может менять структуру в черновике, ожидании или активном состоянии
+    return this.isOwner && (this.isProjectDraft || this.isProjectWaiting || this.isProjectActive);
+  }
+
+  // Можно ли выполнять действия по задачам (запросы, подтверждения)
+  get canPerformExecution(): boolean {
+    return this.isProjectActive;
+  }
+
+  getStatusLabel(): string {
+    switch (this.project?.status) {
+      case ProjectStatus.DRAFT: return 'ЧЕРНОВИК';
+      case ProjectStatus.WAITING: return 'ОЖИДАНИЕ';
+      case ProjectStatus.ACTIVE: return 'АКТИВЕН';
+      case ProjectStatus.ON_PAUSE: return 'НА ПАУЗЕ';
+      case ProjectStatus.COMPLETED: return 'ЗАВЕРШЕН';
+      case ProjectStatus.CANCELLED: return 'ОТМЕНЕН';
+      default: return '';
+    }
+  }
+
+  getStatusClass(): string {
+    switch (this.project?.status) {
+      case ProjectStatus.DRAFT: return 'bg-gray-500';
+      case ProjectStatus.WAITING: return 'bg-blue-400';
+      case ProjectStatus.ACTIVE: return 'bg-green-500';
+      case ProjectStatus.ON_PAUSE: return 'bg-yellow-500';
+      case ProjectStatus.COMPLETED: return 'bg-green-700';
+      case ProjectStatus.CANCELLED: return 'bg-red-500';
+      default: return 'bg-gray-400';
+    }
+  }
+  // ==========================
 
   get filteredNavItems() {
     return this.navItems.filter(item => {

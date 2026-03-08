@@ -9,9 +9,12 @@
   <!-- Навигационные вкладки проекта -->
   <ul class="project-nav-tabs">
     <li class="project-nav-item" [class.active]="activeTab === 'info'" (click)="setActiveTab('info')">Досье проекта</li>
-    <li class="project-nav-item" [class.active]="activeTab === 'contract'" (click)="setActiveTab('contract')">Договор <span class="project-nav-arrow">&#10140;</span></li>
-    <li class="project-nav-item" [class.active]="activeTab === 'estimate'" (click)="setActiveTab('estimate')">Смета <span class="project-nav-arrow">&#10140;</span></li>
-    <li class="project-nav-item" [class.active]="activeTab === 'stages'" (click)="setActiveTab('stages')">Этапы <span class="project-nav-arrow">&#10140;</span></li>
+    <li class="project-nav-item" [class.active]="activeTab === 'contract'" (click)="setActiveTab('contract')">Договор
+      <span class="project-nav-arrow">&#10140;</span></li>
+    <li class="project-nav-item" [class.active]="activeTab === 'estimate'" (click)="setActiveTab('estimate')">Смета
+      <span class="project-nav-arrow">&#10140;</span></li>
+    <li class="project-nav-item" [class.active]="activeTab === 'stages'" (click)="setActiveTab('stages')">Этапы <span
+        class="project-nav-arrow">&#10140;</span></li>
   </ul>
 
   <div class="page-content-area">
@@ -41,7 +44,9 @@
               <div class="form-group">
                 <label for="projectName">Название проекта</label>
                 <input type="text" id="projectName" formControlName="name" class="form-input" />
-                <div *ngIf="projectEditForm.get('name')?.invalid && (projectEditForm.get('name')?.dirty || projectEditForm.get('name')?.touched)" class="form-input-error">
+                <div
+                  *ngIf="projectEditForm.get('name')?.invalid && (projectEditForm.get('name')?.dirty || projectEditForm.get('name')?.touched)"
+                  class="form-input-error">
                   <div *ngIf="projectEditForm.get('name')?.errors?.['required']">Название проекта обязательно.</div>
                 </div>
               </div>
@@ -54,7 +59,9 @@
               <div class="form-group">
                 <label for="projectType">Тип проекта</label>
                 <input type="text" id="projectType" formControlName="type" class="form-input" />
-                <div *ngIf="projectEditForm.get('type')?.invalid && (projectEditForm.get('type')?.dirty || projectEditForm.get('type')?.touched)" class="form-input-error">
+                <div
+                  *ngIf="projectEditForm.get('type')?.invalid && (projectEditForm.get('type')?.dirty || projectEditForm.get('type')?.touched)"
+                  class="form-input-error">
                   <div *ngIf="projectEditForm.get('type')?.errors?.['required']">Тип проекта обязателен.</div>
                 </div>
               </div>
@@ -68,7 +75,9 @@
                     <option *ngFor="let city of cities" [ngValue]="city.id">{{ city.name }}</option>
                   </ng-container>
                 </select>
-                <div *ngIf="projectEditForm.get('cityId')?.invalid && (projectEditForm.get('cityId')?.dirty || projectEditForm.get('cityId')?.touched)" class="form-input-error">
+                <div
+                  *ngIf="projectEditForm.get('cityId')?.invalid && (projectEditForm.get('cityId')?.dirty || projectEditForm.get('cityId')?.touched)"
+                  class="form-input-error">
                   <div *ngIf="projectEditForm.get('cityId')?.errors?.['required']">Город обязателен.</div>
                 </div>
               </div>
@@ -80,7 +89,9 @@
                   <option [ngValue]="null" disabled>Выберите статус</option>
                   <option *ngFor="let status of projectStatusValues" [ngValue]="status">{{ status }}</option>
                 </select>
-                <div *ngIf="projectEditForm.get('status')?.invalid && (projectEditForm.get('status')?.dirty || projectEditForm.get('status')?.touched)" class="form-input-error">
+                <div
+                  *ngIf="projectEditForm.get('status')?.invalid && (projectEditForm.get('status')?.dirty || projectEditForm.get('status')?.touched)"
+                  class="form-input-error">
                   <div *ngIf="projectEditForm.get('status')?.errors?.['required']">Статус обязателен.</div>
                 </div>
               </div>
@@ -89,7 +100,9 @@
               <div class="form-group">
                 <label for="projectStartDate">Планируемый срок начала</label>
                 <input type="date" id="projectStartDate" formControlName="startDate" class="form-input" />
-                <div *ngIf="projectEditForm.get('startDate')?.invalid && (projectEditForm.get('startDate')?.dirty || projectEditForm.get('startDate')?.touched)" class="form-input-error">
+                <div
+                  *ngIf="projectEditForm.get('startDate')?.invalid && (projectEditForm.get('startDate')?.dirty || projectEditForm.get('startDate')?.touched)"
+                  class="form-input-error">
                   <div *ngIf="projectEditForm.get('startDate')?.errors?.['required']">Срок начала обязателен.</div>
                 </div>
               </div>
@@ -97,12 +110,15 @@
               <div class="form-group">
                 <label for="projectEndDate">Планируемый срок окончания</label>
                 <input type="date" id="projectEndDate" formControlName="endDate" class="form-input" />
-                <div *ngIf="projectEditForm.get('endDate')?.invalid && (projectEditForm.get('endDate')?.dirty || projectEditForm.get('endDate')?.touched)" class="form-input-error">
+                <div
+                  *ngIf="projectEditForm.get('endDate')?.invalid && (projectEditForm.get('endDate')?.dirty || projectEditForm.get('endDate')?.touched)"
+                  class="form-input-error">
                   <div *ngIf="projectEditForm.get('endDate')?.errors?.['required']">Срок окончания обязателен.</div>
                 </div>
               </div>
 
-              <button type="submit" [disabled]="projectEditForm.invalid" class="form-button">Сохранить изменения</button>
+              <button type="submit" [disabled]="projectEditForm.invalid" class="form-button">Сохранить
+                изменения</button>
             </form>
           </div>
           <div class="info-section-block" *ngIf="!isEditingProject">
@@ -115,7 +131,7 @@
             <div class="info-block-content">{{ project.description }}</div>
           </div>
 
-           <div class="info-section-block" *ngIf="!isEditingProject">
+          <div class="info-section-block" *ngIf="!isEditingProject">
             <div class="info-block-label">Наименование заказчика:</div>
             <div class="info-block-content">{{ project.ownerName }}</div>
           </div>
@@ -165,40 +181,37 @@
                 <form [formGroup]="invitationForm" (ngSubmit)="inviteParticipant()" class="space-y-4">
                   <div class="form-group">
                     <label for="iinBin">ИИН/БИН приглашаемого</label>
-                    <input
-                      type="text"
-                      id="iinBin"
-                      formControlName="iinBin"
-                      class="form-input"
-                      placeholder="12-значный ИИН/БИН"
-                    />
-                    <div *ngIf="invitationForm.get('iinBin')?.invalid && (invitationForm.get('iinBin')?.dirty || invitationForm.get('iinBin')?.touched)" class="form-input-error">
+                    <input type="text" id="iinBin" formControlName="iinBin" class="form-input"
+                      placeholder="12-значный ИИН/БИН" />
+                    <div
+                      *ngIf="invitationForm.get('iinBin')?.invalid && (invitationForm.get('iinBin')?.dirty || invitationForm.get('iinBin')?.touched)"
+                      class="form-input-error">
                       <div *ngIf="invitationForm.get('iinBin')?.errors?.['required']">ИИН/БИН обязателен.</div>
-                      <div *ngIf="invitationForm.get('iinBin')?.errors?.['pattern']">ИИН/БИН должен состоять из 12 цифр.</div>
+                      <div *ngIf="invitationForm.get('iinBin')?.errors?.['pattern']">ИИН/БИН должен состоять из 12 цифр.
+                      </div>
                     </div>
                   </div>
 
                   <div class="form-group">
                     <label for="role">Роль</label>
-                    <input
-                      type="text"
-                      id="role"
-                      formControlName="role"
-                      class="form-input"
-                      placeholder="Например, Подрядчик, Тех. надзор"
-                    />
-                    <div *ngIf="invitationForm.get('role')?.invalid && (invitationForm.get('role')?.dirty || invitationForm.get('role')?.touched)" class="form-input-error">
+                    <input type="text" id="role" formControlName="role" class="form-input"
+                      placeholder="Например, Подрядчик, Тех. надзор" />
+                    <div
+                      *ngIf="invitationForm.get('role')?.invalid && (invitationForm.get('role')?.dirty || invitationForm.get('role')?.touched)"
+                      class="form-input-error">
                       <div *ngIf="invitationForm.get('role')?.errors?.['required']">Роль обязательна.</div>
                     </div>
                   </div>
 
                   <div class="form-group checkbox-group">
-                    <input type="checkbox" id="canUploadDocuments" formControlName="canUploadDocuments" class="form-checkbox" />
+                    <input type="checkbox" id="canUploadDocuments" formControlName="canUploadDocuments"
+                      class="form-checkbox" />
                     <label for="canUploadDocuments">Может загружать документы</label>
                   </div>
 
                   <div class="form-group checkbox-group">
-                    <input type="checkbox" id="canSendNotifications" formControlName="canSendNotifications" class="form-checkbox" />
+                    <input type="checkbox" id="canSendNotifications" formControlName="canSendNotifications"
+                      class="form-checkbox" />
                     <label for="canSendNotifications">Может отправлять уведомления</label>
                   </div>
 
@@ -234,8 +247,10 @@
                       </div>
                       <div class="item-actions">
                         <!-- Кнопка "Редактировать участника" -->
-                        <button class="secondary-button small-button mr-2" (click)="editParticipant(participant)">Редактировать</button>
-                        <button class="delete-button small-button" (click)="confirmRemoveParticipant(participant.id)">Удалить</button>
+                        <button class="secondary-button small-button mr-2"
+                          (click)="editParticipant(participant)">Редактировать</button>
+                        <button class="delete-button small-button"
+                          (click)="confirmRemoveParticipant(participant.id)">Удалить</button>
                       </div>
                     </div>
                   </div>
@@ -258,7 +273,9 @@
                   <div class="form-group">
                     <label for="projectFile">Выберите файл</label>
                     <input type="file" id="projectFile" (change)="onFileSelected($event)" class="form-input" />
-                    <div *ngIf="uploadFileForm.get('file')?.invalid && (uploadFileForm.get('file')?.dirty || uploadFileForm.get('file')?.touched)" class="form-input-error">
+                    <div
+                      *ngIf="uploadFileForm.get('file')?.invalid && (uploadFileForm.get('file')?.dirty || uploadFileForm.get('file')?.touched)"
+                      class="form-input-error">
                       <div *ngIf="uploadFileForm.get('file')?.errors?.['required']">Файл обязателен.</div>
                     </div>
                   </div>
@@ -291,7 +308,8 @@
                         <p class="file-info">Загружен: {{ file.createdAt | date:'short' }}</p>
                       </div>
                       <div class="item-actions">
-                        <button class="view-button small-button" (click)="downloadFile(file.id, file.name)">Скачать</button>
+                        <button class="view-button small-button"
+                          (click)="downloadFile(file.id, file.name)">Скачать</button>
                         <button class="delete-button small-button" (click)="confirmDeleteFile(file.id)">Удалить</button>
                       </div>
                     </div>
@@ -319,8 +337,8 @@
 
       <!-- Вкладка: ГПР -->
       <ng-container *ngIf="activeTab === 'stages'">
-  <app-stages-tab [projectId]="project.id"></app-stages-tab>
-</ng-container>
+        <app-stages-tab [projectId]="project.id" [projectStatus]="project.status" [isOwner]="isOwner"></app-stages-tab>
+      </ng-container>
     </div>
   </div>
 </div>
@@ -354,18 +372,22 @@
         <div class="form-group">
           <label for="editRole">Роль</label>
           <input type="text" id="editRole" formControlName="role" class="form-input" />
-          <div *ngIf="editParticipantForm.get('role')?.invalid && (editParticipantForm.get('role')?.dirty || editParticipantForm.get('role')?.touched)" class="form-input-error">
+          <div
+            *ngIf="editParticipantForm.get('role')?.invalid && (editParticipantForm.get('role')?.dirty || editParticipantForm.get('role')?.touched)"
+            class="form-input-error">
             <div *ngIf="editParticipantForm.get('role')?.errors?.['required']">Роль обязательна.</div>
           </div>
         </div>
 
         <div class="form-group checkbox-group">
-          <input type="checkbox" id="editCanUploadDocuments" formControlName="canUploadDocuments" class="form-checkbox" />
+          <input type="checkbox" id="editCanUploadDocuments" formControlName="canUploadDocuments"
+            class="form-checkbox" />
           <label for="editCanUploadDocuments">Может загружать документы</label>
         </div>
 
         <div class="form-group checkbox-group">
-          <input type="checkbox" id="editCanSendNotifications" formControlName="canSendNotifications" class="form-checkbox" />
+          <input type="checkbox" id="editCanSendNotifications" formControlName="canSendNotifications"
+            class="form-checkbox" />
           <label for="editCanSendNotifications">Может отправлять уведомления</label>
         </div>
 
@@ -377,7 +399,8 @@
         </div>
 
         <div>
-          <button type="submit" [disabled]="editParticipantForm.invalid" class="form-button">Сохранить изменения</button>
+          <button type="submit" [disabled]="editParticipantForm.invalid" class="form-button">Сохранить
+            изменения</button>
         </div>
       </form>
     </div>

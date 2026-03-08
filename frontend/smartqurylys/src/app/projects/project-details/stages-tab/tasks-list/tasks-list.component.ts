@@ -9,7 +9,7 @@ import { of, forkJoin, finalize, catchError, switchMap, tap } from 'rxjs';
 // Импортируем ParticipantService и модель участника
 import { ParticipantService } from '../../../../core/participant.service';
 import { ParticipantResponse } from '../../../../core/models/participant'; // Предполагаемая модель, обновите при необходимости
-
+import { ProjectStatus } from '../../../../core/enums/project-status.enum';
 @Component({
   selector: 'app-tasks-list',
   standalone: true,
@@ -21,6 +21,8 @@ export class TasksListComponent implements OnInit, OnChanges {
   @Input() stageId!: number;
   @Input() stageName!: string;
   @Input() projectId!: number;
+  @Input() projectStatus: ProjectStatus | null = null;
+  @Input() isOwner: boolean = false;
   @Output() close = new EventEmitter<void>();
 
   tasks: TaskResponse[] = [];
@@ -74,6 +76,26 @@ export class TasksListComponent implements OnInit, OnChanges {
     'application/vnd.ms-excel': 'xls',
     'application/zip': 'zip'
   };
+
+  // ===== Status Helpers =====
+  get isProjectActive(): boolean {
+    return this.projectStatus === ProjectStatus.ACTIVE;
+  }
+
+  get isProjectReadOnly(): boolean {
+    return this.projectStatus === ProjectStatus.ON_PAUSE ||
+      this.projectStatus === ProjectStatus.COMPLETED ||
+      this.projectStatus === ProjectStatus.CANCELLED;
+  }
+
+  get canModifyStructure(): boolean {
+    return this.isOwner && !this.isProjectReadOnly;
+  }
+
+  get canPerformExecution(): boolean {
+    return this.isProjectActive;
+  }
+  // ==========================
 
   constructor(
     private taskService: TaskService,
