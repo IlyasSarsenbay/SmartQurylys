@@ -4,6 +4,10 @@ import { FileResponse } from '../../core/models/file';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ProjectStatus } from '../../core/enums/project-status.enum';
+import { ProjectResponse } from '../../core/models/project';
+import { UserService } from '../../core/user.service';
+import { UserResponse } from '../../core/models/user';
 
 @Component({
   selector: 'app-documents',
@@ -19,6 +23,10 @@ export class DocumentsComponent implements OnInit {
   selectedFile: File | null = null;
   uploadProgress = 0;
   isUploading = false;
+  project: ProjectResponse | null = null;
+  isOwner = false;
+  currentUserId: number | null = null;
+  currentUserIinBin: string | null = null;
 
   // Навигационные элементы
   navItems = [
@@ -33,13 +41,54 @@ export class DocumentsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private userService: UserService
   ) {
     this.projectId = +this.route.snapshot.paramMap.get('id')!;
   }
 
   ngOnInit(): void {
+    this.fetchCurrentUser();
+    this.fetchProjectDetails();
     this.loadProjectFiles();
+  }
+
+  fetchCurrentUser(): void {
+    this.userService.getCurrentUser().subscribe({
+      next: (user: UserResponse) => {
+        this.currentUserId = user.id;
+        this.currentUserIinBin = user.iinBin;
+        this.checkOwnership();
+      },
+      error: (error) => {
+        console.error('Ошибка при загрузке текущего пользователя:', error);
+      }
+    });
+  }
+
+  fetchProjectDetails(): void {
+    this.projectService.getProjectById(this.projectId).subscribe({
+      next: (project) => {
+        this.project = project;
+        this.checkOwnership();
+      },
+      error: (error) => {
+        console.error('Ошибка при загрузке деталей проекта:', error);
+      }
+    });
+  }
+
+  checkOwnership(): void {
+    if (this.project && this.currentUserIinBin) {
+      this.isOwner = this.currentUserIinBin === this.project.ownerIinBin;
+    }
+  }
+
+  get isProjectReadOnly(): boolean {
+    const status = this.project?.status;
+    return status === ProjectStatus.ON_PAUSE ||
+      status === ProjectStatus.COMPLETED ||
+      status === ProjectStatus.CANCELLED;
   }
 
   loadProjectFiles(): void {

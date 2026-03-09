@@ -20,6 +20,7 @@ import { RequirementResponse } from '../core/models/requirement';
 import { UserService } from '../core/user.service';
 import { UserResponse } from '../core/models/user';
 import { StageStatus } from '../core/enums/stage-status.enum';
+import { ProjectStatus } from '../core/enums/project-status.enum';
 import { ParticipantResponse } from '../core/models/participant';
 import { ParticipantService } from './../core/participant.service';
 
@@ -74,6 +75,15 @@ export class ProjectDashboardComponent implements OnInit {
   isExecutorsModalOpen = false;
   isReactivationModalOpen = false;
 
+  // ===== Reason dialog for owner task actions =====
+  isReasonModalOpen = false;
+  pendingAction: 'confirm' | 'decline' | 'return' | null = null;
+  actionReason = '';
+  // ================================================
+
+  // Флаг: выполнена ли задача, открытая в редактировании
+  editingTaskIsConfirmed = false;
+
   selectedStageForModal: StageResponse | null = null;
   selectedStageForExecutors: StageResponse | null = null;
   selectedStageForReactivation: StageResponse | null = null;
@@ -118,6 +128,74 @@ export class ProjectDashboardComponent implements OnInit {
   allTasks: TaskResponse[] = [];
   participantStagesMap: Map<number, Set<string>> = new Map();
   expandedParticipantId: number | null = null;
+
+  // ===== Status Helpers =====
+  get isProjectActive(): boolean {
+    return this.project?.status === ProjectStatus.ACTIVE;
+  }
+
+  get isProjectOnPause(): boolean {
+    return this.project?.status === ProjectStatus.ON_PAUSE;
+  }
+
+  get isProjectWaiting(): boolean {
+    return this.project?.status === ProjectStatus.WAITING;
+  }
+
+  get isProjectDraft(): boolean {
+    return this.project?.status === ProjectStatus.DRAFT;
+  }
+
+  get isProjectCompleted(): boolean {
+    return this.project?.status === ProjectStatus.COMPLETED;
+  }
+
+  get isProjectCancelled(): boolean {
+    return this.project?.status === ProjectStatus.CANCELLED;
+  }
+
+  get isProjectReadOnly(): boolean {
+    const status = this.project?.status;
+    return status === ProjectStatus.ON_PAUSE ||
+      status === ProjectStatus.COMPLETED ||
+      status === ProjectStatus.CANCELLED;
+  }
+
+  // Можно ли менять структуру (этапы, задачи)
+  get canModifyStructure(): boolean {
+    // Владелец может менять структуру в черновике, ожидании или активном состоянии
+    return this.isOwner && (this.isProjectDraft || this.isProjectWaiting || this.isProjectActive);
+  }
+
+  // Можно ли выполнять действия по задачам (запросы, подтверждения)
+  get canPerformExecution(): boolean {
+    return this.isProjectActive;
+  }
+
+  getStatusLabel(): string {
+    switch (this.project?.status) {
+      case ProjectStatus.DRAFT: return 'ЧЕРНОВИК';
+      case ProjectStatus.WAITING: return 'ОЖИДАНИЕ';
+      case ProjectStatus.ACTIVE: return 'АКТИВЕН';
+      case ProjectStatus.ON_PAUSE: return 'НА ПАУЗЕ';
+      case ProjectStatus.COMPLETED: return 'ЗАВЕРШЕН';
+      case ProjectStatus.CANCELLED: return 'ОТМЕНЕН';
+      default: return '';
+    }
+  }
+
+  getStatusClass(): string {
+    switch (this.project?.status) {
+      case ProjectStatus.DRAFT: return 'bg-gray-500';
+      case ProjectStatus.WAITING: return 'bg-blue-400';
+      case ProjectStatus.ACTIVE: return 'bg-green-500';
+      case ProjectStatus.ON_PAUSE: return 'bg-yellow-500';
+      case ProjectStatus.COMPLETED: return 'bg-green-700';
+      case ProjectStatus.CANCELLED: return 'bg-red-500';
+      default: return 'bg-gray-400';
+    }
+  }
+  // ==========================
 
   get filteredNavItems() {
     return this.navItems.filter(item => {
@@ -415,6 +493,7 @@ export class ProjectDashboardComponent implements OnInit {
     this.selectedStageForModal = stage;
     switch (action) {
       case 'showTimeline':
+        this.fetchStageTasks(stage.id);
         this.isTimelineModalOpen = true;
         break;
       case 'showMap':
@@ -524,6 +603,36 @@ export class ProjectDashboardComponent implements OnInit {
     return circumference - (percentage / 100) * circumference;
   }
 
+  /** Returns tasks that have been submitted for acceptance but not yet confirmed/declined. */
+  getDelayedTasks(): TaskResponse[] {
+    return this.tasks.filter(t => t.executionRequested && !t.executionConfirmed && t.executionRequestedAt);
+  }
+
+  /** Returns a human-readable string of how long since execution was requested. */
+  getDelayDuration(task: TaskResponse): string {
+    if (!task.executionRequestedAt) return '';
+    const requestedAt = new Date(task.executionRequestedAt).getTime();
+    const now = Date.now();
+    const diffMs = Math.max(0, now - requestedAt);
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays >= 1) {
+      const remHours = diffHours % 24;
+      return remHours > 0
+        ? `${diffDays} дн. ${remHours} ч.`
+        : `${diffDays} дн.`;
+    }
+    if (diffHours >= 1) {
+      const remMins = diffMins % 60;
+      return remMins > 0
+        ? `${diffHours} ч. ${remMins} мин.`
+        : `${diffHours} ч.`;
+    }
+    return diffMins <= 0 ? 'менее минуты' : `${diffMins} мин.`;
+  }
+
   openEditTimelineModal(): void {
     if (this.selectedStageForModal) {
       this.editableStartDate = this.selectedStageForModal.startDate ?? '';
@@ -531,6 +640,7 @@ export class ProjectDashboardComponent implements OnInit {
       this.isEditTimelineModalOpen = true;
     }
   }
+
 
   closeEditTimelineModal(): void {
     this.isEditTimelineModalOpen = false;
@@ -574,36 +684,64 @@ export class ProjectDashboardComponent implements OnInit {
     }
   }
 
-  confirmExecution(): void {
-    if (this.activeTask && this.scheduleId !== null) {
-      this.taskService.confirmExecution(this.scheduleId, this.activeTask.id).subscribe({
+  /** Opens the reason dialog for an owner action. */
+  openReasonModal(action: 'confirm' | 'decline' | 'return'): void {
+    this.pendingAction = action;
+    this.actionReason = '';
+    this.isReasonModalOpen = true;
+  }
+
+  /** Closes the reason dialog without executing the action. */
+  closeReasonModal(): void {
+    this.isReasonModalOpen = false;
+    this.pendingAction = null;
+    this.actionReason = '';
+  }
+
+  /** Submits the owner action (decline or return) with the provided reason. */
+  submitReasonAction(): void {
+    if (!this.activeTask || this.scheduleId === null || !this.pendingAction) return;
+    const reason = this.actionReason.trim() || undefined;
+    const action = this.pendingAction;
+    this.closeReasonModal();
+
+    if (action === 'decline') {
+      this.taskService.declineExecution(this.scheduleId, this.activeTask.id, reason).subscribe({
         next: () => {
-          this.activeTask!.executionConfirmed = true;
-          if (this.selectedStageForModal) {
-            this.fetchStageMapData(this.selectedStageForModal.id);
-          }
+          if (this.selectedStageForModal) this.fetchStageMapData(this.selectedStageForModal.id);
         },
-        error: (error) => {
-          console.error('Ошибка при принятии исполнения:', error);
-        }
+        error: (error) => console.error('Ошибка при отказе принять исполнения:', error)
+      });
+    } else if (action === 'return') {
+      this.taskService.returnToExecution(this.scheduleId, this.activeTask.id, reason).subscribe({
+        next: () => {
+          this.activeTask!.executionConfirmed = false;
+          if (this.selectedStageForModal) this.fetchStageMapData(this.selectedStageForModal.id);
+        },
+        error: (error) => console.error('Ошибка при возврате задачи в работу:', error)
       });
     }
   }
 
-  rejectExecution(): void {
-    if (this.activeTask && this.scheduleId !== null) {
-      this.taskService.declineExecution(this.scheduleId, this.activeTask.id).subscribe({
-        next: () => {
-          if (this.selectedStageForModal) {
-            this.fetchStageMapData(this.selectedStageForModal.id);
-          }
-        },
-        error: (error) => {
-          console.error('Ошибка при отказе принять исполнения:', error);
-        }
-      });
-    }
+  confirmExecution(): void {
+    if (!this.activeTask || this.scheduleId === null) return;
+    this.taskService.confirmExecution(this.scheduleId, this.activeTask.id).subscribe({
+      next: () => {
+        this.activeTask!.executionConfirmed = true;
+        if (this.selectedStageForModal) this.fetchStageMapData(this.selectedStageForModal.id);
+      },
+      error: (error) => console.error('Ошибка при принятии исполнения:', error)
+    });
   }
+
+  rejectExecution(): void {
+    this.openReasonModal('decline');
+  }
+
+  returnTaskToWork(): void {
+    this.openReasonModal('return');
+  }
+
 
   downloadFile(file: FileResponse): void {
     this.taskService.downloadFile(file.id).subscribe({
@@ -832,8 +970,8 @@ export class ProjectDashboardComponent implements OnInit {
   }
 
   editTask(task: TaskResponse): void {
-
     this.selectedTaskForEdit = task;
+    this.editingTaskIsConfirmed = task.executionConfirmed || false;
     this.editableTaskName = task.name;
     this.editableTaskDescription = task.description || '';
     this.editableTaskStartDate = task.startDate || '';

@@ -10,6 +10,10 @@ import { City } from '../../../core/models/city';
 import { ProjectStatus } from '../../../core/enums/project-status.enum';
 import { forkJoin } from 'rxjs';
 
+/**
+ * Компонент для просмотра и редактирования детальной информации проекта
+ * @description Позволяет администратору просматривать и редактировать данные проекта
+ */
 @Component({
   selector: 'app-admin-project-detail',
   standalone: true,
@@ -18,103 +22,168 @@ import { forkJoin } from 'rxjs';
   styleUrls: ['./admin-project-detail.component.css']
 })
 export class AdminProjectDetailComponent implements OnInit {
+  /** ID текущего проекта из URL */
   projectId: number | null = null;
-  projectForm: FormGroup;
-  cities: City[] = [];
-  projectStatuses = Object.values(ProjectStatus);
-  successMessage: string = '';
-  errorMessage: string = '';
   
+  /** Реактивная форма для редактирования данных проекта */
+  projectForm: FormGroup;
+  
+  /** Список доступных городов */
+  cities: City[] = [];
+  
+  /** Список статусов проекта (из enum) */
+  projectStatuses = Object.values(ProjectStatus);
+  
+  /** Сообщение об успешном выполнении */
+  successMessage: string = '';
+  
+  /** Сообщение об ошибке */
+  errorMessage: string = '';
+
+  /**
+   * Конструктор компонента
+   * @param route - для получения параметров из URL
+   * @param fb - для создания реактивной формы
+   * @param projectService - сервис для работы с проектами
+   * @param cityService - сервис для получения списка городов
+   */
   constructor(
     private route: ActivatedRoute,
     private fb: FormBuilder,
     private projectService: ProjectService,
     private cityService: CityService
   ) {
+    // Инициализация формы с валидацией
     this.projectForm = this.fb.group({
       name: ['', Validators.required],
       description: ['', Validators.required],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
       type: ['', Validators.required],
-      status: [ProjectStatus.DRAFT, Validators.required], // Default status
+      status: [ProjectStatus.DRAFT, Validators.required], // Статус по умолчанию
       cityId: [null, Validators.required],
     });
   }
 
+  /**
+   * Загрузка данных при инициализации компонента
+   */
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
       this.projectId = Number(params.get('id'));
       if (this.projectId) {
-        forkJoin({
-          project: this.projectService.getProjectById(this.projectId),
-          cities: this.cityService.getAllCities()
-        }).subscribe({
-          next: ({ project, cities }) => {
-            console.log('Fetched Project Data:', project);
-            console.log('Fetched Cities Data:', cities);
-            this.cities = cities;
-            const projectCity = this.cities.find(city => city.name === project.cityName);
-            this.projectForm.patchValue({
-              name: project.name ?? '',
-              description: project.description ?? '',
-              startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
-              endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
-              type: project.type ?? '',
-              status: project.status ?? ProjectStatus.DRAFT,
-              cityId: projectCity ? projectCity.id : null,
-            });
-          },
-          error: (error) => {
-            this.errorMessage = 'Ошибка загрузки данных проекта: ' + (error.message || error.statusText);
-            console.error('Error loading project data:', error);
-          }
-        });
+        this.loadProjectData();
       }
     });
   }
 
+  /**
+   * Загрузка данных проекта и списка городов
+   * @private
+   */
+  private loadProjectData(): void {
+    forkJoin({
+      project: this.projectService.getProjectById(this.projectId!),
+      cities: this.cityService.getAllCities()
+    }).subscribe({
+      next: ({ project, cities }) => {
+        console.log('Fetched Project Data:', project);
+        console.log('Fetched Cities Data:', cities);
+        
+        this.cities = cities;
+        this.patchFormWithProjectData(project);
+      },
+      error: (error) => {
+        this.errorMessage = 'Ошибка загрузки данных проекта: ' + (error.message || error.statusText);
+        console.error('Error loading project data:', error);
+      }
+    });
+  }
+
+  /**
+   * Заполнение формы данными проекта
+   * @param project - данные проекта из API
+   * @private
+   */
+  private patchFormWithProjectData(project: ProjectResponse): void {
+    const projectCity = this.cities.find(city => city.name === project.cityName);
+    
+    this.projectForm.patchValue({
+      name: project.name ?? '',
+      description: project.description ?? '',
+      startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
+      endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
+      type: project.type ?? '',
+      status: project.status ?? ProjectStatus.DRAFT,
+      cityId: projectCity ? projectCity.id : null,
+    });
+  }
+
+  /**
+   * Обработчик отправки формы обновления проекта
+   */
   onSubmit(): void {
-    this.successMessage = '';
-    this.errorMessage = '';
+    this.clearMessages();
+    
     if (this.projectForm.valid && this.projectId) {
-      const formValue = this.projectForm.value;
-
-      const request: UpdateProjectRequest = {
-        name: formValue.name,
-        description: formValue.description,
-        startDate: formValue.startDate,
-        endDate: formValue.endDate,
-        type: formValue.type,
-        status: formValue.status,
-        cityId: formValue.cityId,
-      };
-
+      const request = this.buildUpdateRequest();
+      
       this.projectService.updateProject(this.projectId, request).subscribe({
         next: (updatedProject) => {
           this.successMessage = 'Данные проекта успешно обновлены!';
           console.log('Project updated:', updatedProject);
-          const updatedProjectCity = this.cities.find(city => city.name === updatedProject.cityName);
-          this.projectForm.patchValue({
-            name: updatedProject.name ?? '',
-            description: updatedProject.description ?? '',
-            startDate: updatedProject.startDate ? new Date(updatedProject.startDate).toISOString().split('T')[0] : '',
-            endDate: updatedProject.endDate ? new Date(updatedProject.endDate).toISOString().split('T')[0] : '',
-            type: updatedProject.type ?? '',
-            status: updatedProject.status ?? ProjectStatus.DRAFT,
-            cityId: updatedProjectCity ? updatedProjectCity.id : null,
-          });
+          
+          this.patchFormWithProjectData(updatedProject);
+          
           setTimeout(() => this.successMessage = '', 3000);
         },
         error: (error) => {
-          this.errorMessage = 'Ошибка при обновлении проекта: ' + (error.error?.message || error.statusText || error.message);
-          console.error('Error updating project:', error);
-          setTimeout(() => this.errorMessage = '', 5000);
+          this.handleError('обновлении проекта', error);
         }
       });
     } else {
       this.errorMessage = 'Пожалуйста, заполните все обязательные поля корректно.';
       setTimeout(() => this.errorMessage = '', 5000);
     }
+  }
+
+  /**
+   * Формирование запроса на обновление из данных формы
+   * @private
+   */
+  private buildUpdateRequest(): UpdateProjectRequest {
+    const formValue = this.projectForm.value;
+
+    return {
+      name: formValue.name,
+      description: formValue.description,
+      startDate: formValue.startDate,
+      endDate: formValue.endDate,
+      type: formValue.type,
+      status: formValue.status,
+      cityId: formValue.cityId,
+    };
+  }
+
+  /**
+   * Очистка сообщений об успехе и ошибке
+   * @private
+   */
+  private clearMessages(): void {
+    this.successMessage = '';
+    this.errorMessage = '';
+  }
+
+  /**
+   * Обработка ошибок с единообразным сообщением
+   * @param action - действие, при котором произошла ошибка
+   * @param error - объект ошибки
+   * @private
+   */
+  private handleError(action: string, error: any): void {
+    this.errorMessage = `Ошибка при ${action}: ` + 
+      (error.error?.message || error.statusText || error.message);
+    console.error(`Error during ${action}:`, error);
+    setTimeout(() => this.errorMessage = '', 5000);
   }
 }

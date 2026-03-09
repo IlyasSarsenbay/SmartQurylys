@@ -1,4 +1,5 @@
-.register-container {
+/* ===== КОНТЕЙНЕР ФОРМЫ РЕГИСТРАЦИИ ===== */
+register-container {
   max-width: 400px;
   margin: 50px auto;
   padding: 20px;
@@ -7,12 +8,14 @@
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 
+  /* ===== ЗАГОЛОВОК ===== */
   h1 {
     font-size: 24px;
     color: #2c3e50;
     margin-bottom: 20px;
   }
 
+  /* ===== ГРУППЫ ПОЛЕЙ ФОРМЫ ===== */
   .form-group {
     display: flex;
     flex-direction: column;
@@ -31,12 +34,14 @@
       font-size: 16px;
     }
 
+    /* Сообщение об ошибке валидации */
     .error {
       color: #e74c3c;
       font-size: 14px;
     }
   }
 
+  /* ===== КНОПКА ОТПРАВКИ ===== */
   button {
     padding: 10px;
     background-color: #3498db;
@@ -47,12 +52,14 @@
     font-size: 16px;
     width: 100%;
 
+    /* Отключенное состояние кнопки */
     &[disabled] {
       background-color: #bdc3c7;
       cursor: not-allowed;
     }
   }
 
+  /* ===== ССЫЛКА ===== */
   a {
     color: #3498db;
     text-decoration: none;

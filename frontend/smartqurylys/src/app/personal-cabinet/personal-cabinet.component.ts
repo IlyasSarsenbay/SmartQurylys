@@ -14,6 +14,7 @@ import { UserPasswordEditModalComponent } from './user-password-edit-modal/user-
 import { OrganisationService } from '../core/organisation.service';
 import { OrganisationResponse } from '../core/models/organisation';
 import { LicenseResponse } from '../core/models/license';
+import { RepresentativeDocumentResponse } from '../core/models/representative-document';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -58,6 +59,12 @@ export class PersonalCabinetComponent implements OnInit {
   editLicenseCategory: string = '';
   editLicenseFile: File | null = null;
   isUpdatingStatus: boolean = false;
+
+  // Representative documents management
+  representativeDocuments: RepresentativeDocumentResponse[] = [];
+  loadingRepresentativeDocuments: boolean = false;
+  selectedRepDocFile: File | null = null;
+  isUploadingRepDoc: boolean = false;
 
   get isOrganisationUser(): boolean {
     return this.user?.userType === 'ORGANISATION';
@@ -129,6 +136,7 @@ export class PersonalCabinetComponent implements OnInit {
 
         if (this.isOrganisationUser) {
           this.loadLicenses();
+          this.loadRepresentativeDocuments();
         }
       },
       error: (err) => {
@@ -150,6 +158,97 @@ export class PersonalCabinetComponent implements OnInit {
       error: (error) => {
         console.error('Error loading licenses:', error);
         this.loadingLicenses = false;
+      }
+    });
+  }
+
+  loadRepresentativeDocuments(): void {
+    this.loadingRepresentativeDocuments = true;
+    this.organisationService.getMyRepresentativeDocuments().subscribe({
+      next: (docs) => {
+        this.representativeDocuments = docs;
+        this.loadingRepresentativeDocuments = false;
+      },
+      error: (error) => {
+        console.error('Error loading representative documents:', error);
+        this.loadingRepresentativeDocuments = false;
+      }
+    });
+  }
+
+  onRepDocFileSelected(event: any): void {
+    this.selectedRepDocFile = event.target.files[0];
+  }
+
+  addRepresentativeDocument(): void {
+    if (!this.selectedRepDocFile) return;
+
+    this.isUploadingRepDoc = true;
+    this.organisationService.addRepresentativeDocumentToMyOrganisation(this.selectedRepDocFile).subscribe({
+      next: (newDoc) => {
+        this.selectedRepDocFile = null;
+        this.isUploadingRepDoc = false;
+        this.successMessage = 'Документ представителя успешно добавлен!';
+
+        const fileInput = document.getElementById('newRepDocFile') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+
+        // Перезагружаем список документов для получения полных данных
+        this.loadRepresentativeDocuments();
+
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (error) => {
+        this.isUploadingRepDoc = false;
+        this.errorMessage = 'Ошибка при загрузке документа: ' + (error.error?.message || error.statusText || error.message);
+        console.error('Error uploading representative document:', error);
+        setTimeout(() => this.errorMessage = '', 5000);
+      }
+    });
+  }
+
+  deleteRepresentativeDocument(docId: number): void {
+    if (!confirm('Вы уверены, что хотите удалить этот документ?')) return;
+
+    this.organisationService.deleteMyRepresentativeDocument(docId).subscribe({
+      next: () => {
+        this.representativeDocuments = this.representativeDocuments.filter(d => d.id !== docId);
+        this.successMessage = 'Документ удален.';
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (error) => {
+        console.error('Error deleting representative document:', error);
+        this.errorMessage = 'Ошибка при удалении документа: ' + (error.error?.message || error.statusText);
+        setTimeout(() => this.errorMessage = '', 5000);
+      }
+    });
+  }
+
+  downloadRepresentativeDocument(doc: RepresentativeDocumentResponse): void {
+    this.organisationService.downloadFile(doc.id).subscribe({
+      next: (response) => {
+        const blob = response.body;
+        const contentDisposition = response.headers.get('content-disposition');
+        let filename = doc.name;
+
+        if (contentDisposition) {
+          const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+          const matches = filenameRegex.exec(contentDisposition);
+          if (matches != null && matches[1]) {
+            filename = matches[1].replace(/['"]/g, '');
+          }
+        }
+
+        const url = window.URL.createObjectURL(blob!);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        console.error('Ошибка при скачивании документа:', error);
+        this.errorMessage = 'Ошибка при скачивании документа: ' + (error.message || 'Неизвестная ошибка');
       }
     });
   }

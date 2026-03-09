@@ -29,6 +29,7 @@ public class Schedule {
     private LocalDateTime createdAt; // Дата и время создания графика.
 
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     private List<Stage> stages; // Список этапов, входящих в график.
 
     @OneToMany(cascade = CascadeType.ALL)

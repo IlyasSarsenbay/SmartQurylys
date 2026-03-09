@@ -146,11 +146,11 @@
                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
               </button>
-              <button (click)="openEditRequirementModal(task, req)"
+              <button *ngIf="canModifyStructure" (click)="openEditRequirementModal(task, req)"
                 class="text-indigo-500 hover:text-indigo-700 text-xs font-medium">
                 Редактировать
               </button>
-              <button (click)="openConfirmDeleteRequirementModal(task.id!, req.id!)"
+              <button *ngIf="canModifyStructure" (click)="openConfirmDeleteRequirementModal(task.id!, req.id!)"
                 class="text-red-500 hover:text-red-700 text-xs font-medium">
                 Удалить
               </button>
@@ -159,7 +159,7 @@
         </ul>
       </div>
 
-      <div class="mt-4 flex flex-wrap gap-2">
+      <div *ngIf="canModifyStructure" class="mt-4 flex flex-wrap gap-2">
         <button (click)="openEditTaskModal(task)"
           class="px-4 py-2 bg-indigo-500 text-white rounded-md shadow hover:bg-indigo-600 transition-colors duration-200 text-sm">
           Редактировать
@@ -181,7 +181,7 @@
     </div>
   </div>
 
-  <div class="flex justify-center mt-8">
+  <div *ngIf="canModifyStructure" class="flex justify-center mt-8">
     <button (click)="openAddTaskModal()"
       class="px-8 py-4 bg-indigo-600 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105">
       Добавить новую задачу
@@ -381,11 +381,14 @@
             <small class="text-gray-500">Для выбора нескольких человек используйте Ctrl (Cmd) + клик.</small>
           </div>
           <div class="col-span-1 md:col-span-2">
-            <div class="flex items-center">
+            <div class="flex items-center flex-wrap gap-2">
               <input id="editTaskIsPriority" type="checkbox" formControlName="isPriority"
-                class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                [attr.disabled]="editingTaskIsConfirmed ? true : null"
+                class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed">
               <label for="editTaskIsPriority" class="ml-2 block text-sm font-medium text-gray-700">Приоритетная
                 задача</label>
+              <span *ngIf="editingTaskIsConfirmed" class="text-xs text-gray-400 italic">— задача выполнена, приоритет
+                недоступен</span>
             </div>
           </div>
         </div>

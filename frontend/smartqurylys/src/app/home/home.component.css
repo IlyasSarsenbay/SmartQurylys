@@ -6,8 +6,10 @@
 }
 
 .app-header {
-  background-color: var(--color-card-background); /* Белый фон */
-  padding: 0.5rem 1.5rem; /* Отступы */
+  background-color: var(--color-card-background);
+  /* Белый фон */
+  padding: 0.5rem 1.5rem;
+  /* Отступы */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -16,33 +18,42 @@
 
 .app-header .logo-section {
   display: flex;
-  align-items: baseline; /* Выравнивание по базовой линии текста */
-  gap: 0.25rem; /* Меньший отступ между SQ и SMARTQURYLYS */
+  align-items: baseline;
+  /* Выравнивание по базовой линии текста */
+  gap: 0.25rem;
+  /* Меньший отступ между SQ и SMARTQURYLYS */
 }
 
 .app-header .logo-sq {
-  font-size: 2.2rem; /* Больший размер для "SQ" */
-  font-weight: 800; /* Очень жирный */
+  font-size: 2.2rem;
+  /* Больший размер для "SQ" */
+  font-weight: 800;
+  /* Очень жирный */
   color: var(--color-primary-dark);
   line-height: 1;
 }
 
 .app-header .logo-smartqurylys {
-  font-size: 0.8rem; /* Меньший размер для "SMARTQURYLYS" */
+  font-size: 0.8rem;
+  /* Меньший размер для "SMARTQURYLYS" */
   font-weight: 500;
-  color: #6B7280; /* Серый цвет текста */
+  color: #6B7280;
+  /* Серый цвет текста */
   line-height: 1;
-  margin-left: 0.2rem; /* Дополнительный отступ */
+  margin-left: 0.2rem;
+  /* Дополнительный отступ */
 }
 
 .header-right-nav {
   display: flex;
   align-items: center;
-  gap: 1.5rem; /* Отступ между элементами справа */
+  gap: 1.5rem;
+  /* Отступ между элементами справа */
 }
 
 .header-right-nav .nav-link {
-  color: var(--color-accent-blue-light); /* Синий цвет для "Инструкция" */
+  color: var(--color-accent-blue-light);
+  /* Синий цвет для "Инструкция" */
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
@@ -63,8 +74,10 @@
 .icon-button {
   background: none;
   border: none;
-  color: #6B7280; /* Серый цвет иконок, как на скриншоте */
-  font-size: 1.3rem; /* Размер иконок */
+  color: #6B7280;
+  /* Серый цвет иконок, как на скриншоте */
+  font-size: 1.3rem;
+  /* Размер иконок */
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 50%;
@@ -72,29 +85,40 @@
 }
 
 .icon-button:hover {
-  background-color: #F0F0F0; /* Светлый фон при наведении */
-  color: var(--color-primary-dark); /* Темнее при наведении */
+  background-color: #F0F0F0;
+  /* Светлый фон при наведении */
+  color: var(--color-primary-dark);
+  /* Темнее при наведении */
 }
 
 .notification-badge {
   position: absolute;
-  top: 0px; /* Смещение вверх */
-  right: 0px; /* Смещение вправо */
-  background-color: var(--color-accent-blue-light); /* НОВОЕ: Синий цвет, как на скриншоте */
+  top: 0px;
+  /* Смещение вверх */
+  right: 0px;
+  /* Смещение вправо */
+  background-color: var(--color-accent-blue-light);
+  /* НОВОЕ: Синий цвет, как на скриншоте */
   color: white;
   border-radius: 50%;
-  padding: 0.2em 0.5em; /* Отступы для круга */
+  padding: 0.2em 0.5em;
+  /* Отступы для круга */
   font-size: 0.7em;
   line-height: 1;
-  min-width: 1em; /* Минимальная ширина для одной цифры */
+  min-width: 1em;
+  /* Минимальная ширина для одной цифры */
   text-align: center;
-  transform: translate(50%, -50%); /* Центрирование значка относительно угла */
-  border: 1px solid var(--color-card-background); /* НОВОЕ: Белая обводка для бейджа */
+  transform: translate(50%, -50%);
+  /* Центрирование значка относительно угла */
+  border: 1px solid var(--color-card-background);
+  /* НОВОЕ: Белая обводка для бейджа */
 }
 
 .logout-button {
-  color: #6B7280; /* НОВОЕ: Серый цвет, как у других иконок, для единообразия */
-  margin-left: 0.5rem; /* Добавим отступ от иконки пользователя */
+  color: #6B7280;
+  /* НОВОЕ: Серый цвет, как у других иконок, для единообразия */
+  margin-left: 0.5rem;
+  /* Добавим отступ от иконки пользователя */
 }
 
 .logout-button:hover {
@@ -116,6 +140,7 @@
     align-items: flex-start;
     padding: 0.5rem 1rem;
   }
+
   .header-right-nav {
     flex-direction: column;
     align-items: flex-start;
@@ -136,72 +161,153 @@
 
 .highlight-section {
   background: url('/assets/background.png') center center / cover no-repeat;
-  padding: 80px 20px;
+  padding: 100px 20px;
   color: white;
   text-align: center;
+  position: relative;
+}
+
+.highlight-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 40, 80, 0.3);
+  pointer-events: none;
+}
+
+.main-content {
+  position: relative;
+  z-index: 1;
 }
 
 .main-content h1 {
-  font-size: 2.2rem;
-  max-width: 800px;
-  margin: 0 auto 40px;
-  font-weight: bold;
-  line-height: 1.5;
+  font-size: 3rem;
+  max-width: 900px;
+  margin: 0 auto 60px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .blue-text {
-  color: #46a3ff;
+  color: #5eb3ff;
+  font-weight: 700;
 }
 
 .features {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 40px;
+  gap: 30px;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .feature {
-  background-color: rgb(126, 126, 237);
-  border-radius: 16px;
-  padding: 20px;
-  width: 120px;
-  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  min-width: 140px;
 }
 
-.feature img {
-  width: 50px;
-  margin-bottom: 10px;
+.feature-icon {
+  width: 90px;
+  height: 90px;
+  background: rgba(200, 220, 255, 0.25);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon svg {
+  width: 45px;
+  height: 45px;
+  color: #ffffff;
+  stroke-width: 2.5;
 }
 
 .feature p {
-  font-size: 14px;
-  color: #d2e6ff;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  text-shadow:
+    -1px -1px 0 rgba(0, 0, 0, 0.5),
+    1px -1px 0 rgba(0, 0, 0, 0.5),
+    -1px 1px 0 rgba(0, 0, 0, 0.5),
+    1px 1px 0 rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 /* Низ — кнопки */
 .auth-buttons {
   background-color: #f9f9f9;
   text-align: center;
-  padding: 40px 20px;
+  padding: 50px 20px;
 }
 
 .auth-buttons button {
-  padding: 12px 30px;
+  padding: 14px 40px;
   margin: 0 15px;
   border: none;
-  border-radius: 20px;
-  background-color: #cfe4ff;
+  border-radius: 25px;
+  background-color: #b8d9ff;
   color: #003d99;
-  font-size: 16px;
+  font-size: 17px;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .auth-buttons .register {
-  background-color: #e2f0ff;
+  background-color: #d4e8ff;
 }
 
 .auth-buttons button:hover {
-  background-color: #b5d8ff;
+  background-color: #a0ccff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.auth-buttons .register:hover {
+  background-color: #c0ddff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .main-content h1 {
+    font-size: 2rem;
+    margin-bottom: 40px;
+  }
+
+  .features {
+    gap: 25px;
+  }
+
+  .feature-icon {
+    width: 75px;
+    height: 75px;
+  }
+
+  .feature-icon svg {
+    width: 38px;
+    height: 38px;
+  }
+
+  .feature p {
+    font-size: 15px;
+  }
+
+  .auth-buttons button {
+    padding: 12px 30px;
+    font-size: 15px;
+  }
+}

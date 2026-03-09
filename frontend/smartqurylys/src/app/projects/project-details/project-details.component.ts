@@ -42,6 +42,7 @@ export class ProjectDetailsComponent implements OnInit {
 
   projectEditForm: FormGroup;
   isEditingProject: boolean = false;
+  isOwner: boolean = false;
 
   showEditParticipantModal: boolean = false;
   editParticipantForm: FormGroup;
@@ -130,7 +131,8 @@ export class ProjectDetailsComponent implements OnInit {
               if (project) {
                 // Check ownership and redirect if not owner
                 this.userService.getCurrentUser().subscribe(user => {
-                  if (user.iinBin !== project.ownerIinBin) {
+                  this.isOwner = user.iinBin === project.ownerIinBin;
+                  if (!this.isOwner) {
                     this.router.navigate(['/projects', this.projectId]);
                   }
                 });

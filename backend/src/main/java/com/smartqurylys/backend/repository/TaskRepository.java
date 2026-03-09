@@ -14,8 +14,9 @@ import java.util.Optional;
 // Репозиторий для работы с сущностями Task.
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    // Находит все задачи, принадлежащие определенному этапу.
-    List<Task> findByStage(Stage stage);
+    // Находит все задачи, принадлежащие определенному этапу, по порядку создания.
+    @Query("SELECT t FROM Task t WHERE t.stage = :stage ORDER BY t.id ASC")
+    List<Task> findByStage(@Param("stage") Stage stage);
 
     // Проверяет существование задачи по её ID.
     boolean existsById(Long id);
@@ -43,6 +44,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("SELECT t FROM Task t " +
             "LEFT JOIN FETCH t.responsiblePersons rp " +
             "LEFT JOIN FETCH rp.user " +
-            "WHERE t.stage = :stage")
+            "WHERE t.stage = :stage " +
+            "ORDER BY t.id ASC")
     List<Task> findByStageWithFullDetails(@Param("stage") Stage stage);
 }

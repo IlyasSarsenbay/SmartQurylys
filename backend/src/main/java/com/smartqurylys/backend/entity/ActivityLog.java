@@ -10,6 +10,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 // Сущность для хранения записей журнала активности.
 @Entity
 @Table(name = "activity_logs")
@@ -35,10 +38,12 @@ public class ActivityLog {
     private String actorFullName; // Полное имя пользователя.
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false)
     private ActivityActionType actionType; // Тип действия (например, CREATE, UPDATE).
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false)
     private ActivityEntityType entityType; // Тип сущности, над которой совершено действие (например, PROJECT, TASK).
 

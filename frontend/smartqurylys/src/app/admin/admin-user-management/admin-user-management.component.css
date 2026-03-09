@@ -1,4 +1,4 @@
-/* admin-user-management.component.css */
+/* ===== ОСНОВНОЙ КОНТЕЙНЕР ===== */
 .admin-management-container {
   padding: 20px;
   background-color: #ffffff;
@@ -7,6 +7,7 @@
   margin: 20px;
 }
 
+/* ===== ЗАГОЛОВОК ===== */
 h2 {
   font-size: 1.8rem;
   color: #2c3e50;
@@ -15,6 +16,7 @@ h2 {
   padding-bottom: 15px;
 }
 
+/* ===== СОСТОЯНИЯ ЗАГРУЗКИ/ОШИБОК ===== */
 .loading-message, .error-message, .no-results {
   text-align: center;
   padding: 30px;
@@ -29,10 +31,12 @@ h2 {
   border-radius: 5px;
 }
 
+/* ===== КОНТЕЙНЕР ТАБЛИЦЫ ===== */
 .table-container {
-  overflow-x: auto;
+  overflow-x: auto; /* Горизонтальная прокрутка на мобильных */
 }
 
+/* ===== ТАБЛИЦА ===== */
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -54,9 +58,10 @@ h2 {
 }
 
 .data-table tr:hover {
-  background-color: #f4f4f4;
+  background-color: #f4f4f4; /* Подсветка строки при наведении */
 }
 
+/* ===== КНОПКИ ДЕЙСТВИЙ ===== */
 .action-button {
   padding: 8px 12px;
   margin-right: 5px;

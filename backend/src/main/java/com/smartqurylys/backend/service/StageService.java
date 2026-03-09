@@ -9,6 +9,9 @@ import com.smartqurylys.backend.repository.ScheduleRepository;
 import com.smartqurylys.backend.repository.StageRepository;
 import com.smartqurylys.backend.shared.enums.StageStatus;
 import lombok.RequiredArgsConstructor;
+import com.smartqurylys.backend.entity.Project;
+import com.smartqurylys.backend.shared.enums.ProjectStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -31,6 +34,12 @@ public class StageService {
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("ГПР не найден"));
 
+        Project project = schedule.getProject();
+        ProjectStatus status = project.getStatus();
+        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED || status == ProjectStatus.CANCELLED) {
+            throw new AccessDeniedException("Создание этапов запрещено в текущем статусе проекта: " + status);
+        }
+
         Stage stage = Stage.builder()
                 .schedule(schedule)
                 .name(request.getName())
@@ -51,7 +60,7 @@ public class StageService {
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("ГПР не найден"));
 
-        return stageRepository.findBySchedule(schedule).stream()
+        return stageRepository.findByScheduleOrderByIdAsc(schedule).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -72,6 +81,12 @@ public class StageService {
         Stage stage = stageRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Этап не найден"));
 
+        Project project = stage.getSchedule().getProject();
+        ProjectStatus status = project.getStatus();
+        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED || status == ProjectStatus.CANCELLED) {
+            throw new AccessDeniedException("Изменение этапов запрещено в текущем статусе проекта: " + status);
+        }
+
         Optional.ofNullable(request.getName()).ifPresent(stage::setName);
         Optional.ofNullable(request.getDescription()).ifPresent(stage::setDescription);
         Optional.ofNullable(request.getStartDate()).ifPresent(stage::setStartDate);
@@ -84,9 +99,15 @@ public class StageService {
 
     // Удаляет этап по его ID.
     public void deleteStage(Long id) {
-        if (!stageRepository.existsById(id)) {
-            throw new IllegalArgumentException("Этап не найден");
+        Stage stage = stageRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Этап не найден"));
+
+        Project project = stage.getSchedule().getProject();
+        ProjectStatus status = project.getStatus();
+        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED || status == ProjectStatus.CANCELLED) {
+            throw new AccessDeniedException("Удаление этапов запрещено в текущем статусе проекта: " + status);
         }
+
         stageRepository.deleteById(id);
     }
 
@@ -95,12 +116,14 @@ public class StageService {
         Stage currentStage = stageRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Текущий этап с ID " + id + " не найден"));
 
+        Project project = currentStage.getSchedule().getProject();
+        if (project.getStatus() != ProjectStatus.ACTIVE) {
+            throw new AccessDeniedException("Завершение этапа возможно только в активном проекте. Текущий статус: " + project.getStatus());
+        }
+
         currentStage.setStatus(StageStatus.COMPLETED); // Устанавливаем статус "Завершено".
 
-        List<Stage> allStagesInSchedule = stageRepository.findBySchedule(currentStage.getSchedule());
-
-        // Сортируем этапы, чтобы найти следующий по порядку.
-        allStagesInSchedule.sort(Comparator.comparing(Stage::getId));
+        List<Stage> allStagesInSchedule = stageRepository.findByScheduleOrderByIdAsc(currentStage.getSchedule());
 
         int currentStageIndex = -1;
         for (int i = 0; i < allStagesInSchedule.size(); i++) {

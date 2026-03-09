@@ -89,6 +89,14 @@ public class ProjectService {
         allProjects.addAll(participatedProjects);
 
         return allProjects.stream()
+                .filter(p -> {
+                    // Администраторы видят всё
+                    if ("ADMIN".equals(currentUser.getRole())) return true;
+                    // Владелец видит свои черновики
+                    if (p.getOwner().getId().equals(currentUser.getId())) return true;
+                    // Участники не видят черновики
+                    return p.getStatus() != ProjectStatus.DRAFT;
+                })
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -228,6 +236,14 @@ public class ProjectService {
 
         if (project.getFiles() == null) {
             project.setFiles(new ArrayList<>());
+        }
+
+        // Запрещаем загрузку файлов в определенных статусах
+        if (project.getStatus() == ProjectStatus.ON_PAUSE || 
+            project.getStatus() == ProjectStatus.COMPLETED || 
+            project.getStatus() == ProjectStatus.CANCELLED) {
+            throw new AccessDeniedException("Загрузка файлов запрещена: проект " + 
+                (project.getStatus() == ProjectStatus.ON_PAUSE ? "на паузе" : "завершен/отменен"));
         }
 
         // Записываем активность о добавлении файла.

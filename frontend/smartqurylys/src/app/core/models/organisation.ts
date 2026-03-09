@@ -1,4 +1,5 @@
 import { LicenseResponse } from './license';
+import { RepresentativeDocumentResponse } from './representative-document';
 import { UserResponse } from './user'; // Import UserResponse
 
 export interface OrganisationResponse extends UserResponse { // Extend UserResponse
@@ -10,6 +11,7 @@ export interface OrganisationResponse extends UserResponse { // Extend UserRespo
   specialization: string[];
   yearsOfExperience: number;
   licenses?: LicenseResponse[];
+  representativeDocuments?: RepresentativeDocumentResponse[];
   status?: 'AVAILABLE' | 'BUSY';
 }
 

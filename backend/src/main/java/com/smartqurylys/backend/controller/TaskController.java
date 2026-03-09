@@ -103,19 +103,32 @@ public class TaskController {
     @PostMapping("/{taskId}/confirm-execution")
     public ResponseEntity<TaskResponse> confirmExecution(
             @PathVariable Long stageId,
-            @PathVariable Long taskId
+            @PathVariable Long taskId,
+            @RequestParam(required = false) String reason
     ) {
-        TaskResponse response = taskService.confirmExecution(taskId);
-            return ResponseEntity.ok(response);
+        TaskResponse response = taskService.confirmExecution(taskId, reason);
+        return ResponseEntity.ok(response);
     }
 
     // Отклонить выполнение задачи.
     @PostMapping("/{taskId}/decline-execution")
     public ResponseEntity<TaskResponse> declineExecution(
             @PathVariable Long stageId,
-            @PathVariable Long taskId
+            @PathVariable Long taskId,
+            @RequestParam(required = false) String reason
     ) {
-        TaskResponse response = taskService.declineExecution(taskId);
+        TaskResponse response = taskService.declineExecution(taskId, reason);
+        return ResponseEntity.ok(response);
+    }
+
+    // Вернуть задачу в работу.
+    @PostMapping("/{taskId}/return-to-execution")
+    public ResponseEntity<TaskResponse> returnToExecution(
+            @PathVariable Long stageId,
+            @PathVariable Long taskId,
+            @RequestParam(required = false) String reason
+    ) {
+        TaskResponse response = taskService.returnToExecution(taskId, reason);
         return ResponseEntity.ok(response);
     }
 

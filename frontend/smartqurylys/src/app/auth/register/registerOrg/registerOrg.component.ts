@@ -13,6 +13,12 @@ import { OrganisationType } from '../../../core/enums/organisation-type.enum';
 import { Specialization } from '../../../core/enums/specialisation.enum';
 import { CommonModule } from '@angular/common';
 
+/**
+ * Компонент для регистрации юридического лица
+ * @description Двухэтапная регистрация:
+ * 1. Верификация email через код подтверждения
+ * 2. Заполнение данных организации и загрузка документов
+ */
 @Component({
   selector: 'app-registerOrg',
   standalone: true,
@@ -24,31 +30,59 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./registerOrg.component.css']
 })
 export class RegisterOrgComponent implements OnInit {
+  /** Форма регистрации организации */
   organisationForm: FormGroup;
+  
+  /** Список городов для выпадающего списка */
   cities$: Observable<City[]>;
+
+  /** Сообщение об ошибке */
   errorMessage: string = '';
+
+  /** Сообщение об успехе */
   successMessage: string = '';
 
+  /** Флаг: код отправлен на email */
   emailSent: boolean = false;
+  
+  /** Флаг: email подтвержден */
   emailVerified: boolean = false;
+  
+  /** Флаг: идет загрузка файлов */
   isUploading: boolean = false;
 
+  /** Выбранный файл документов представителя */
   representativeDocumentsFile: File | null = null;
+  
+  /** Выбранный файл лицензии */
   licenseFile: File | null = null;
 
+  /** Опции типов организаций для выпадающего списка */
   public organisationTypeOptions = Object.keys(OrganisationType).map(key => ({
     key,
     value: OrganisationType[key as keyof typeof OrganisationType]
   }));
+
+  /** Опции специализаций для чекбоксов */
   public specializationOptions = Object.keys(Specialization).map(key => ({
     key,
     value: Specialization[key as keyof typeof Specialization]
   }));
 
-  // ИСПРАВЛЕНО: Явно указываем, что это массив строк.
+  /** Ключи типов организаций */
   public organisationTypeKeys: string[] = Object.keys(OrganisationType);
+  
+  /** Ключи специализаций */
   public specializationKeys: string[] = Object.keys(Specialization);
 
+  /**
+   * Конструктор компонента
+   * @param fb - для создания реактивной формы
+   * @param authService - сервис аутентификации
+   * @param cityService - сервис для получения городов
+   * @param emailVerificationService - сервис для верификации email
+   * @param router - для навигации
+   */
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -56,6 +90,7 @@ export class RegisterOrgComponent implements OnInit {
     private emailVerificationService: EmailVerificationService,
     private router: Router
   ) {
+    // Инициализация основной формы
     this.organisationForm = this.fb.group({
       organization: ['', Validators.required],
       iinBin: ['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
@@ -72,12 +107,14 @@ export class RegisterOrgComponent implements OnInit {
       password: ['', [Validators.required, Validators.minLength(8)]],
     });
 
+    // Динамическое создание группы чекбоксов для специализаций
     const specializationFormGroup = new FormGroup({});
     this.specializationKeys.forEach(specKey => {
       specializationFormGroup.addControl(specKey, new FormControl(false));
     });
     this.organisationForm.addControl('specialization', specializationFormGroup);
 
+    // Валидатор - хотя бы одна специализация должна быть выбрана
     this.organisationForm.get('specialization')?.setValidators(
       (control: AbstractControl) => {
         const specializationGroup = control as FormGroup;
@@ -86,8 +123,10 @@ export class RegisterOrgComponent implements OnInit {
       }
     );
 
+    // По умолчанию поле кода отключено (до отправки email)
     this.organisationForm.get('verificationCode')?.disable();
 
+    // Загрузка списка городов
     this.cities$ = this.cityService.getAllCities().pipe(
       catchError(error => {
         console.error('Error loading cities:', error);
@@ -99,20 +138,31 @@ export class RegisterOrgComponent implements OnInit {
 
   ngOnInit(): void { }
 
+  /**
+   * Обработчик выбора файла документов представителя
+   * @param event - событие выбора файла
+   */
   onRepresentativeDocumentsSelected(event: any): void {
     const file = event.target.files[0];
     this.representativeDocumentsFile = file;
   }
 
+  /**
+   * Обработчик выбора файла лицензии
+   * @param event - событие выбора файла
+   */
   onLicenseSelected(event: any): void {
     const file = event.target.files[0];
     this.licenseFile = file;
   }
 
+  /**
+   * Отправка кода подтверждения на email
+   */
   sendVerificationCode(): void {
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.clearMessages();
     const emailControl = this.organisationForm.get('email');
+    
     if (emailControl?.valid) {
       this.emailVerificationService.sendEmailVerificationCode({ email: emailControl.value }).subscribe({
         next: (response: string) => {
@@ -130,19 +180,23 @@ export class RegisterOrgComponent implements OnInit {
     }
   }
 
+  /**
+   * Проверка введенного кода подтверждения
+   */
   verifyCode(): void {
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.clearMessages();
     const emailControl = this.organisationForm.get('email');
     const codeControl = this.organisationForm.get('verificationCode');
+    
     if (emailControl?.valid && codeControl?.valid) {
-      this.emailVerificationService.verifyEmailVerificationCode({ email: emailControl.value, code: codeControl.value }).subscribe({
+      this.emailVerificationService.verifyEmailVerificationCode({ 
+        email: emailControl.value, 
+        code: codeControl.value 
+      }).subscribe({
         next: (response: string) => {
           if (response === 'Почта успешно подтверждена' || response === '') {
             this.successMessage = response;
-            this.emailVerified = true;
-            this.organisationForm.get('email')?.disable();
-            this.organisationForm.get('verificationCode')?.disable();
+            this.handleEmailVerificationSuccess();
           } else {
             this.errorMessage = 'Ошибка при проверке кода: ' + response;
             this.emailVerified = false;
@@ -158,36 +212,35 @@ export class RegisterOrgComponent implements OnInit {
     }
   }
 
+  /**
+   * Обработка успешной верификации email
+   * @private
+   */
+  private handleEmailVerificationSuccess(): void {
+    this.emailVerified = true;
+    this.organisationForm.get('email')?.disable();
+    this.organisationForm.get('verificationCode')?.disable();
+  }
+
+  /**
+   * Обработчик отправки формы регистрации
+   */
   onSubmit(): void {
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.clearMessages();
 
     if (!this.emailVerified) {
       this.errorMessage = 'Пожалуйста, сначала подтвердите ваш email.';
       return;
     }
 
+    // Временно включаем email для отправки данных
     this.organisationForm.get('email')?.enable();
-    const selectedSpecializations = this.specializationKeys
-      .filter(key => this.organisationForm.value.specialization[key]);
+    
+    const selectedSpecializations = this.getSelectedSpecializations();
 
     if (this.organisationForm.valid && selectedSpecializations.length > 0) {
-      const request: OrganisationRegisterRequest = {
-        organization: this.organisationForm.value.organization,
-        iinBin: this.organisationForm.value.iinBin,
-        judAddress: this.organisationForm.value.judAddress,
-        fullName: this.organisationForm.value.fullName,
-        position: this.organisationForm.value.position,
-        type: this.organisationForm.value.type,
-        field: this.organisationForm.value.field,
-        specialization: selectedSpecializations,
-        yearsOfExperience: this.organisationForm.value.yearsOfExperience,
-        cityId: this.organisationForm.value.cityId,
-        email: this.organisationForm.value.email,
-        phone: this.organisationForm.value.phone,
-        password: this.organisationForm.value.password,
-      };
-
+      const request = this.buildRegisterRequest(selectedSpecializations);
+      
       this.authService.registerOrganisation(request).subscribe({
         next: (response) => {
           this.successMessage = 'Регистрация организации прошла успешно! Загружаем документы...';
@@ -204,12 +257,51 @@ export class RegisterOrgComponent implements OnInit {
       this.organisationForm.markAllAsTouched();
     }
 
+    // Снова отключаем email после отправки
     if (this.emailVerified) {
       this.organisationForm.get('email')?.disable();
       this.organisationForm.get('verificationCode')?.disable();
     }
   }
 
+  /**
+   * Получение списка выбранных специализаций
+   * @returns массив ключей выбранных специализаций
+   * @private
+   */
+  private getSelectedSpecializations(): string[] {
+    return this.specializationKeys
+      .filter(key => this.organisationForm.value.specialization[key]);
+  }
+
+  /**
+   * Формирование запроса на регистрацию
+   * @param selectedSpecializations - выбранные специализации
+   * @returns объект запроса
+   * @private
+   */
+  private buildRegisterRequest(selectedSpecializations: string[]): OrganisationRegisterRequest {
+    return {
+      organization: this.organisationForm.value.organization,
+      iinBin: this.organisationForm.value.iinBin,
+      judAddress: this.organisationForm.value.judAddress,
+      fullName: this.organisationForm.value.fullName,
+      position: this.organisationForm.value.position,
+      type: this.organisationForm.value.type,
+      field: this.organisationForm.value.field,
+      specialization: selectedSpecializations,
+      yearsOfExperience: this.organisationForm.value.yearsOfExperience,
+      cityId: this.organisationForm.value.cityId,
+      email: this.organisationForm.value.email,
+      phone: this.organisationForm.value.phone,
+      password: this.organisationForm.value.password,
+    };
+  }
+
+  /**
+   * Загрузка файлов после успешной регистрации
+   * @private
+   */
   private uploadFiles(): void {
     const fileUploads: Observable<any>[] = [];
 
@@ -222,33 +314,71 @@ export class RegisterOrgComponent implements OnInit {
     }
 
     if (fileUploads.length > 0) {
-      this.isUploading = true;
-      forkJoin(fileUploads).subscribe({
-        next: () => {
-          this.isUploading = false;
-          this.successMessage = 'Регистрация и загрузка документов прошли успешно!';
-          setTimeout(() => {
-            this.router.navigate(['/login']);
-          }, 2000);
-        },
-        error: (error) => {
-          this.isUploading = false;
-          this.errorMessage = this.extractErrorMessage(error, 'Регистрация прошла, но произошла ошибка при загрузке файлов. Попробуйте загрузить их позже в личном кабинете.');
-          console.error('File upload error:', error);
-          // Даже при ошибке загрузки файлов перенаправляем на логин через некоторое время
-          setTimeout(() => {
-            this.router.navigate(['/login']);
-          }, 3000);
-        }
-      });
+      this.handleFileUploads(fileUploads);
     } else {
-      this.successMessage = 'Регистрация прошла успешно!';
-      setTimeout(() => {
-        this.router.navigate(['/login']);
-      }, 2000);
+      this.completeRegistration();
     }
   }
 
+  /**
+   * Обработка загрузки файлов
+   * @param fileUploads - массив Observable для загрузки
+   * @private
+   */
+  private handleFileUploads(fileUploads: Observable<any>[]): void {
+    this.isUploading = true;
+    
+    forkJoin(fileUploads).subscribe({
+      next: () => {
+        this.isUploading = false;
+        this.successMessage = 'Регистрация и загрузка документов прошли успешно!';
+        this.redirectToLogin(2000);
+      },
+      error: (error) => {
+        this.isUploading = false;
+        this.errorMessage = this.extractErrorMessage(error, 'Регистрация прошла, но произошла ошибка при загрузке файлов. Попробуйте загрузить их позже в личном кабинете.');
+        console.error('File upload error:', error);
+        this.redirectToLogin(3000);
+      }
+    });
+  }
+
+  /**
+   * Завершение регистрации без файлов
+   * @private
+   */
+  private completeRegistration(): void {
+    this.successMessage = 'Регистрация прошла успешно!';
+    this.redirectToLogin(2000);
+  }
+
+  /**
+   * Перенаправление на страницу входа
+   * @param delay - задержка в миллисекундах
+   * @private
+   */
+  private redirectToLogin(delay: number): void {
+    setTimeout(() => {
+      this.router.navigate(['/login']);
+    }, delay);
+  }
+
+  /**
+   * Очистка сообщений
+   * @private
+   */
+  private clearMessages(): void {
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  /**
+   * Извлечение сообщения об ошибке из HTTP-ответа
+   * @param err - ошибка HTTP
+   * @param defaultMessage - сообщение по умолчанию
+   * @returns понятное сообщение об ошибке
+   * @private
+   */
   private extractErrorMessage(err: HttpErrorResponse, defaultMessage: string): string {
     if (err.error instanceof ProgressEvent) {
       return 'Не удалось подключиться к серверу. Пожалуйста, проверьте ваше интернет-соединение или попробуйте позже.';
