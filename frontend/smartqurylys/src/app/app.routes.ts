@@ -50,7 +50,6 @@ export const routes: Routes = [
       { path: '**', redirectTo: 'users' }
     ]
   },
-  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'personal-cabinet', component: PersonalCabinetComponent, canActivate: [authGuard] }, // Личный кабинет, требует аутентификации.
   { path: 'projects', component: MyProjectsComponent, canActivate: [authGuard] }, // Список моих проектов, требует аутентификации.
   { path: 'projects/create', component: CreateProjectComponent, canActivate: [authGuard] }, // Создание нового проекта, требует аутентификации.

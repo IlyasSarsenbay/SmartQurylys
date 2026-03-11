@@ -9,11 +9,12 @@ import { ParticipantService } from './core/participant.service';
 import { NotificationModalComponent } from "./notification-modal/notification-modal.component";
 import { ToastComponent } from "./toast/toast.component";
 import { interval, Subscription, forkJoin } from 'rxjs';
+import { NewSideMenuComponent } from "./new-side-menu/new-side-menu.component";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, HeaderComponent, NotificationModalComponent, ToastComponent],
+  imports: [RouterOutlet, CommonModule, HeaderComponent, NotificationModalComponent, ToastComponent, NewSideMenuComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })

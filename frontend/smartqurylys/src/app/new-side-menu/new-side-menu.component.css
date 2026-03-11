@@ -1,0 +1,139 @@
+:host {
+    --sidebar-width: 240px;
+}
+
+main {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+
+    background: white;
+}
+
+.sidebar {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: var(--sidebar-width);
+    border-right: 2px solid #dfdfdf;
+    /* border-right: 2px solid rgba(58, 104, 232, 0.1); */
+    background: #4195bf;
+    background: linear-gradient(180deg, rgba(58, 104, 232, 0.14) 0%, var(--color-background-light) 38%);
+    z-index: 100;
+}
+
+.card {
+    margin: 1px;
+}
+
+
+.logo-box {
+    margin: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.title {
+    padding: 0 12px;
+    font-size: 18px;
+}
+
+.title:hover {
+    cursor: default;
+    user-select: none;
+}
+
+#logo {
+    max-width: 40px;
+    object-fit: contain;
+}
+
+hr {
+    /* border: 1px solid rgba(58, 104, 232, 0.04); */
+    border: 1px solid #dfdfdf;
+    width: 100%;
+}
+
+.white-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 50;
+    background: white;
+    height: 100vh;
+    width: var(--sidebar-width);
+}
+
+.bot-menu {
+    margin-top: auto;
+    margin-bottom: 56px;
+}
+
+button {
+    width: 100%;
+    height: 46px;
+    font-size: 14px;
+    color: #434343;
+    display: flex;
+    align-items: center;
+}
+
+button:hover {
+    cursor: pointer;
+    background: rgba(58, 104, 232, 0.14);
+}
+
+.icon {
+    object-fit: contain;
+    width: 18px;
+    margin-left: 20px;
+    margin-right: 16px;
+}
+
+.icon-profile {
+    object-fit: contain;
+    width: 28px;
+    margin: 8px;
+    margin-right: 10px;
+    margin-left: 16px;
+}
+
+.overlay {
+    position: fixed;
+    visibility: hidden;
+    inset: 0;
+    left: var(--sidebar-width);
+    background-color: rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.overlay.visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.slide-panel {
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-width);
+    /* exactly sidebar width */
+    width: 760px;
+    height: 100vh;
+    background: var(--color-background-light);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.12);
+    padding: 1rem;
+    z-index: 10;
+
+    transform: translateX(-100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.3s ease, opacity 0.3s ease, background 0.3s ease;
+}
+
+.slide-panel.open {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+}

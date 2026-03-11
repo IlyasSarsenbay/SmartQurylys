@@ -1,0 +1,73 @@
+<main>
+    <div class="white-background">
+
+    </div>
+
+    <section class="sidebar">
+
+        <div class="logo-box">
+            <img id="logo" src="assets/SQ_Logo_Transparent.png">
+            <span class="title">SmartQurylys</span>
+        </div>
+
+        <hr />
+
+        <menu class="top-menu">
+            <button (click)="togglePanel('tasks')">
+                <img class="icon" src="assets/Icon_Tasks.png">
+                <span>Задачи</span>
+            </button>
+
+            <button (click)="togglePanel('projects')">
+                <img class="icon" src="assets/icon_projects.png">
+                <span>Проекты</span>
+            </button>
+
+            <button routerLink="/contractor-registry">
+                <img class="icon" src="assets/Icon_Contractors.png">
+                <span>Подрядчики</span>
+            </button>
+
+            <button routerLink="/chat">
+                <img class="icon" src="assets/Icon_Chat.png">
+                <span>Чат</span>
+            </button>
+        </menu>
+
+        <menu class="bot-menu">
+            <button>
+                <img class="icon" src="assets/icon_notification.png">
+                <span>Уведомления</span>
+            </button>
+
+            <button>
+                <img class="icon" src="assets/icon_settings.png">
+                <span>Настройки</span>
+            </button>
+
+            <button>
+                <img class="icon-profile" src="assets/icon_profile-picture.png">
+                <span>Учетная запись</span>
+            </button>
+        </menu>
+    </section>
+    
+    <div class="overlay" [class.visible]="isPanelOpen()" (click)="togglePanel(activePanel)"></div>
+
+    <section class="slide-panel" [class.open]="isPanelOpen()">
+
+        <ng-container [ngSwitch]="activePanel">
+            <div *ngSwitchCase="'tasks'">
+                <h3>Tasks</h3>
+            </div>
+
+            <div *ngSwitchCase="'projects'">
+                <app-my-projects></app-my-projects>
+            </div>
+            
+
+        </ng-container>
+
+    </section>
+
+</main>

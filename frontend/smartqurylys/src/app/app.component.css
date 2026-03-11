@@ -1,4 +1,4 @@
-.app-wrapper {
+/* .app-wrapper {
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -14,7 +14,6 @@
 
 .content-with-header {
   height: calc(100vh - 60px);
-  /* header height */
 }
 
 .page-wrapper-global {
@@ -83,4 +82,22 @@
   .project-nav-arrow {
     margin-left: 0.5rem;
   }
+} */
+
+
+main {
+  display: flex;
+  direction: row;
+}
+
+.side-menu {
+  position: relative;
+  z-index: 100;
+}
+
+.fragment {
+  position: relative;
+  z-index: 50;
+  width: 100%;
+  height: 100vh;
 }
