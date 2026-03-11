@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS public.documents (
 ALTER TABLE public.documents OWNER TO postgres;
 
 INSERT INTO public.documents (id, project_id, file_path, name, status, upload_date) VALUES 
-(1, NULL, 'uploads/doc1.pdf', 'Документ №1', 'WAITING', '2025-06-29 19:17:42.81');
+(1, NULL, 'uploads/doc1.pdf', 'Документ №1', 'WAITING', '2025-06-29 19:17:42.81')
+ON CONFLICT DO NOTHING;
 
 SELECT pg_catalog.setval('public.documents_id_seq', 6, true);
 

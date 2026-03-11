@@ -9,7 +9,7 @@
   <div class="stage-container">
 
     <ng-container *ngIf="!showCreateOrEditStageForm">
-      <div class="add-stage-bar">
+      <div *ngIf="canModifyStructure" class="add-stage-bar">
         <button class="add-stage-button" (click)="onCreateStage()">Добавить этап</button>
       </div>
 
@@ -29,9 +29,11 @@
             <p>Начало этапа: {{ stage.startDate | date: 'dd.MM.yyyy' }}</p>
             <p>Конец этапа: {{ stage.endDate | date: 'dd.MM.yyyy' }}</p>
           </div>
-          <div class="stage-actions">
-            <button class="btn btn-sm btn-outline-primary" (click)="onEditStage(stage)">Редактировать</button>
-            <button class="btn btn-sm btn-outline-danger" (click)="deleteStage(stage.id!)">Удалить</button>
+          <div *ngIf="canModifyStructure" class="stage-actions">
+            <button class="btn btn-sm btn-outline-primary" [disabled]="isProjectReadOnly"
+              (click)="onEditStage(stage)">Редактировать</button>
+            <button class="btn btn-sm btn-outline-danger" [disabled]="isProjectReadOnly"
+              (click)="deleteStage(stage.id!)">Удалить</button>
           </div>
         </div>
       </ng-container>
@@ -94,6 +96,7 @@
 <div *ngIf="showTasksModal" class="modal-overlay">
     <div class="modal-content large-modal-content">
         <app-tasks-list       [stageId]="currentStageForTasks?.id!"       [stageName]="currentStageForTasks?.name ?? ''"
-            [projectId]="projectId"       (close)="closeTasksModal()"    ></app-tasks-list>
+            [projectId]="projectId" [projectStatus]="projectStatus" [isOwner]="isOwner"     (close)="closeTasksModal()"
+         ></app-tasks-list>
       </div>
 </div>

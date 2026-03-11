@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 // Объект передачи данных для ответа с информацией о задаче.
@@ -21,6 +22,7 @@ public class TaskResponse {
     @com.fasterxml.jackson.annotation.JsonProperty("isPriority")
     private boolean isPriority; // Флаг приоритета задачи.
     private boolean executionRequested; // Флаг запроса на выполнение.
+    private LocalDateTime executionRequestedAt; // Время подачи запроса на принятие.
     private boolean executionConfirmed; // Флаг подтверждения выполнения.
     private List<Long> dependsOnTaskIds; // Список ID задач, от которых зависит текущая.
     private List<RequirementResponse> requirements; // Список требований к задаче.

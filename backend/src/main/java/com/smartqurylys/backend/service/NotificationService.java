@@ -142,4 +142,65 @@ public class NotificationService {
 
         notificationRepository.save(notification);
     }
+
+    public void createRepresentativeDocumentReviewNotification(User recipient, String documentName, boolean approved, Long documentId, String rejectionReason) {
+        String status = approved ? "одобрен" : "отклонен";
+        String message;
+        
+        if (approved) {
+            message = String.format("Ваш документ представителя \"%s\" был %s администратором", documentName, status);
+        } else {
+            if (rejectionReason != null && !rejectionReason.trim().isEmpty()) {
+                message = String.format("Ваш документ представителя \"%s\" был %s администратором. Причина: %s", documentName, status, rejectionReason);
+            } else {
+                message = String.format("Ваш документ представителя \"%s\" был %s администратором", documentName, status);
+            }
+        }
+
+        Notification notification = Notification.builder()
+                .recipient(recipient)
+                .sender(null) // Admin notification, no specific sender
+                .project(null)
+                .message(message)
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .type(approved ? NotificationType.LICENSE_APPROVED : NotificationType.LICENSE_REJECTED)
+                .relatedEntityId(documentId)
+                .build();
+
+        notificationRepository.save(notification);
+    }
+
+    public void createTaskExecutionNotification(User recipient, User sender,
+                                                com.smartqurylys.backend.entity.Project project,
+                                                Long taskId, String taskName,
+                                                NotificationType type, String reason) {
+        String action;
+        switch (type) {
+            case TASK_ACCEPTED -> action = "принята";
+            case TASK_DECLINED -> action = "отклонена";
+            case TASK_RETURNED -> action = "возвращена в работу";
+            default -> action = "обновлена";
+        }
+
+        String message;
+        if (reason != null && !reason.trim().isEmpty()) {
+            message = String.format("Задача «%s» %s. Причина: %s", taskName, action, reason.trim());
+        } else {
+            message = String.format("Задача «%s» %s.", taskName, action);
+        }
+
+        Notification notification = Notification.builder()
+                .recipient(recipient)
+                .sender(sender)
+                .project(project)
+                .message(message)
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .type(type)
+                .relatedEntityId(taskId)
+                .build();
+
+        notificationRepository.save(notification);
+    }
 }

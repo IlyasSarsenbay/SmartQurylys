@@ -26,7 +26,8 @@ INSERT INTO public.users
 (12, 'ilyas23@example.com', 'test65', '987654321098', 'NewOrg', '$2a$10$cqTQxobK7ApR9.1.Gb2BL.3PbM0/MJtQScykjErw/kj6mUjjb68/S', '+77000001122', 50, 'USER', 'USER'),
 (18, 'admin@gmail.com', 'admin', '111111111199', NULL, '$2a$10$rsK9RW5p2RY7uEje6UIv8uiZCp8GA8bCr2cykNAPdwi93HxhqpeCu', '+77011230022', 50, 'USER', 'ADMIN'),
 (39, 'baiangali12344321@gmail.com', 'fafa', '123145153245', 'тест', '$2a$10$J6OXXjRvnZw9ae5L1ArpBuCtNi1mxs0KMc/MN.aVrblarapxMF/lW', '5142413212', NULL, 'Organisation', 'USER'),
-(17, 'updated.email@example.com', 'Гедатсу Зор', '123456789013', 'ТОО ''Строительные Технологии''', '$2a$10$7GLmoWzjdoEAnoFK5QEt1uS316cC7AxIRRrLihku2NbeAStSo0QaO', '77771234567', 4, 'Organisation', 'ADMIN');
+(17, 'updated.email@example.com', 'Гедатсу Зор', '123456789013', 'ТОО ''Строительные Технологии''', '$2a$10$7GLmoWzjdoEAnoFK5QEt1uS316cC7AxIRRrLihku2NbeAStSo0QaO', '77771234567', 4, 'Organisation', 'ADMIN')
+ON CONFLICT DO NOTHING;
 
 
 SELECT pg_catalog.setval('public.users_id_seq', 39, true);

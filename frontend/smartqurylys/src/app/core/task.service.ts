@@ -70,12 +70,22 @@ export class TaskService {
     return this.http.post<void>(`${this.apiUrl}/${stageId}/tasks/${taskId}/request-execution`, {});
   }
 
-  confirmExecution(stageId: number, taskId: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${stageId}/tasks/${taskId}/confirm-execution`, {});
+  confirmExecution(stageId: number, taskId: number, reason?: string): Observable<void> {
+    const params: any = {};
+    if (reason) params['reason'] = reason;
+    return this.http.post<void>(`${this.apiUrl}/${stageId}/tasks/${taskId}/confirm-execution`, {}, { params });
   }
 
-  declineExecution(stageId: number, taskId: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${stageId}/tasks/${taskId}/decline-execution`, {});
+  declineExecution(stageId: number, taskId: number, reason?: string): Observable<void> {
+    const params: any = {};
+    if (reason) params['reason'] = reason;
+    return this.http.post<void>(`${this.apiUrl}/${stageId}/tasks/${taskId}/decline-execution`, {}, { params });
+  }
+
+  returnToExecution(stageId: number, taskId: number, reason?: string): Observable<void> {
+    const params: any = {};
+    if (reason) params['reason'] = reason;
+    return this.http.post<void>(`${this.apiUrl}/${stageId}/tasks/${taskId}/return-to-execution`, {}, { params });
   }
 
   addFileToTask(stageId: number, taskId: number, file: FormData): Observable<void> {

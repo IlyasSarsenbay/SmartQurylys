@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface LicenseRepository extends JpaRepository<License, Long> {
     // Находит все лицензии для заданной организации по ее ID.
-    @Query(value = "SELECT l.*, f.* FROM licenses l JOIN files f ON l.file_id = f.id WHERE l.organisation_id = :organisationId", nativeQuery = true)
+    @Query(value = "SELECT l.*, f.* FROM licenses l JOIN files f ON l.id = f.id WHERE l.organisation_id = :organisationId", nativeQuery = true)
     List<License> findByOrganisationId(Long organisationId);
 
     // Находит все лицензии с определенным статусом проверки.

@@ -14,7 +14,8 @@ ALTER TABLE public.participants OWNER TO postgres;
 
 INSERT INTO public.participants (id, can_send_notifications, can_upload_documents, role, project_id, user_id)
 VALUES
-(19, true, true, 'Подрядчик', 18, 13);
+(19, true, true, 'Подрядчик', 18, 13)
+ON CONFLICT DO NOTHING;
 
 SELECT pg_catalog.setval('public.participants_id_seq', 19, true);
 
@@ -42,7 +43,8 @@ ALTER TABLE public.participant_invitations OWNER TO postgres;
 INSERT INTO public.participant_invitations 
 (id, accepted, can_send_notifications, can_upload_documents, created_at, expires_at, role, project_id, user_id, sender_id)
 VALUES
-(30, false, true, false, '2025-08-19 15:09:21.369038', '2025-08-22 15:09:21.369038', 'Подрядчик', 18, 10, NULL);
+(30, false, true, false, '2025-08-19 15:09:21.369038', '2025-08-22 15:09:21.369038', 'Подрядчик', 18, 10, NULL)
+ON CONFLICT DO NOTHING;
 
 SELECT pg_catalog.setval('public.participant_invitations_id_seq', 38, true);
 

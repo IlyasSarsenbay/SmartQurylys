@@ -1,3 +1,4 @@
+<!-- ===== ХЕДЕР СТРАНИЦЫ ===== -->
 <header class="app-header">
   <div class="logo-section">
     <span class="logo-sq">SQ</span>
@@ -5,16 +6,20 @@
   </div>
 </header>
 
-
+<!-- ===== КОНТЕЙНЕР ФОРМЫ ВХОДА ===== -->
 <div class="form-container">
   <div class="form-card">
+    
+    <!-- ===== ЗАГОЛОВОК ФОРМЫ ===== -->
     <div class="form-header">
       <h1>SQ</h1>
       <p>SMARTQURYLYS</p>
       <h2>Вход</h2>
     </div>
 
+    <!-- ===== ФОРМА ВХОДА ===== -->
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5">
+      
       <!-- Поле для Email -->
       <div class="form-group">
         <label for="email">Email</label>
@@ -25,6 +30,7 @@
           class="form-input"
           placeholder="Ваш email"
         />
+        <!-- Валидация email -->
         <div *ngIf="loginForm.get('email')?.invalid && (loginForm.get('email')?.dirty || loginForm.get('email')?.touched)" class="form-input-error">
           <div *ngIf="loginForm.get('email')?.errors?.['required']">Email обязателен.</div>
           <div *ngIf="loginForm.get('email')?.errors?.['email']">Некорректный формат email.</div>
@@ -41,6 +47,7 @@
           class="form-input"
           placeholder="Ваш пароль"
         />
+        <!-- Валидация пароля -->
         <div *ngIf="loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)" class="form-input-error">
           <div *ngIf="loginForm.get('password')?.errors?.['required']">Пароль обязателен.</div>
           <div *ngIf="loginForm.get('password')?.errors?.['minlength']">Пароль должен содержать не менее 8 символов.</div>
@@ -64,6 +71,7 @@
       </div>
     </form>
 
+    <!-- ===== ССЫЛКИ НАВИГАЦИИ ===== -->
     <div class="form-link-group">
       <p>
         Нет аккаунта?

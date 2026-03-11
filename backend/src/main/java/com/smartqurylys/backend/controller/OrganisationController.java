@@ -3,6 +3,7 @@ package com.smartqurylys.backend.controller;
 import com.smartqurylys.backend.dto.auth.AuthResponse;
 import com.smartqurylys.backend.dto.project.FileResponse;
 import com.smartqurylys.backend.dto.project.LicenseResponse;
+import com.smartqurylys.backend.dto.project.RepresentativeDocumentResponse;
 import com.smartqurylys.backend.dto.user.organisation.LicenseUpdateRequest;
 import com.smartqurylys.backend.dto.user.organisation.OrganisationCreateRequest;
 import com.smartqurylys.backend.dto.user.organisation.OrganisationResponse;
@@ -188,6 +189,59 @@ public class OrganisationController {
     public ResponseEntity<LicenseResponse> updateLicense(@PathVariable Long id, @Valid @RequestBody LicenseUpdateRequest request) {
             LicenseResponse response = organisationService.updateLicense(id, request);
             return ResponseEntity.ok(response);
+    }
+
+    // Получение документов представителя своей организации.
+    @GetMapping("/me/representative-documents")
+    public ResponseEntity<List<RepresentativeDocumentResponse>> getMyRepresentativeDocuments() {
+        Long organisationId = organisationService.getOrganisationInfo().getId();
+        return ResponseEntity.ok(organisationService.getRepresentativeDocumentsByOrganisation(organisationId));
+    }
+
+    // Добавление документа представителя для своей организации.
+    @PostMapping("/me/representative-documents")
+    public ResponseEntity<RepresentativeDocumentResponse> addRepresentativeDocumentToMyOrganisation(@RequestParam("file") MultipartFile file) {
+        try {
+            Long organisationId = organisationService.getOrganisationInfo().getId();
+            RepresentativeDocumentResponse response = organisationService.addRepresentativeDocumentToOrganisation(organisationId, file);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Удаление документа представителя своей организации.
+    @DeleteMapping("/me/representative-documents/{id}")
+    public ResponseEntity<Void> deleteMyRepresentativeDocument(@PathVariable Long id) {
+        try {
+            Long organisationId = organisationService.getOrganisationInfo().getId();
+            List<RepresentativeDocumentResponse> myDocs = organisationService.getRepresentativeDocumentsByOrganisation(organisationId);
+            boolean ownsDoc = myDocs.stream().anyMatch(d -> d.getId().equals(id));
+            if (!ownsDoc) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            organisationService.deleteRepresentativeDocument(id);
+            return ResponseEntity.noContent().build();
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Получение документов представителя организации по ID (только для администраторов).
+    @GetMapping("/{organisationId}/representative-documents")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<List<RepresentativeDocumentResponse>> getRepresentativeDocumentsByOrganisation(@PathVariable Long organisationId) {
+        return ResponseEntity.ok(organisationService.getRepresentativeDocumentsByOrganisation(organisationId));
+    }
+
+    // Обновление статуса документа представителя (только для администраторов).
+    @PutMapping("/representative-documents/{id}/status")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<RepresentativeDocumentResponse> updateRepresentativeDocumentStatus(@PathVariable Long id, @Valid @RequestBody LicenseUpdateRequest request) {
+        RepresentativeDocumentResponse response = organisationService.updateRepresentativeDocumentStatus(id, request);
+        return ResponseEntity.ok(response);
     }
 
     // Публичный эндпоинт для получения лицензий организации.

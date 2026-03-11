@@ -10,6 +10,12 @@ import { RouterModule } from '@angular/router';
   styleUrls: ['./admin-dashboard.component.css']
 })
 export class AdminDashboardComponent {
-  // No OnInit, currentRoute, or isLinkActive method needed as routerLinkActive handles active states.
-  // Constructor can be empty or have other injections if needed for other functionalities.
+/**
+ * @description Компонент не требует использования OnInit, currentRoute
+ * или пользовательского метода isLinkActive, так как все активные состояния
+ * обрабатываются встроенной директивой routerLinkActive.
+ * 
+ * Конструктор оставлен пустым, но может быть расширен для внедрения
+ * других сервисов при необходимости.
+ */
 }

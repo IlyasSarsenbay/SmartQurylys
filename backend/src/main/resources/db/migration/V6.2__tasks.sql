@@ -25,11 +25,12 @@ VALUES
 (61, 'еые', '2025-10-22', FALSE, FALSE, NULL, TRUE, 'test2', '2025-10-12', NULL, 18),
 (43, 'test', '2025-08-31', FALSE, FALSE, NULL, FALSE, 'test', '2025-08-15', NULL, 22),
 (62, 'е', '2025-10-17', FALSE, FALSE, NULL, FALSE, 'test3', '2025-10-05', NULL, 18),
-(60, 'Описание задачи', '2025-07-05', TRUE, TRUE, 'Доп. информация', TRUE, 'Тестовая задача2', '2025-07-01', NULL, 18),
+(60, 'Описание задачи', '2025-07-05', TRUE, TRUE, 'Доп. информация', TRUE, 'Тестовая задачв2', '2025-07-01', NULL, 18),
 (63, 'п', '2026-02-08', FALSE, FALSE, NULL, FALSE, 'п', '2026-02-22', NULL, 34),
 (66, 'f', '2026-02-28', FALSE, FALSE, NULL, FALSE, 'f', '2026-02-15', NULL, 34),
 (67, 'и', '2026-02-18', FALSE, FALSE, NULL, FALSE, 'test', '2026-02-22', NULL, 34),
-(57, 'test', '2025-10-16', FALSE, FALSE, NULL, FALSE, 'test', '2025-10-05', NULL, 19);
+(57, 'test', '2025-10-16', FALSE, FALSE, NULL, FALSE, 'test', '2025-10-05', NULL, 19)
+ON CONFLICT DO NOTHING;
 
 
 
@@ -45,7 +46,8 @@ CREATE TABLE IF NOT EXISTS public.task_responsible_persons (
 ALTER TABLE public.task_responsible_persons OWNER TO postgres;
 
 INSERT INTO public.task_responsible_persons (task_id, participant_id)
-VALUES (60, 19);
+VALUES (60, 19)
+ON CONFLICT DO NOTHING;
 
 
 
@@ -62,7 +64,8 @@ INSERT INTO public.task_dependencies (task_id, depends_on_task_id)
 VALUES 
 (61, 60),
 (62, 61),
-(62, 60);
+(62, 60)
+ON CONFLICT DO NOTHING;
 
 
 ALTER TABLE public.task_dependencies OWNER TO postgres;

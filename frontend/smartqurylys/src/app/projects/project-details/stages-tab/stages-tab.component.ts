@@ -11,6 +11,7 @@ import { RequirementResponse, CreateRequirementRequest } from '../../../core/mod
 import { switchMap, catchError, of, finalize, tap, forkJoin } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray, FormControl } from '@angular/forms';
+import { ProjectStatus } from '../../../core/enums/project-status.enum';
 import { TasksListComponent } from './tasks-list/tasks-list.component'; // Import new component
 
 @Component({
@@ -22,6 +23,8 @@ import { TasksListComponent } from './tasks-list/tasks-list.component'; // Impor
 })
 export class StagesTabComponent implements OnInit, OnChanges {
   @Input() projectId!: number;
+  @Input() projectStatus: ProjectStatus | null = null;
+  @Input() isOwner: boolean = false;
 
   stages: StageResponse[] = [];
   schedule: ScheduleResponse | null = null;
@@ -40,6 +43,26 @@ export class StagesTabComponent implements OnInit, OnChanges {
   // New properties for the tasks modal
   showTasksModal = false;
   currentStageForTasks: StageResponse | null = null;
+
+  // ===== Status Helpers =====
+  get isProjectActive(): boolean {
+    return this.projectStatus === ProjectStatus.ACTIVE;
+  }
+
+  get isProjectReadOnly(): boolean {
+    return this.projectStatus === ProjectStatus.ON_PAUSE ||
+      this.projectStatus === ProjectStatus.COMPLETED ||
+      this.projectStatus === ProjectStatus.CANCELLED;
+  }
+
+  get canModifyStructure(): boolean {
+    return this.isOwner && !this.isProjectReadOnly;
+  }
+
+  get canPerformExecution(): boolean {
+    return this.isProjectActive;
+  }
+  // ==========================
 
   constructor(
     private router: Router,

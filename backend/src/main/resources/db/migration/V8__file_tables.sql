@@ -40,7 +40,8 @@ VALUES
 (112, NULL, '2026-02-02 20:17:42.916811', 'uploads\\temp_1770045462908_22599bfc-353f-42d4-a470-d62ca7bfb1b7.png', 'ClassDiagramITM (1).png', 59860, 39, NULL, NULL, NULL, NULL, 'LICENSE'),
 (113, NULL, '2026-02-02 21:05:57.034889', 'uploads\\temp_1770048357025_66113965-3133-426a-a9ee-34164a77496b.png', 'ClassDiagramITM (1) (1).png', 59860, 17, NULL, NULL, NULL, NULL, 'FILE'),
 (115, NULL, '2026-02-04 14:21:00.683341', 'uploads\\temp_1770196860682_9815951a-08fa-4197-afa4-55d5501fe0da.png', 'ClassDiagramITM (1) (1) (2).png', 59860, 17, NULL, NULL, NULL, NULL, 'FILE'),
-(100, NULL, '2025-10-29 18:33:45.615168', 'uploads\\temp_1770196860682_9815951a-08fa-4197-afa4-55d5501fe0da.png', 'Обновленная лицензия на строительство', 59860, 17, NULL, NULL, NULL, NULL, 'LICENSE');
+(100, NULL, '2025-10-29 18:33:45.615168', 'uploads\\temp_1770196860682_9815951a-08fa-4197-afa4-55d5501fe0da.png', 'Обновленная лицензия на строительство', 59860, 17, NULL, NULL, NULL, NULL, 'LICENSE')
+ON CONFLICT DO NOTHING;
 
 
 SELECT pg_catalog.setval('public.files_id_seq', 115, true);

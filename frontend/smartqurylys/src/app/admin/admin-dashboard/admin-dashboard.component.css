@@ -1,58 +1,62 @@
-/* admin-dashboard.component.css */
+/* ===== ОСНОВНОЙ ЛЕЙАУТ ===== */
 .dashboard-layout {
   display: flex;
+  /* Высота: 100vh минус высота хедера и его нижней линии */
   min-height: calc(100vh - var(--header-height, 60px) - var(--header-bottom-line-height, 2px));
 }
 
+/* ===== БОКОВАЯ ПАНЕЛЬ ===== */
 .sidebar {
   width: 250px;
-  background-color: var(--color-background-light); /* Consistent with project-nav-item non-active background */
-  padding: 20px 0; /* Adjusted padding */
-  /* Removed box-shadow from sidebar container */
+  background-color: var(--color-background-light);
+  padding: 20px 0;
   display: flex;
   flex-direction: column;
 }
 
+/* ===== ЭЛЕМЕНТЫ МЕНЮ ===== */
 .sidebar-item {
   display: flex;
   align-items: center;
-  padding: 15px 20px; /* Adjusted padding */
-  margin-bottom: 5px; /* Smaller margin between items */
-  border-radius: 0.5rem; /* Apply radius to all corners for vertical items */
+  padding: 15px 20px;
+  margin-bottom: 5px;
+  border-radius: 0.5rem;
   cursor: pointer;
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   color: var(--color-primary-dark);
   text-decoration: none;
   font-size: 0.95rem;
   font-weight: 500;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* Subtle shadow for all items */
+  /* Легкая тень для всех элементов */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
+/* Состояния элементов меню */
 .sidebar-item:hover {
   background-color: #DDE5EC;
 }
 
+/* Активный элемент (текущий маршрут) */
 .sidebar-item.active {
   background-color: #283693;
   color: white;
   font-weight: 600;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* More prominent shadow for active state */
+  /* Более выраженная тень для активного состояния */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 .sidebar-item.active i {
   color: white;
 }
 
+/* Иконки */
 .sidebar-item i {
   margin-right: 10px;
   font-size: 1.2rem;
   color: var(--color-primary-dark);
 }
-/* Ensure icon color for non-active items also matches color-primary-dark explicitly */
-.sidebar-item:not(.active) i {
-  color: var(--color-primary-dark);
-}
 
+/* ===== ОСНОВНАЯ ОБЛАСТЬ КОНТЕНТА ===== */
 .main-content {
   flex-grow: 1;
   padding: 20px;
@@ -63,7 +67,7 @@
   overflow-y: auto;
 }
 
-/* Media queries for responsiveness */
+/* ===== АДАПТИВНОСТЬ (МОБИЛЬНЫЕ УСТРОЙСТВА) ===== */
 @media (max-width: 768px) {
   .dashboard-layout {
     flex-direction: column;

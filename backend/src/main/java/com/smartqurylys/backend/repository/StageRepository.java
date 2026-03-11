@@ -8,6 +8,6 @@ import java.util.List;
 
 // Репозиторий для работы с сущностями Stage.
 public interface StageRepository extends JpaRepository<Stage, Long> {
-    // Находит все этапы, относящиеся к заданному графику работ.
-    List<Stage> findBySchedule(Schedule schedule);
+    // Находит все этапы, относящиеся к заданному графику работ, отсортированные по ID (порядку создания).
+    List<Stage> findByScheduleOrderByIdAsc(Schedule schedule);
 }

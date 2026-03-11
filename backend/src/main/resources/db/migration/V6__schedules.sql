@@ -12,4 +12,5 @@ INSERT INTO public.schedules
 (id, created_at, name, project_id)
 VALUES
 (17, '2025-08-01 20:56:26.999477', 'Название', 18),
-(21, '2026-02-01 19:12:33.761762', 'ГПР', 23);
+(21, '2026-02-01 19:12:33.761762', 'ГПР', 23)
+ON CONFLICT DO NOTHING;
