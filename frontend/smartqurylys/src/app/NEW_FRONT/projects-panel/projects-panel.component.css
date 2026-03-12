@@ -1,0 +1,106 @@
+.layer1 {
+    display: flex;
+    align-items: center;
+}
+
+.layer1 span {
+    margin: 24px;
+    margin-left: 24px;
+    font-weight: bold;
+    color: #1D1D1F;
+    font-size: 18px;
+}
+
+.create-btn {
+    width: 100px;
+    height: 34px;
+    margin-left: auto;
+    margin-right: 24px;
+    border-radius: 6px;
+    /* padding: 6px; */
+    background: rgb(57, 110, 255);
+    color: whitesmoke;
+    font-size: 16px;
+}
+
+.search input {
+    margin-left: 24px;
+    width: 60%;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    outline: none;
+    font-size: 16px;
+}
+
+.search input:focus {
+    border-color: #4195BF;
+}
+
+.toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+input,
+select {
+    padding: 10px 12px;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    font: inherit;
+}
+
+.projects {
+    margin: 26px 0px;
+}
+
+.project-item {
+    display: grid;
+    grid-template-columns: 4fr 2fr auto;
+    padding: 12px 26px;
+    align-items: center;
+}
+
+.project-item button:last-child {
+    justify-self: end;
+}
+
+.project-item:has(.star-button:hover) {
+    background: transparent;
+}
+
+.project-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.project-item:hover {
+    background: #3d3d3d1f;
+    cursor: pointer;
+}
+
+
+.favorite-btn {
+    width: 48px;
+    height: 36px;
+
+    border-radius: 32px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.favorite-btn img {
+    object-fit: contain;
+}
+
+.favorite-btn:hover {
+    background: #2424240e;
+}

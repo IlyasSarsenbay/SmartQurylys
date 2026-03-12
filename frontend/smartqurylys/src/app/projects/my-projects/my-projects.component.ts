@@ -18,7 +18,7 @@ export class MyProjectsComponent implements OnInit {
   errorMessage: string = '';
 
   constructor(private projectService: ProjectService) {
-    this.projects$ = this.projectService.getMyProjects().pipe(
+    this.projects$ = this.projectService.getMyProjectsResponses().pipe(
       catchError(error => {
         console.error('Error fetching my projects:', error);
         this.errorMessage = 'Не удалось загрузить ваши проекты. Пожалуйста, попробуйте позже.';

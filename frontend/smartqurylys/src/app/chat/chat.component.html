@@ -1,20 +1,6 @@
-<div [class.dashboard-layout]="isStandalone" class="full-height-container">
-  <div class="sidebar" *ngIf="isStandalone">
-    <div class="sidebar-item" routerLink="/my-projects" [class.active]="router.url === '/dashboard' || router.url.startsWith('/my-projects')">
-      <i class="fas fa-list-alt"></i>
-      <span>Проекты</span>
-    </div>
-    <div class="sidebar-item" routerLink="/contractor-registry" routerLinkActive="active">
-      <i class="fas fa-hard-hat"></i>
-      <span>Найти Подрядчика</span>
-    </div>
-    <div class="sidebar-item" routerLink="/chat" routerLinkActive="active">
-      <i class="fas fa-comments"></i>
-      <span>Чат</span>
-    </div>
-  </div>
+<div class="full-height-container">
 
-  <div [class.main-content]="isStandalone" [class.embedded-content]="!isStandalone" class="full-height-container">
+  <div class="full-height-container">
     <div class="chat-container">
       <div class="chat-sidebar">
         <div class="search-box">

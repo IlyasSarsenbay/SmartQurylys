@@ -94,7 +94,7 @@ export class PersonalCabinetComponent implements OnInit {
           return of(null);
         })
       ),
-      projects: this.projectService.getMyProjects().pipe(
+      projects: this.projectService.getMyProjectsResponses().pipe(
         catchError(error => {
           this.errorMessage = 'Ошибка загрузки проектов.';
           console.error('Error loading projects:', error);

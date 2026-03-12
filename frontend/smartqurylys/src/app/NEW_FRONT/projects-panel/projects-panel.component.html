@@ -1,0 +1,28 @@
+<main>
+    <section class="layer1">
+        <span>Проекты</span>
+        <button class="create-btn" routerLink="/projects/create" (click)="onClickCreateProject()">Создать</button>
+    </section>
+
+    <section class="search">
+        <div>
+            <input type="text" placeholder="Поиск проекта по названию" />
+        </div>
+    </section>
+
+    <section class="projects">
+        <ul class="project-list">
+            @for (project of projects; track project.id) {
+            <li class="project-item" (click)="onClickProject(project)">
+                <span>{{ project.name }}</span>
+                <span>{{ PROJECT_STATUS_RU[project.status] }}</span>
+
+                <button class="favorite-btn" (click)="toggleFavorite(project); $event.stopPropagation()">
+                    <img [src]="project.favorite ? 'assets/star_active.png' : 'assets/star.png'">
+                </button>
+            </li>
+            }
+        </ul>
+    </section>
+
+</main>

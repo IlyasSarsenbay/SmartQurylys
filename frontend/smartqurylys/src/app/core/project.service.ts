@@ -5,11 +5,11 @@ import { Injectable } from '@angular/core';
 
 import { HttpClient, HttpResponse, HttpHeaders } from '@angular/common/http'; // Added HttpHeaders
 
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 
-import { ProjectResponse } from './models/project';
+import { mapProjectResponsesToProjects, mapProjectResponseToProject, Project, ProjectResponse } from './models/project';
 
 import { CreateProjectRequest, UpdateProjectRequest, CreateInvitationRequest } from './models/project-requests';
 
@@ -66,11 +66,16 @@ export class ProjectService {
   }
 
 
-
-  getMyProjects(): Observable<ProjectResponse[]> {
+  // TODO: Нужно удалить 
+  getMyProjectsResponses(): Observable<ProjectResponse[]> {
 
     return this.http.get<ProjectResponse[]>(`${this.apiUrl}/my`, { headers: this.getAuthHeaders() });
 
+  }
+
+  getMyProjects(): Observable<Project[]> {
+    return this.http.get<ProjectResponse[]>(`${this.apiUrl}/my`, { headers: this.getAuthHeaders() })
+      .pipe(map(mapProjectResponsesToProjects))
   }
 
 

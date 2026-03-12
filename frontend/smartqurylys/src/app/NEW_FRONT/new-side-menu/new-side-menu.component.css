@@ -12,14 +12,14 @@ main {
 
 .sidebar {
     position: relative;
+    z-index: 4;
     display: flex;
     flex-direction: column;
     width: var(--sidebar-width);
-    border-right: 2px solid #dfdfdf;
+    border-right: 2px solid rgba(58, 104, 232, 0.05);
     /* border-right: 2px solid rgba(58, 104, 232, 0.1); */
     background: #4195bf;
     background: linear-gradient(180deg, rgba(58, 104, 232, 0.14) 0%, var(--color-background-light) 38%);
-    z-index: 100;
 }
 
 .card {
@@ -50,7 +50,7 @@ main {
 
 hr {
     /* border: 1px solid rgba(58, 104, 232, 0.04); */
-    border: 1px solid #dfdfdf;
+    border: 1px solid rgba(58, 104, 232, 0.05);
     width: 100%;
 }
 
@@ -58,7 +58,7 @@ hr {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 50;
+    z-index: 3;
     background: white;
     height: 100vh;
     width: var(--sidebar-width);
@@ -78,6 +78,10 @@ button {
     align-items: center;
 }
 
+button.active {
+    background: rgba(58, 104, 232, 0.14);
+}
+
 button:hover {
     cursor: pointer;
     background: rgba(58, 104, 232, 0.14);
@@ -87,19 +91,20 @@ button:hover {
     object-fit: contain;
     width: 18px;
     margin-left: 20px;
-    margin-right: 16px;
+    margin-right: 18px;
 }
 
 .icon-profile {
     object-fit: contain;
     width: 28px;
     margin: 8px;
-    margin-right: 10px;
+    margin-right: 12px;
     margin-left: 16px;
 }
 
 .overlay {
     position: fixed;
+
     visibility: hidden;
     inset: 0;
     left: var(--sidebar-width);
@@ -118,21 +123,21 @@ button:hover {
     position: fixed;
     top: 0;
     left: var(--sidebar-width);
-    /* exactly sidebar width */
-    width: 760px;
+    width: 0;
     height: 100vh;
     background: var(--color-background-light);
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.12);
-    padding: 1rem;
-    z-index: 10;
+    z-index: 2;
 
     transform: translateX(-100%);
     opacity: 0;
     pointer-events: none;
-    transition: transform 0.3s ease, opacity 0.3s ease, background 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background 0.3s ease, width 0.3s ease;
 }
 
 .slide-panel.open {
+    width: 760px;
+
     transform: translateX(0);
     opacity: 1;
     pointer-events: auto;
