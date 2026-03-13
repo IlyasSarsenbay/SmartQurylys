@@ -8,8 +8,13 @@ import com.smartqurylys.backend.dto.project.participant.CreateInvitationRequest;
 import com.smartqurylys.backend.dto.project.participant.InvitationResponse;
 import com.smartqurylys.backend.service.ParticipantInvitationService;
 import com.smartqurylys.backend.service.ProjectService;
+import com.smartqurylys.backend.service.UserService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +28,8 @@ import java.util.List;
 @RequestMapping("/api/projects")
 @RequiredArgsConstructor
 public class ProjectController {
+
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     private final ProjectService projectService;
     private final ParticipantInvitationService invitationService;
@@ -59,6 +66,7 @@ public class ProjectController {
     // Обновление данных проекта.
     @PutMapping("/{id}")
     public ResponseEntity<ProjectResponse> updateProject(@PathVariable Long id, @Valid @RequestBody UpdateProjectRequest request) {
+        log.info("PUT /projects/id:" + id + "\n" + request);
         return ResponseEntity.ok(projectService.updateProject(id, request));
     }
 

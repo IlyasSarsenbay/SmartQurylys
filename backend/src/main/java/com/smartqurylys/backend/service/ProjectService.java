@@ -9,6 +9,9 @@ import com.smartqurylys.backend.shared.enums.ActivityActionType;
 import com.smartqurylys.backend.shared.enums.ActivityEntityType;
 import com.smartqurylys.backend.shared.enums.ProjectStatus;
 import lombok.RequiredArgsConstructor;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,6 +29,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ProjectService {
+
+    private static final Logger log = LoggerFactory.getLogger(ProjectService.class);
 
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
@@ -157,6 +162,7 @@ public class ProjectService {
                 project.getEndDate(),
                 project.getType(),
                 project.getStatus().name(),
+                project.getCity().getId(),
                 project.getCity().getName(),
                 project.getOwner().getIinBin(),
                 project.getOwner().getFullName(),
@@ -172,6 +178,7 @@ public class ProjectService {
         City city = cityRepository.findById(request.getCityId())
                 .orElseThrow(() -> new IllegalArgumentException("Город не найден"));
 
+        project.setId(id);
         project.setName(request.getName());
         project.setDescription(request.getDescription());
         project.setStartDate(request.getStartDate());
@@ -188,8 +195,9 @@ public class ProjectService {
                 project.getId(),
                 project.getName()
         );
-
+        
         Project updated = projectRepository.save(project);
+        log.info("Updated project " + updated);
         return mapToResponse(updated);
     }
 

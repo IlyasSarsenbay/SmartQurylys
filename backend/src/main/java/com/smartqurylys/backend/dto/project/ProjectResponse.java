@@ -20,6 +20,7 @@ public class ProjectResponse {
     private LocalDate endDate; // Дата окончания проекта.
     private String type; // Тип проекта.
     private String status; // Текущий статус проекта.
+    private Long cityId;
     private String cityName; // Название города, где реализуется проект.
     private String ownerIinBin; // ИИН/БИН владельца проекта.
     private String ownerName; // Имя владельца проекта.
