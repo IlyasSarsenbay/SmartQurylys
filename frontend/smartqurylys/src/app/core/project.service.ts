@@ -66,7 +66,7 @@ export class ProjectService {
   }
 
 
-  // TODO: Нужно удалить 
+  // TODO: Нужно удалить  и заменить на фунцию ниже (getMyProjects)
   getMyProjectsResponses(): Observable<ProjectResponse[]> {
 
     return this.http.get<ProjectResponse[]>(`${this.apiUrl}/my`, { headers: this.getAuthHeaders() });
@@ -87,19 +87,19 @@ export class ProjectService {
   }
 
 
-
-  getProjectById(id: number): Observable<ProjectResponse> {
-
+  // TODO: Нужно удалить  и заменить на фунцию ниже (getProjectById)
+  getProjectResponseById(id: number): Observable<ProjectResponse> {
     return this.http.get<ProjectResponse>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
-
   }
 
-
+  getProjectById(id: number): Observable<Project> {
+    return this.http.get<ProjectResponse>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() })
+      .pipe(map(mapProjectResponseToProject))
+  }
 
   updateProject(id: number, request: UpdateProjectRequest): Observable<ProjectResponse> {
-
+    console.log("PUT req", id, request)
     return this.http.put<ProjectResponse>(`${this.apiUrl}/${id}`, request, { headers: this.getAuthHeaders() });
-
   }
 
 

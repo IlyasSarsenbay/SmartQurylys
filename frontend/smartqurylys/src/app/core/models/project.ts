@@ -12,6 +12,7 @@ export function mapProjectResponseToProject(
     endDate: response.endDate,
     type: response.type,
     status: response.status,
+    cityId: response.cityId,
     cityName: response.cityName,
     ownerIinBin: response.ownerIinBin,
     ownerName: response.ownerName,
@@ -45,6 +46,7 @@ export interface ProjectResponse {
   endDate: string;   
   type: string;
   status: ProjectStatus; 
+  cityId: number;
   cityName: string;
   ownerIinBin: string;
   ownerName: string;
@@ -60,6 +62,7 @@ export interface Project {
   endDate: string;   
   type: string;
   status: ProjectStatus; 
+  cityId: number;
   cityName: string;
   ownerIinBin: string;
   ownerName: string;
