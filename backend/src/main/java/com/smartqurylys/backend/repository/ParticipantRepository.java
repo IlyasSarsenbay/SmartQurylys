@@ -16,5 +16,8 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
     // Проверяет существование участника в проекте по проекту и пользователю.
     boolean existsByProjectAndUser(Project project, User user);
     
+    // Находит всех учатсников с данными ID (находит всех участников в целом, без привязки к определенному проетку)
+    List<Participant> findAllByUserIdIn(List<Long> userIds);
+    
     void deleteByUser(User user);
 }

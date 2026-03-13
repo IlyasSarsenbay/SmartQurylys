@@ -30,7 +30,7 @@ public class TaskController {
             @RequestPart(value = "requirementSampleFiles", required = false) List<MultipartFile> requirementSampleFiles
     ) {
         try {
-            TaskResponse response = taskService.createTask(stageId, request, requirementSampleFiles);
+            TaskResponse response = taskService.createTask(request, requirementSampleFiles);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

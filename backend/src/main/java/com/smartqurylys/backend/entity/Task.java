@@ -25,6 +25,9 @@ public class Task {
     @JoinColumn(name = "stage_id")
     private Stage stage; // Этап, к которому относится задача.
 
+    @Column(name = "project_id", nullable = false)
+    private Long projectId;
+
     private String name; // Название задачи.
 
     @ManyToMany(fetch = FetchType.LAZY)

@@ -26,6 +26,10 @@ public class CreateTaskRequest {
     @NotNull
     private LocalDate endDate; // Дата окончания задачи.
 
+    private Long projectId; // must remain nullable!
+
+    private Long stageId; // must remain nullable!
+
     @com.fasterxml.jackson.annotation.JsonProperty("isPriority")
     private boolean isPriority; // Флаг приоритета задачи.
 

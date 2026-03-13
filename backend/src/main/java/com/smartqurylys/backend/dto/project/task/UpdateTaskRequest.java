@@ -10,6 +10,7 @@ import java.util.List;
 public class UpdateTaskRequest {
     private String name; // Новое название задачи.
     private String info; // Обновленная дополнительная информация о задаче.
+    private Long projectId;
     private String description; // Новое описание задачи.
     private LocalDate startDate; // Новая дата начала задачи.
     private LocalDate endDate; // Новая дата окончания задачи.

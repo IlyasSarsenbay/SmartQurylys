@@ -29,6 +29,7 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final StageRepository stageRepository;
+    private final ProjectRepository projectRepository;
     private final ParticipantRepository participantRepository;
     private final RequirementRepository requirementRepository;
     private final FileService fileService;
@@ -66,15 +67,13 @@ public class TaskService {
 
     // Создает новую задачу в рамках указанного этапа.
     @Transactional
-    public TaskResponse createTask(Long stageId, CreateTaskRequest request, List<MultipartFile> requirementSampleFiles) throws IOException {
-        Stage stage = stageRepository.findById(stageId)
-                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с ID: " + stageId));
-
+    public TaskResponse createTask(CreateTaskRequest request, List<MultipartFile> requirementSampleFiles) throws IOException {
+        
         Set<Participant> responsiblePersons = new HashSet<>();
         if (request.getResponsiblePersonIds() != null && !request.getResponsiblePersonIds().isEmpty()) {
             System.out.println("[DEBUG] Received responsiblePersonIds: " + request.getResponsiblePersonIds());
 
-            List<Participant> foundParticipants = participantRepository.findAllById(request.getResponsiblePersonIds());
+            List<Participant> foundParticipants = participantRepository.findAllByUserIdIn(request.getResponsiblePersonIds());
             System.out.println("[DEBUG] Found participants in DB: " + foundParticipants.stream()
                     .map(p -> p.getId() + ":" + (p.getUser() != null ? p.getUser().getFullName() : "null"))
                     .collect(Collectors.toList()));
@@ -91,8 +90,15 @@ public class TaskService {
         } else {
             System.out.println("[DEBUG] No responsiblePersonIds provided in request");
         }
+
+        Stage stage = null;
+        if(request.getStageId() != null) {
+            stage = stageRepository.findById(request.getStageId()).orElse(null);
+        }
+
         Task task = Task.builder()
                 .stage(stage)
+                .projectId(request.getProjectId())
                 .name(request.getName())
                 .info(request.getInfo())
                 .description(request.getDescription())
@@ -161,6 +167,26 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
+    // Получает все задачи Проекта
+    @Transactional(readOnly = true)
+    public List<TaskResponse> getTasksByProject(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Проект не найден с ID: " + projectId));
+
+        return taskRepository.findTasksByProjectId(project.getId()).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public int getTasksCount(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Проект не найден с ID: " + projectId));
+
+        return taskRepository.findTasksByProjectId(project.getId()).size();
+    }
+
+
     // Обновляет информацию о существующей задаче.
     @Transactional
     public TaskResponse updateTask(Long taskId, UpdateTaskRequest request) {
@@ -178,6 +204,7 @@ public class TaskService {
         Optional.ofNullable(request.getDescription()).ifPresent(task::setDescription);
         Optional.ofNullable(request.getStartDate()).ifPresent(task::setStartDate);
         Optional.ofNullable(request.getEndDate()).ifPresent(task::setEndDate);
+        Optional.ofNullable(request.getProjectId()).ifPresent(task::setProjectId);
 
         // Обновление ответственных лиц, с проверкой существования.
         if (request.getResponsiblePersonIds() != null) {

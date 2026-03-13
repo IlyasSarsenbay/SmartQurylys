@@ -14,37 +14,48 @@ import java.util.Optional;
 // Репозиторий для работы с сущностями Task.
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    // Находит все задачи, принадлежащие определенному этапу, по порядку создания.
-    @Query("SELECT t FROM Task t WHERE t.stage = :stage ORDER BY t.id ASC")
-    List<Task> findByStage(@Param("stage") Stage stage);
+        // Находит все задачи, принадлежащие определенному этапу, по порядку создания.
+        @Query("SELECT t FROM Task t WHERE t.stage = :stage ORDER BY t.id ASC")
+        List<Task> findByStage(@Param("stage") Stage stage);
 
-    // Проверяет существование задачи по её ID.
-    boolean existsById(Long id);
+        // Проверяет существование задачи по её ID.
+        boolean existsById(Long id);
 
-    // Находит все задачи, за которые ответственен данный участник.
-    @Query("SELECT t FROM Task t JOIN t.responsiblePersons p WHERE p = :participant")
-    List<Task> findByResponsiblePersonsContains(@Param("participant") Participant participant);
+        // Находит все задачи, за которые ответственен данный участник.
+        @Query("SELECT t FROM Task t JOIN t.responsiblePersons p WHERE p = :participant")
+        List<Task> findByResponsiblePersonsContains(@Param("participant") Participant participant);
 
-    // Находит задачу по ID, включая её зависимости, для избежания N+1 запросов.
-    @Query("SELECT t FROM Task t LEFT JOIN FETCH t.dependsOn WHERE t.id = :taskId")
-    Optional<Task> findByIdWithDependencies(@Param("taskId") Long taskId);
+        // Находит задачу по ID, включая её зависимости, для избежания N+1 запросов.
+        @Query("SELECT t FROM Task t LEFT JOIN FETCH t.dependsOn WHERE t.id = :taskId")
+        Optional<Task> findByIdWithDependencies(@Param("taskId") Long taskId);
 
-    // Находит все задачи, которые зависят от указанной задачи.
-    @Query("SELECT t FROM Task t JOIN t.dependsOn d WHERE d.id = :taskId")
-    List<Task> findTasksThatDependOn(@Param("taskId") Long taskId);
+        // Находит все задачи, которые зависят от указанной задачи.
+        @Query("SELECT t FROM Task t JOIN t.dependsOn d WHERE d.id = :taskId")
+        List<Task> findTasksThatDependOn(@Param("taskId") Long taskId);
 
-    // Удаляет связь зависимости между двумя задачами.
-    @Modifying
-    @Query(value = "DELETE FROM task_dependencies WHERE task_id = :taskId AND depends_on_task_id = :dependencyTaskId",
-            nativeQuery = true)
-    int removeDependencyRelation(@Param("taskId") Long taskId,
-                                 @Param("dependencyTaskId") Long dependencyTaskId);
+        // Удаляет связь зависимости между двумя задачами.
+        @Modifying
+        @Query(value = "DELETE FROM task_dependencies WHERE task_id = :taskId AND depends_on_task_id = :dependencyTaskId", nativeQuery = true)
+        int removeDependencyRelation(@Param("taskId") Long taskId,
+                        @Param("dependencyTaskId") Long dependencyTaskId);
 
-    // Находит все задачи, относящиеся к заданному этапу, с полной информацией об ответственных лицах.
-    @Query("SELECT t FROM Task t " +
-            "LEFT JOIN FETCH t.responsiblePersons rp " +
-            "LEFT JOIN FETCH rp.user " +
-            "WHERE t.stage = :stage " +
-            "ORDER BY t.id ASC")
-    List<Task> findByStageWithFullDetails(@Param("stage") Stage stage);
+        // Находит все задачи, относящиеся к заданному этапу, с полной информацией об
+        // ответственных лицах.
+        @Query("SELECT t FROM Task t " +
+                        "LEFT JOIN FETCH t.responsiblePersons rp " +
+                        "LEFT JOIN FETCH rp.user " +
+                        "WHERE t.stage = :stage " +
+                        "ORDER BY t.id ASC")
+        List<Task> findByStageWithFullDetails(@Param("stage") Stage stage);
+
+        
+        @Query("""
+                        SELECT DISTINCT t
+                        FROM Task t
+                        LEFT JOIN FETCH t.responsiblePersons rp
+                        LEFT JOIN FETCH rp.user
+                        WHERE t.projectId = :projectId
+                        ORDER BY t.id ASC
+                        """)
+        List<Task> findTasksByProjectId(@Param("projectId") Long projectId);
 }
