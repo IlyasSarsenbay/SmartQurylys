@@ -9,8 +9,6 @@
             <span class="title">SmartQurylys</span>
         </div>
 
-        <hr />
-
         <menu class="top-menu">
             <button (click)="togglePanel('tasks')" [class.active]="activePanel==='tasks'">
                 <img class="icon" src="assets/Icon_Tasks.png">
@@ -22,7 +20,8 @@
                 <span>Проекты</span>
             </button>
 
-            <button routerLink="/contractor-registry" (click)="togglePanel('contractors')" [class.active]="activePanel==='contractors'">
+            <button routerLink="/contractor-registry" (click)="togglePanel('contractors')"
+                [class.active]="activePanel==='contractors'">
                 <img class="icon" src="assets/Icon_Contractors.png">
                 <span>Подрядчики</span>
             </button>
@@ -34,7 +33,7 @@
         </menu>
 
         <menu class="bot-menu">
-            <button>
+            <button routerLink="/notifications" (click)="togglePanel(activePanel)" >
                 <img class="icon" src="assets/icon_notification.png">
                 <span>Уведомления</span>
             </button>
@@ -50,8 +49,9 @@
             </button>
         </menu>
     </section>
-    
-    <div class="overlay" [class.visible]="isPanelOpen()" (click)="togglePanel(activePanel)"></div>
+
+    <div class="overlay" [class.visible]="isPanelOpen()" (click)="closePanel()"></div>
+    <div class="shadow" [class.visible]="!isPanelOpen()"></div>
 
     <section class="slide-panel" [class.open]="isPanelOpen()">
         <ng-container [ngSwitch]="activePanel">
@@ -59,7 +59,7 @@
                 <h3>Tasks</h3>
             </div>
             <div *ngSwitchCase="'projects'">
-                <app-projects-panel (closePanel)="togglePanel(activePanel)"></app-projects-panel>
+                <app-projects-panel (closePanelCommand)="closePanel()"></app-projects-panel>
             </div>
         </ng-container>
     </section>

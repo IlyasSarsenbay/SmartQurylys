@@ -6,7 +6,7 @@ import { RegisterCommonComponent } from '././auth/register/regCommon/registerCom
 import { RegisterOrgComponent } from '././auth/register/registerOrg/registerOrg.component';
 import { authGuard } from './auth/auth.guard';
 import { CreateProjectComponent } from './projects/create-project/create-project.component';
-import { ProjectDetailsComponent } from './projects/project-details/project-details.component';
+import { NewProjectDetailsComponent } from './NEW_COMPONENTS/project-details/new-project-details.component';
 import { MyProjectsComponent } from './projects/my-projects/my-projects.component';
 import { PersonalCabinetComponent } from './personal-cabinet/personal-cabinet.component';
 import { ContractorRegistryComponent } from './contractor-registry/contractor-registry.component';
@@ -22,6 +22,9 @@ import { ProjectDashboardComponent } from './project-dashboard/project-dashboard
 import { ChatComponent } from './chat/chat.component';
 import { DocumentsComponent } from './project-dashboard/document/document.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
+import { ProjectDetailsComponent } from './projects/project-details/project-details.component';
+import { NotificationModalComponent } from './notification-modal/notification-modal.component';
+import { ProjectTasksPageComponent } from './NEW_COMPONENTS/project-tasks-page/project-tasks-page.component';
 // Определение маршрутов приложения Angular.
 export const routes: Routes = [
   { path: '', component: HomeComponent }, // Главная страница.
@@ -49,10 +52,18 @@ export const routes: Routes = [
   { path: 'personal-cabinet', component: PersonalCabinetComponent, canActivate: [authGuard] }, // Личный кабинет, требует аутентификации.
   { path: 'projects', component: MyProjectsComponent, canActivate: [authGuard] }, // Список моих проектов, требует аутентификации.
   { path: 'projects/create', component: CreateProjectComponent, canActivate: [authGuard] }, // Создание нового проекта, требует аутентификации.
-  { path: 'project/:id', component: ProjectDetailsComponent, canActivate: [authGuard] }, // Детали проекта по ID, требует аутентификации.
-  { path: 'projects/:id', component: ProjectDashboardComponent, canActivate: [authGuard] },
+
+  { path: 'projects/:id', component: NewProjectDetailsComponent, canActivate: [authGuard] },
+  { path: 'projects/:id/tasks', component: ProjectTasksPageComponent, canActivate: [authGuard] },
   { path: 'projects/:id/documents', component: DocumentsComponent, canActivate: [authGuard] },
   { path: 'contractor-registry', component: ContractorRegistryComponent, canActivate: [authGuard] }, // Реестр подрядчиков, требует аутентификации.
+  
+  //  old front
+   { path: 'legacy/project/:id', component: ProjectDetailsComponent, canActivate: [authGuard] },
+   { path: 'legacy/projects/:id', component: ProjectDashboardComponent, canActivate: [authGuard] },
+   { path: 'notifications', component: NotificationModalComponent, canActivate: [authGuard] },
+  
+
   { path: '**', redirectTo: '' } // Перенаправление на главную страницу для всех неизвестных маршрутов.
 
 ];

@@ -1,0 +1,75 @@
+<main>
+    <div class="editor-shell">
+        <div class="toolbar">
+            <button type="button" (click)="undo()">
+                <img src="assets/undo.png" />
+            </button>
+            <button type="button" (click)="redo()">
+                <img src="assets/redo.png" />
+            </button>
+
+            <span class="divider"></span>
+
+            <button class="text-style-btn" type="button" (click)="toggleBold()"
+                [class.active]="editor?.isActive('bold')">
+                <img src="assets/bold-text.png">
+            </button>
+
+            <button class="text-style-btn" type="button" (click)="toggleItalic()"
+                [class.active]="editor?.isActive('italic')">
+                <img src="assets/italic.png">
+            </button>
+
+            <button class="text-style-btn" type="button" (click)="toggleUnderline()"
+                [class.active]="editor?.isActive('underline')">
+                <img src="assets/underline.png">
+            </button>
+
+            <button class="text-style-btn" type="button" (click)="toggleStrike()"
+                [class.active]="editor?.isActive('strike')">
+                <img src="assets/strikethrough.png">
+            </button>
+
+            <span class="divider"></span>
+
+            <button type="button" (click)="toggleH1()" [class.active]="editor?.isActive('heading', { level: 1 })">
+                H1
+            </button>
+
+            <button type="button" (click)="toggleH2()" [class.active]="editor?.isActive('heading', { level: 2 })">
+                H2
+            </button>
+
+            <span class="divider"></span>
+
+            <button type="button" (click)="toggleBulletList()" [class.active]="editor?.isActive('bulletList')">
+                <img src="assets/list.png">
+            </button>
+
+            <button type="button" (click)="toggleOrderedList()" [class.active]="editor?.isActive('orderedList')">
+                <img src="assets/ordered_list.png">
+            </button>
+
+            <button type="button" (click)="toggleBlockquote()" [class.active]="editor?.isActive('blockquote')">
+                Quote
+            </button>
+
+            <span class="divider"></span>
+
+            <button type="button" (click)="setLink()">Link</button>
+        </div>
+
+        <div class="editor-box">
+            <div #editorHost spellcheck="false"></div>
+        </div>
+
+        <div class="editor-actions">
+            <button class="cancel-btn" (click)="onEditorCancelClick()">Отменить</button>
+            <button class="save-btn" (click)="onEditorSaveClick()">Сохранить</button>
+        </div>
+    </div>
+
+    <!-- <div>
+        {{htmlContent}}
+    </div> -->
+</main>

@@ -11,13 +11,14 @@ import { environment } from '../../environments/environment';
 
 import { mapProjectResponsesToProjects, mapProjectResponseToProject, Project, ProjectResponse } from './models/project';
 
-import { CreateProjectRequest, UpdateProjectRequest, CreateInvitationRequest } from './models/project-requests';
+import { CreateProjectRequest, UpdateProjectRequest, CreateInvitationRequest, mapToUpdateProjectRequest } from './models/project-requests';
 
 import { InvitationResponse } from './models/project-invitation';
 
 import { FileResponse } from './models/file';
 
 import { AuthService } from '../auth/auth.service'; // Import AuthService
+import { ScheduleService } from './schedule.service';
 
 
 
@@ -33,7 +34,11 @@ export class ProjectService {
 
 
 
-  constructor(private http: HttpClient, private authService: AuthService) { } // Injected AuthService
+  constructor(
+    private http: HttpClient, 
+    private authService: AuthService,
+    private scheduleService: ScheduleService
+  ) { } // Injected AuthService
 
 
 
@@ -97,12 +102,17 @@ export class ProjectService {
       .pipe(map(mapProjectResponseToProject))
   }
 
-  updateProject(id: number, request: UpdateProjectRequest): Observable<ProjectResponse> {
+  DEPRECATED_updateProject(id: number, request: UpdateProjectRequest): Observable<ProjectResponse> {
     console.log("PUT req", id, request)
     return this.http.put<ProjectResponse>(`${this.apiUrl}/${id}`, request, { headers: this.getAuthHeaders() });
   }
 
-
+  updateProject(project: Project): Observable<Project> {
+    const id = project.id
+    const request = mapToUpdateProjectRequest(project)
+    return this.http.put<ProjectResponse>(`${this.apiUrl}/${id}`, request, { headers: this.getAuthHeaders() })
+    .pipe(map(mapProjectResponseToProject));
+  }
 
   deleteProject(id: number): Observable<void> {
 

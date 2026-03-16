@@ -1,0 +1,58 @@
+<main>
+    <section class="top-bar">
+        <div class="section-1">
+            <button class="projects-btn" routerLink="/projects">
+                Проекты
+            </button>
+            <span class="divider"> / </span>
+            <span class="project-title1"> {{ project.name }} </span>
+            <span class="fv-btn-wrapper">
+                <button class="favorite-btn" (click)="toggleFavorite(project)">
+                    <img [src]="project.favorite ? 'assets/star_active.png' : 'assets/star.png'">
+                </button>
+            </span>
+        </div>
+
+        <div class="section-2">
+            <button class="access-btn">
+                <img src="assets/lock.png">
+                <span>Управление доступом</span>
+            </button>
+        </div>
+
+        <div class="section-3">
+            <img class="more-btn" src="assets/more.png">
+        </div>
+    </section>
+
+
+    <header>
+        <section class="header-top">
+            <div class="text-input">
+                <!-- <input type="text" [value]="project.name" spellcheck="false"> -->
+                <div class="project-title-2" contenteditable="true" spellcheck="false" (blur)="onTitleBlur($event)">
+                    {{ project.name }}
+                </div>
+            </div>
+            <div class="tasks-1">
+                <span>Задач выполнено</span>
+                {{ numberOfCompletedTasks }}
+                /
+                {{ numberOfTasks }}
+            </div>
+        </section>
+
+        <section class="header-bot">
+            <div class="tabs">
+                <a class="tab" [routerLink]="['/projects', project.id]" routerLinkActive="active"
+                    [routerLinkActiveOptions]="{ exact: true }">О проекте</a>
+                <a class="tab" [routerLink]="['/projects', project.id, 'tasks']" routerLinkActive="active">Список
+                    задач</a>
+                <a class="tab" [routerLink]="" routerLinkActive="active">График работ</a>
+                <a class="tab" [routerLink]="['/projects', project.id, 'documents']"
+                    routerLinkActive="active">Документы</a>
+            </div>
+        </section>
+
+    </header>
+</main>

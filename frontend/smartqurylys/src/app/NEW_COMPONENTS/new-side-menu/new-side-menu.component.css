@@ -28,9 +28,11 @@ main {
 
 
 .logo-box {
-    margin: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 }
 
 .title {
@@ -46,12 +48,6 @@ main {
 #logo {
     max-width: 40px;
     object-fit: contain;
-}
-
-hr {
-    /* border: 1px solid rgba(58, 104, 232, 0.04); */
-    border: 1px solid rgba(58, 104, 232, 0.05);
-    width: 100%;
 }
 
 .white-background {
@@ -123,7 +119,7 @@ button:hover {
     position: fixed;
     top: 0;
     left: var(--sidebar-width);
-    width: 0;
+    width: 0px;
     height: 100vh;
     background: var(--color-background-light);
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.12);
@@ -136,9 +132,24 @@ button:hover {
 }
 
 .slide-panel.open {
-    width: 760px;
+    width: 700px;
 
     transform: translateX(0);
     opacity: 1;
     pointer-events: auto;
+}
+
+.shadow {
+    visibility: hidden;
+    inset: 0;
+    left: var(--sidebar-width);
+    position: fixed;
+    background: transparent;
+    box-shadow: -1px 0 10px rgba(46, 46, 46, 0.2);
+    pointer-events: none;
+    z-index: 100;
+}
+
+.shadow.visible {
+    visibility: visible;
 }

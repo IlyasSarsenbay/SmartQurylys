@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { NewSideMenuComponent } from './NEW_FRONT/new-side-menu/new-side-menu.component';
+import { NewSideMenuComponent } from './NEW_COMPONENTS/new-side-menu/new-side-menu.component';
 
 @Component({
   selector: 'app-root',

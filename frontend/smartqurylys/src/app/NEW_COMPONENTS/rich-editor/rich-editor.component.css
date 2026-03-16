@@ -1,0 +1,141 @@
+.editor-shell {
+    position: relative;
+    width: 100%;
+    border: 1px solid #d9d9d9;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    border-bottom: 1px solid #ececec;
+    background: #fafafa;
+}
+
+.toolbar button {
+    border: 1px solid #d9d9d9;
+    background: #fff;
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.toolbar button.active {
+    border-color: #1677ff;
+    background: #eaf2ff;
+}
+
+.text-style-btn img {
+    width: 12px;
+}
+
+.divider {
+    width: 1px;
+    background: #e5e5e5;
+    margin: 0 4px;
+}
+
+.editor-box {
+    padding-bottom: 40px;
+}
+
+.editor-actions {
+    position: absolute;
+    bottom: 12px;
+    right: 16px;
+    display: flex;
+    gap: 12px;
+}
+
+
+.cancel-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 6px 14px;
+}
+
+.cancel-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    transition: background ease 0.4s;
+    border-radius: 8px;
+}
+
+.save-btn {
+    background: #4a6cf7;
+    border: none;
+    color: whitesmoke;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.save-btn:hover {
+    background: #5376ff;
+    transition: background ease 0.3s;
+}
+
+:host ::ng-deep .editor-content {
+    min-height: 220px;
+    padding: 16px;
+    outline: none;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+:host ::ng-deep .editor-content:focus {
+    outline: none;
+}
+
+/* Placeholder */
+:host ::ng-deep .editor-content p.is-editor-empty:first-child::before {
+    color: #adb5bd;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+}
+
+/* Basic content styling */
+:host ::ng-deep .editor-content p {
+    font-size: 14px;
+    margin: 0 0 12px;
+}
+
+:host ::ng-deep .editor-content h1 {
+    font-size: 28px;
+    margin: 0 0 12px;
+}
+
+:host ::ng-deep .editor-content h2 {
+    font-size: 22px;
+    margin: 0 0 12px;
+}
+
+:host ::ng-deep .editor-content ul,
+:host ::ng-deep .editor-content ol {
+    padding-left: 24px;
+    margin: 0 0 12px;
+}
+
+:host ::ng-deep .editor-content ul {
+    list-style-type: disc;
+}
+
+:host ::ng-deep .editor-content ol {
+    list-style-type: decimal;
+}
+
+:host ::ng-deep .editor-content blockquote {
+    border-left: 3px solid #d9d9d9;
+    margin: 0 0 12px;
+    padding-left: 12px;
+    color: #666;
+}

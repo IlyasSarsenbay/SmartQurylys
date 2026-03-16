@@ -15,8 +15,18 @@
             @for (project of projects; track project.id) {
             <li class="project-item" (click)="onClickProject(project)">
                 <span>{{ project.name }}</span>
-                <span>{{ PROJECT_STATUS_RU[project.status] }}</span>
-
+                <div>
+                    <span class="project-status" [ngClass]="{
+                        'status-draft': project.status === 'DRAFT',
+                        'status-active': project.status === 'ACTIVE',
+                        'status-waiting': project.status === 'WAITING',
+                        'status-pause': project.status === 'ON_PAUSE',
+                        'status-completed': project.status === 'COMPLETED',
+                        'status-cancelled': project.status === 'CANCELLED'
+                        }">
+                        {{ PROJECT_STATUS_RU[project.status] }}
+                    </span>
+                </div>
                 <button class="favorite-btn" (click)="toggleFavorite(project); $event.stopPropagation()">
                     <img [src]="project.favorite ? 'assets/star_active.png' : 'assets/star.png'">
                 </button>

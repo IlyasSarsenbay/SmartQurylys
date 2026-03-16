@@ -13,6 +13,7 @@ import {
 })
 export class TaskService {
   private apiUrl = `${environment.apiUrl}/stages`;
+  private apiBase = `${environment.apiUrl}`;
 
   constructor(private http: HttpClient) { }
 
@@ -46,6 +47,15 @@ export class TaskService {
 
     return this.http.post<TaskResponse>(`${this.apiUrl}/${stageId}/tasks`, formData);
   }
+
+  getProjectNumberOfTasks(projectId: number) {
+    return this.http.get<Number>(`${this.apiBase}/projects/${projectId}/tasks/count`);
+  }
+
+  getProjectNumberOfCompletedTasks(projectId: number) {
+    return this.http.get<Number>(`${this.apiBase}/projects/${projectId}/tasks/completed-count`);
+  }
+
   getTasksByStage(stageId: number): Observable<TaskResponse[]> {
     return this.http.get<TaskResponse[]>(`${this.apiUrl}/${stageId}/tasks`);
   }

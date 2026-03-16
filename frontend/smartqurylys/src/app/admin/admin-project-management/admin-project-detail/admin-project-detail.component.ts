@@ -83,7 +83,7 @@ export class AdminProjectDetailComponent implements OnInit {
    */
   private loadProjectData(): void {
     forkJoin({
-      project: this.projectService.getProjectById(this.projectId!),
+      project: this.projectService.getProjectResponseById(this.projectId!),
       cities: this.cityService.getAllCities()
     }).subscribe({
       next: ({ project, cities }) => {
@@ -128,7 +128,7 @@ export class AdminProjectDetailComponent implements OnInit {
     if (this.projectForm.valid && this.projectId) {
       const request = this.buildUpdateRequest();
       
-      this.projectService.updateProject(this.projectId, request).subscribe({
+      this.projectService.DEPRECATED_updateProject(this.projectId, request).subscribe({
         next: (updatedProject) => {
           this.successMessage = 'Данные проекта успешно обновлены!';
           console.log('Project updated:', updatedProject);

@@ -22,6 +22,11 @@ export class NewSideMenuComponent {
       return;
     }
     this.activePanel = panel;
+    console.log(panel)
+  }
+
+  closePanel() {
+    this.activePanel = null;
   }
 
   isPanelOpen() {

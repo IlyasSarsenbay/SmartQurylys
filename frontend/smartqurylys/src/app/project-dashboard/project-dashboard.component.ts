@@ -363,7 +363,7 @@ export class ProjectDashboardComponent implements OnInit {
   }
 
   fetchProjectDetails(): void {
-    this.projectService.getProjectById(this.projectId).subscribe({
+    this.projectService.getProjectResponseById(this.projectId).subscribe({
       next: (data) => {
         this.project = data;
         if (this.project && this.project.schedule) {

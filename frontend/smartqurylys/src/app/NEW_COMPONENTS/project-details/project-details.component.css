@@ -1,0 +1,123 @@
+main {
+    display: flex;
+    flex-direction: column;
+}
+
+.page-container {
+    display: flex;
+}
+
+.details-body {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.project-description {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    margin-bottom: 16px;
+}
+
+.description-editor {
+    padding: 16px 32px;
+}
+
+.description-wrapper {
+    position: relative;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+    padding: 14px 36px 0px 36px;
+}
+
+.description-wrapper.collapsed {
+    max-height: 120px;
+    /* your limit */
+}
+
+/* optional fade at the bottom when collapsed */
+.description-wrapper.collapsed::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 48px;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 1));
+}
+
+.toggle-edit-btn {
+    position: absolute;
+    top: 16px;
+    right: 24px;
+    margin-left: auto;
+    border-radius: 8px;
+    padding: 6px;
+}
+
+.toggle-edit-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    transition: background ease 0.3s;
+}
+
+.toggle-btn {
+    border: none;
+    padding: 5px 13px;
+    cursor: pointer;
+    color: #0000008C;
+    font: inherit;
+    font-size: 14px;
+    border-radius: 8px;
+    margin-left: 24px;
+    z-index: 4;
+}
+
+.toggle-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #000000d9;
+    transition: background ease 0.3s, color ease 0.3s;
+}
+
+:host ::ng-deep .description-content p {
+    font-size: 14px;
+    margin: 0 0 12px;
+}
+
+:host ::ng-deep .description-content h1 {
+    font-size: 28px;
+    margin: 0 0 12px;
+}
+
+:host ::ng-deep .description-content h2 {
+    font-size: 22px;
+    margin: 0 0 12px;
+}
+
+:host ::ng-deep .description-content ul,
+:host ::ng-deep .description-content ol {
+    padding-left: 24px;
+    margin: 0 0 12px;
+}
+
+:host ::ng-deep .description-content ul {
+    list-style-type: disc;
+}
+
+:host ::ng-deep .description-content ol {
+    list-style-type: decimal;
+}
+
+:host ::ng-deep .description-content blockquote {
+    border-left: 3px solid #d9d9d9;
+    margin: 0 0 12px;
+    padding-left: 12px;
+    color: #666;
+}
+
+.details-sidebar {
+    padding-top: 16px;
+    padding-right: 32px;
+}

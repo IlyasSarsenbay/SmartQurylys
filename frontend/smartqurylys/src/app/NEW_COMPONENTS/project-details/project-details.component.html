@@ -1,0 +1,36 @@
+<main>
+    <app-project-header></app-project-header>
+
+    <div class="page-container">
+        <div class="details-body">
+
+            <div class='project-description'>
+                @if(isEditorEnabled) {
+                <app-rich-editor [projectDescriptionHTML]="project.description" class="description-editor"
+                    (onClickEditorSaveEvent)="updateProjectDescription($event);toggleEditor()"
+                    (onClickEditorCancelEvent)="toggleEditor()"></app-rich-editor>
+                } @else {
+                <div #descriptionWrapper class="description-wrapper" [class.collapsed]="!isDescriptionExpanded">
+                    <button class="toggle-edit-btn" (click)="toggleEditor()">
+                        <img src="assets/edit-text.png">
+                    </button>
+                    <div class="description-content" [innerHTML]="project.description"></div>
+                </div>
+
+                @if (isDescriptionCollapsible) {
+                <button type="button" class="toggle-btn" (click)="toggleDescription()">
+                    {{ isDescriptionExpanded ? 'Свернуть' : 'Показать полностью' }}
+                </button>
+                }
+                }
+            </div>
+
+        </div>
+
+        <div class="details-sidebar">
+            <app-project-desc-card [project]="project"></app-project-desc-card>
+        </div>
+    </div>
+
+
+</main>

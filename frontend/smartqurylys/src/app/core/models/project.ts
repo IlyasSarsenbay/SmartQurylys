@@ -31,7 +31,7 @@ export function mapProjectResponsesToProjects(
 export const PROJECT_STATUS_RU: Record<string, string> = {
   DRAFT: 'Новый',
   WAITING: 'Ожидание',
-  ACTIVE: 'Активный',
+  ACTIVE: 'В работе',
   ON_PAUSE: 'На паузе',
   COMPLETED: 'Завершён',
   CANCELLED: 'Отменён'

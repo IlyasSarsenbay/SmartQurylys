@@ -25,7 +25,7 @@ export const ownerGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: 
         return of(false);
       }
 
-      return projectService.getProjectById(projectId).pipe(
+      return projectService.getProjectResponseById(projectId).pipe(
         map(project => {
           if (project.ownerIinBin === currentUser.iinBin) {
             return true;

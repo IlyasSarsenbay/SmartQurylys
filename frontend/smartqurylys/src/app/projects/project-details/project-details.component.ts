@@ -126,7 +126,7 @@ export class ProjectDetailsComponent implements OnInit {
         if (id) {
           this.projectId = +id;
           this.loadProjectData();
-          return this.projectService.getProjectById(this.projectId).pipe(
+          return this.projectService.getProjectResponseById(this.projectId).pipe(
             tap(project => {
               if (project) {
                 // Check ownership and redirect if not owner
@@ -248,7 +248,7 @@ export class ProjectDetailsComponent implements OnInit {
         updatedProject.cityId = +updatedProject.cityId;
       }
 
-      this.projectService.updateProject(this.projectId, updatedProject).subscribe({
+      this.projectService.DEPRECATED_updateProject(this.projectId, updatedProject).subscribe({
         next: (project: ProjectResponse) => {
           this.successMessage = 'Данные проекта успешно обновлены!';
           this.isEditingProject = false;

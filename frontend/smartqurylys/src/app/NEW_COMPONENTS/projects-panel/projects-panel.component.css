@@ -12,21 +12,21 @@
 }
 
 .create-btn {
-    width: 100px;
-    height: 34px;
     margin-left: auto;
     margin-right: 24px;
-    border-radius: 6px;
-    /* padding: 6px; */
-    background: rgb(57, 110, 255);
+    background: #4a6cf7;
+    border: none;
     color: whitesmoke;
-    font-size: 16px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
 }
 
 .search input {
     margin-left: 24px;
     width: 60%;
-    padding: 6px 10px;
+    padding: 4px 10px;
     border-radius: 8px;
     border: 1px solid #e5e5e5;
     outline: none;
@@ -57,9 +57,19 @@ select {
 
 .project-item {
     display: grid;
-    grid-template-columns: 4fr 2fr auto;
-    padding: 12px 26px;
+    grid-template-columns: 5fr 3fr auto;
+    padding: 8px 26px;
+    padding-left: 36px;
     align-items: center;
+    font-size: 14px;
+    color: #1D1D1F;
+}
+
+.project-status {
+    font-size: 14px;
+    border-radius: 16px;
+    color: white;
+    padding: 2px 8px;
 }
 
 .project-item button:last-child {
@@ -81,12 +91,11 @@ select {
     cursor: pointer;
 }
 
-
 .favorite-btn {
-    width: 48px;
+    width: 36px;
     height: 36px;
 
-    border-radius: 32px;
+    border-radius: 16px;
 
     display: flex;
     align-items: center;
@@ -103,4 +112,36 @@ select {
 
 .favorite-btn:hover {
     background: #2424240e;
+    transition: background ease 0.3s;
+}
+
+
+.status-draft {
+    background-color: #f5f5f5;
+    color: #595959;
+}
+
+.status-active {
+    background-color: #e6f4ff;
+    color: #1677ff;
+}
+
+.status-waiting {
+    background-color: #fff7e6;
+    color: #fa8c16;
+}
+
+.status-pause {
+    background-color: #f0f5ff;
+    color: #2f54eb;
+}
+
+.status-completed {
+    background-color: #f6ffed;
+    color: #52c41a;
+}
+
+.status-cancelled {
+    background-color: #fff1f0;
+    color: #ff4d4f;
 }

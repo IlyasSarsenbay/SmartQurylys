@@ -67,7 +67,7 @@ export class DocumentsComponent implements OnInit {
   }
 
   fetchProjectDetails(): void {
-    this.projectService.getProjectById(this.projectId).subscribe({
+    this.projectService.getProjectResponseById(this.projectId).subscribe({
       next: (project) => {
         this.project = project;
         this.checkOwnership();
