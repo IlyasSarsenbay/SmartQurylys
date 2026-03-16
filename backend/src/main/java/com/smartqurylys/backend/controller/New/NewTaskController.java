@@ -28,6 +28,22 @@ public class NewTaskController {
 
     private final TaskService taskService;
 
+    @PostMapping("/tasks")
+    public ResponseEntity<TaskResponse> createTask(
+            @RequestPart("taskData") @Valid CreateTaskRequest request,
+            @RequestPart(value = "requirementSampleFiles", required = false) List<MultipartFile> requirementSampleFiles) {
+        try {
+            TaskResponse response = taskService.createTask(request, requirementSampleFiles);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     // Получение задачи по ID.
     @GetMapping("/tasks/{taskId}")
     public ResponseEntity<TaskResponse> getTask(

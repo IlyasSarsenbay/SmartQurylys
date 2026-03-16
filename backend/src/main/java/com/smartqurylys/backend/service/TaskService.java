@@ -67,32 +67,35 @@ public class TaskService {
 
     // Создает новую задачу в рамках указанного этапа.
     @Transactional
-    public TaskResponse createTask(CreateTaskRequest request, List<MultipartFile> requirementSampleFiles) throws IOException {
-        
+    public TaskResponse createTask(CreateTaskRequest request, List<MultipartFile> requirementSampleFiles)
+            throws IOException {
         Set<Participant> responsiblePersons = new HashSet<>();
-        if (request.getResponsiblePersonIds() != null && !request.getResponsiblePersonIds().isEmpty()) {
-            System.out.println("[DEBUG] Received responsiblePersonIds: " + request.getResponsiblePersonIds());
 
-            List<Participant> foundParticipants = participantRepository.findAllByUserIdIn(request.getResponsiblePersonIds());
-            System.out.println("[DEBUG] Found participants in DB: " + foundParticipants.stream()
-                    .map(p -> p.getId() + ":" + (p.getUser() != null ? p.getUser().getFullName() : "null"))
-                    .collect(Collectors.toList()));
+        if (request.getResponsiblePersonIds() != null && !request.getResponsiblePersonIds().isEmpty()) {
+            List<Participant> foundParticipants = participantRepository
+                    .findParticipantsByProjectId(request.getProjectId());
 
             responsiblePersons = new HashSet<>(foundParticipants);
-            System.out.println("[DEBUG] Responsible persons set size: " + responsiblePersons.size() +
-                    ", requested size: " + request.getResponsiblePersonIds().size());
+            
+            Set<Long> participantIds = foundParticipants.stream()
+                    .map(p -> p.getUser().getId())
+                    .collect(Collectors.toSet());
 
-            if (responsiblePersons.size() != request.getResponsiblePersonIds().size()) {
-                System.out.println("[ERROR] Mismatch in responsible persons count. Expected: " +
-                        request.getResponsiblePersonIds().size() + ", found: " + responsiblePersons.size());
-                throw new IllegalArgumentException("Один или несколько ответственных лиц не найдены.");
+            Set<Long> requestedIds = new HashSet<>(request.getResponsiblePersonIds());
+
+            System.out.println("[DEBUG] participants: " + participantIds);
+            System.out.println("[DEBUG] request: " + requestedIds);
+
+            if (!requestedIds.equals(participantIds)) {
+                System.out.println("[ERROR] Mismatch in responsible persons");
+                throw new IllegalArgumentException("Один или несколько ответственных лиц не найдены в проекте");
             }
         } else {
             System.out.println("[DEBUG] No responsiblePersonIds provided in request");
         }
 
         Stage stage = null;
-        if(request.getStageId() != null) {
+        if (request.getStageId() != null) {
             stage = stageRepository.findById(request.getStageId()).orElse(null);
         }
 
@@ -113,14 +116,12 @@ public class TaskService {
         Task savedTask = taskRepository.save(task);
 
         List<Requirement> requirements = new ArrayList<>();
-        Map<String, MultipartFile> fileMap = requirementSampleFiles != null ?
-                requirementSampleFiles.stream()
-                        .collect(Collectors.toMap(
-                                MultipartFile::getOriginalFilename,
-                                file -> file,
-                                (existing, replacement) -> existing
-                        )) :
-                Collections.emptyMap();
+        Map<String, MultipartFile> fileMap = requirementSampleFiles != null ? requirementSampleFiles.stream()
+                .collect(Collectors.toMap(
+                        MultipartFile::getOriginalFilename,
+                        file -> file,
+                        (existing, replacement) -> existing))
+                : Collections.emptyMap();
 
         // Создаем требования и связываем их с файлами, если они есть.
         if (request.getRequirements() != null && !request.getRequirements().isEmpty()) {
@@ -186,7 +187,6 @@ public class TaskService {
         return taskRepository.findTasksByProjectId(project.getId()).size();
     }
 
-
     // Обновляет информацию о существующей задаче.
     @Transactional
     public TaskResponse updateTask(Long taskId, UpdateTaskRequest request) {
@@ -195,7 +195,8 @@ public class TaskService {
 
         Project project = task.getStage().getSchedule().getProject();
         ProjectStatus status = project.getStatus();
-        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED || status == ProjectStatus.CANCELLED) {
+        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED
+                || status == ProjectStatus.CANCELLED) {
             throw new AccessDeniedException("Изменение задач запрещено в текущем статусе проекта: " + status);
         }
 
@@ -208,7 +209,8 @@ public class TaskService {
 
         // Обновление ответственных лиц, с проверкой существования.
         if (request.getResponsiblePersonIds() != null) {
-            Set<Participant> newResponsiblePersons = new HashSet<>(participantRepository.findAllById(request.getResponsiblePersonIds()));
+            Set<Participant> newResponsiblePersons = new HashSet<>(
+                    participantRepository.findAllById(request.getResponsiblePersonIds()));
             if (newResponsiblePersons.size() != request.getResponsiblePersonIds().size()) {
                 throw new IllegalArgumentException("Один или несколько ответственных лиц не найдены.");
             }
@@ -229,7 +231,8 @@ public class TaskService {
 
         Project project = task.getStage().getSchedule().getProject();
         ProjectStatus status = project.getStatus();
-        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED || status == ProjectStatus.CANCELLED) {
+        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED
+                || status == ProjectStatus.CANCELLED) {
             throw new AccessDeniedException("Удаление задач запрещено в текущем статусе проекта: " + status);
         }
 
@@ -238,11 +241,12 @@ public class TaskService {
 
         // Удаляем все зависимости, где эта задача является основной.
         removeAllDependenciesFromTask(taskId);
-        
+
         taskRepository.deleteById(taskId);
     }
 
-    // Удаляет все зависимости, где указанная задача является зависимой (другие задачи зависят от этой).
+    // Удаляет все зависимости, где указанная задача является зависимой (другие
+    // задачи зависят от этой).
     @Transactional
     public void removeAllDependenciesForTask(Long taskId) {
         List<Task> tasksThatDependOnThis = taskRepository.findTasksThatDependOn(taskId);
@@ -272,8 +276,10 @@ public class TaskService {
 
         Project project = task.getStage().getSchedule().getProject();
         ProjectStatus status = project.getStatus();
-        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED || status == ProjectStatus.CANCELLED) {
-            throw new AccessDeniedException("Изменение приоритета задач запрещено в текущем статусе проекта: " + status);
+        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED
+                || status == ProjectStatus.CANCELLED) {
+            throw new AccessDeniedException(
+                    "Изменение приоритета задач запрещено в текущем статусе проекта: " + status);
         }
 
         task.setPriority(!task.isPriority());
@@ -288,13 +294,15 @@ public class TaskService {
 
         Project project = task.getStage().getSchedule().getProject();
         if (project.getStatus() != ProjectStatus.ACTIVE) {
-            throw new AccessDeniedException("Запрос исполнения возможен только в активном проекте. Текущий статус: " + project.getStatus());
+            throw new AccessDeniedException(
+                    "Запрос исполнения возможен только в активном проекте. Текущий статус: " + project.getStatus());
         }
 
         if (task.getDependsOn() != null) {
             for (Task dependency : task.getDependsOn()) {
                 if (!dependency.isExecuted()) {
-                    throw new IllegalStateException("Нельзя запросить исполнение, пока не завершена зависимая задача: " + dependency.getName());
+                    throw new IllegalStateException(
+                            "Нельзя запросить исполнение, пока не завершена зависимая задача: " + dependency.getName());
                 }
             }
         }
@@ -303,8 +311,7 @@ public class TaskService {
                 ActivityActionType.REQUEST_ACCEPTANCE,
                 ActivityEntityType.PROJECT,
                 task.getId(),
-                task.getName()
-        );
+                task.getName());
 
         task.setExecutionRequested(true);
         task.setExecutionRequestedAt(LocalDateTime.now());
@@ -319,7 +326,9 @@ public class TaskService {
 
         Project project = task.getStage().getSchedule().getProject();
         if (project.getStatus() != ProjectStatus.ACTIVE) {
-            throw new AccessDeniedException("Подтверждение исполнения возможно только в активном проекте. Текущий статус: " + project.getStatus());
+            throw new AccessDeniedException(
+                    "Подтверждение исполнения возможно только в активном проекте. Текущий статус: "
+                            + project.getStatus());
         }
 
         task.setExecuted(true);
@@ -333,8 +342,7 @@ public class TaskService {
                 ActivityActionType.ACCEPTED_ACCEPTANCE,
                 ActivityEntityType.PROJECT,
                 task.getId(),
-                task.getName()
-        );
+                task.getName());
 
         // Оповещаем каждого ответственного участника
         if (task.getResponsiblePersons() != null) {
@@ -346,8 +354,7 @@ public class TaskService {
                         task.getId(),
                         task.getName(),
                         com.smartqurylys.backend.entity.NotificationType.TASK_ACCEPTED,
-                        reason
-                );
+                        reason);
             }
         }
 
@@ -362,7 +369,8 @@ public class TaskService {
 
         Project project = task.getStage().getSchedule().getProject();
         if (project.getStatus() != ProjectStatus.ACTIVE) {
-            throw new AccessDeniedException("Отклонение исполнения возможно только в активном проекте. Текущий статус: " + project.getStatus());
+            throw new AccessDeniedException(
+                    "Отклонение исполнения возможно только в активном проекте. Текущий статус: " + project.getStatus());
         }
 
         task.setExecuted(false);
@@ -376,8 +384,7 @@ public class TaskService {
                 ActivityActionType.REJECTED_ACCEPTANCE,
                 ActivityEntityType.PROJECT,
                 task.getId(),
-                task.getName()
-        );
+                task.getName());
 
         // Оповещаем каждого ответственного участника
         if (task.getResponsiblePersons() != null) {
@@ -389,8 +396,7 @@ public class TaskService {
                         task.getId(),
                         task.getName(),
                         com.smartqurylys.backend.entity.NotificationType.TASK_DECLINED,
-                        reason
-                );
+                        reason);
             }
         }
 
@@ -405,7 +411,9 @@ public class TaskService {
 
         Project project = task.getStage().getSchedule().getProject();
         if (project.getStatus() != ProjectStatus.ACTIVE) {
-            throw new AccessDeniedException("Возврат задачи в работу возможен только в активном проекте. Текущий статус: " + project.getStatus());
+            throw new AccessDeniedException(
+                    "Возврат задачи в работу возможен только в активном проекте. Текущий статус: "
+                            + project.getStatus());
         }
 
         task.setExecuted(false);
@@ -419,8 +427,7 @@ public class TaskService {
                 ActivityActionType.REJECTED_ACCEPTANCE,
                 ActivityEntityType.PROJECT,
                 task.getId(),
-                task.getName()
-        );
+                task.getName());
 
         // Оповещаем каждого ответственного участника
         if (task.getResponsiblePersons() != null) {
@@ -432,8 +439,7 @@ public class TaskService {
                         task.getId(),
                         task.getName(),
                         com.smartqurylys.backend.entity.NotificationType.TASK_RETURNED,
-                        reason
-                );
+                        reason);
             }
         }
 
@@ -448,7 +454,8 @@ public class TaskService {
 
         Project project = task.getStage().getSchedule().getProject();
         ProjectStatus status = project.getStatus();
-        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED || status == ProjectStatus.CANCELLED) {
+        if (status == ProjectStatus.ON_PAUSE || status == ProjectStatus.COMPLETED
+                || status == ProjectStatus.CANCELLED) {
             throw new AccessDeniedException("Добавление файлов запрещено в текущем статусе проекта: " + status);
         }
 
@@ -482,7 +489,8 @@ public class TaskService {
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
 
         Task dependency = taskRepository.findById(dependencyTaskId)
-                .orElseThrow(() -> new EntityNotFoundException("Зависимая задача не найдена с ID: " + dependencyTaskId));
+                .orElseThrow(
+                        () -> new EntityNotFoundException("Зависимая задача не найдена с ID: " + dependencyTaskId));
 
         if (task.equals(dependency)) {
             throw new IllegalArgumentException("Задача не может зависеть от самой себя");
@@ -523,7 +531,8 @@ public class TaskService {
 
     // Создает новое требование для задачи.
     @Transactional
-    public RequirementResponse createRequirement(Long taskId, CreateRequirementRequest request, MultipartFile sampleFile) throws IOException {
+    public RequirementResponse createRequirement(Long taskId, CreateRequirementRequest request,
+            MultipartFile sampleFile) throws IOException {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
 
@@ -550,7 +559,8 @@ public class TaskService {
 
     // Обновляет существующее требование.
     @Transactional
-    public RequirementResponse updateRequirement(Long requirementId, UpdateRequirementRequest request, MultipartFile newSampleFile) throws IOException {
+    public RequirementResponse updateRequirement(Long requirementId, UpdateRequirementRequest request,
+            MultipartFile newSampleFile) throws IOException {
         Requirement requirement = requirementRepository.findById(requirementId)
                 .orElseThrow(() -> new EntityNotFoundException("Требование не найдено с ID: " + requirementId));
 
@@ -617,29 +627,23 @@ public class TaskService {
 
     // Преобразует сущность Task в DTO TaskResponse.
     private TaskResponse mapToResponse(Task task) {
-        List<ParticipantResponse> responsiblePersons = task.getResponsiblePersons() != null ?
-                task.getResponsiblePersons().stream()
+        List<ParticipantResponse> responsiblePersons = task.getResponsiblePersons() != null
+                ? task.getResponsiblePersons().stream()
                         .map(this::mapToParticipantResponse)
-                        .collect(Collectors.toList()) :
-                new ArrayList<>();
+                        .collect(Collectors.toList())
+                : new ArrayList<>();
 
-        List<RequirementResponse> requirements = task.getRequirements() != null ?
-                task.getRequirements().stream()
-                        .map(this::mapToRequirementResponse)
-                        .collect(Collectors.toList()) :
-                new ArrayList<>();
+        List<RequirementResponse> requirements = task.getRequirements() != null ? task.getRequirements().stream()
+                .map(this::mapToRequirementResponse)
+                .collect(Collectors.toList()) : new ArrayList<>();
 
-        List<FileResponse> files = task.getFiles() != null ?
-                task.getFiles().stream()
-                        .map(fileService::mapToFileResponse)
-                        .toList() :
-                new ArrayList<>();
+        List<FileResponse> files = task.getFiles() != null ? task.getFiles().stream()
+                .map(fileService::mapToFileResponse)
+                .toList() : new ArrayList<>();
 
-        List<Long> dependsOnTaskIds = task.getDependsOn() != null ?
-                task.getDependsOn().stream()
-                        .map(Task::getId)
-                        .collect(Collectors.toList()) :
-                new ArrayList<>();
+        List<Long> dependsOnTaskIds = task.getDependsOn() != null ? task.getDependsOn().stream()
+                .map(Task::getId)
+                .collect(Collectors.toList()) : new ArrayList<>();
 
         return TaskResponse.builder()
                 .id(task.getId())
