@@ -8,9 +8,13 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { AuthInterceptor } from './app/core/interceptors/auth.interceptor';
 import { importProvidersFrom } from '@angular/core';
 import { AuthModule } from './app/auth/auth.module';
+import { registerLocaleData } from '@angular/common';
+import localeRu from '@angular/common/locales/ru';
 if (environment.production) {
   enableProdMode();
 }
+
+registerLocaleData(localeRu);
 
 bootstrapApplication(AppComponent, {
   providers: [

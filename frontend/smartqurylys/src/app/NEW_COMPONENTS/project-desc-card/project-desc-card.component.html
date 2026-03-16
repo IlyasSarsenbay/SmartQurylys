@@ -2,40 +2,73 @@
     <div class="info-row">
         <div class="label">Статус</div>
         <div class="value">
-            <span class="status-badge">{{PROJECT_STATUS_RU[project.status]}}</span>
+            <div class="status-dropdown-wrapper">
+                <button class="status-button" (click)="toggleStatusMenu()" [ngClass]="{
+                        'status-draft': project.status === 'DRAFT',
+                        'status-active': project.status === 'ACTIVE',
+                        'status-waiting': project.status === 'WAITING',
+                        'status-pause': project.status === 'ON_PAUSE',
+                        'status-completed': project.status === 'COMPLETED',
+                        'status-cancelled': project.status === 'CANCELLED'
+                        }">{{ PROJECT_STATUS_RU[project.status] }}
+                </button>
+
+                @if (isStatusMenuOpen) {
+                <div class="status-dropdown">
+                    <button class="status-option" (click)="changeStatus('DRAFT')">
+                        {{ PROJECT_STATUS_RU['DRAFT'] }}
+                    </button>
+
+                    <button class="status-option" (click)="changeStatus('WAITING')">
+                        {{ PROJECT_STATUS_RU['WAITING'] }}
+                    </button>
+
+                    <button class="status-option" (click)="changeStatus('ACTIVE')">
+                        {{ PROJECT_STATUS_RU['ACTIVE'] }}
+                    </button>
+
+                    <button class="status-option" (click)="changeStatus('ON_PAUSE')">
+                        {{ PROJECT_STATUS_RU['ON_PAUSE'] }}
+                    </button>
+
+                    <button class="status-option" (click)="changeStatus('COMPLETED')">
+                        {{ PROJECT_STATUS_RU['COMPLETED'] }}
+                    </button>
+
+                    <button class="status-option" (click)="changeStatus('CANCELLED')">
+                        {{ PROJECT_STATUS_RU['CANCELLED'] }}
+                    </button>
+                </div>
+                }
+            </div>
         </div>
     </div>
 
     <div class="info-row">
         <div class="label">Дата начала</div>
-        <div class="value muted">—</div>
+        <div class="value"> {{ project.startDate | date:'d MMMM y':'':'ru' }} </div>
     </div>
 
     <div class="info-row">
         <div class="label">Дедлайн</div>
-        <div class="value muted">—</div>
+        <div class="value">{{ project.endDate | date:'d MMMM y':'':'ru' }}</div>
     </div>
 
     <div class="info-row">
-        <div class="label">Автор</div>
+        <div class="label">Владелец</div>
         <div class="value author">
             <img src="assets/icon_profile-picture.png" class="avatar" />
             <span>{{ project.ownerName }}</span>
         </div>
     </div>
 
-    <div class="info-row highlighted">
-        <div class="label">Ответственный</div>
-        <div class="value muted">—</div>
-    </div>
-
     <div class="info-row">
         <div class="label">Тип проекта</div>
-        <div class="value muted">—</div>
+        <div class="value"> {{ project.type }} </div>
     </div>
 
     <div class="info-row">
-        <div class="label">Рейтинг</div>
-        <div class="value muted">—</div>
+        <div class="label">Город</div>
+        <div class="value">{{ project.cityName }} </div>
     </div>
 </div>
