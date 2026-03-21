@@ -8,11 +8,12 @@ import { RichEditorComponent } from "../rich-editor/rich-editor.component";
 import { PROJECT_STATUS_RU } from '../../core/models/project';
 import { NgClass } from '@angular/common';
 import { ProjectDescCardComponent } from "../project-desc-card/project-desc-card.component";
+import { ProjectFilesSectionComponent } from "../project-files-section/project-files-section.component";
 
 @Component({
   selector: 'app-project-details',
   standalone: true,
-  imports: [FormsModule, ProjectPageHeader, FormsModule, RichEditorComponent, NgClass, ProjectDescCardComponent],
+  imports: [FormsModule, ProjectPageHeader, FormsModule, RichEditorComponent, NgClass, ProjectDescCardComponent, ProjectFilesSectionComponent],
   templateUrl: './project-details.component.html',
   styleUrl: './project-details.component.css'
 })

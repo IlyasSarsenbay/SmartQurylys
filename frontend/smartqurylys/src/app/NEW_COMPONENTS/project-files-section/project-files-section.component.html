@@ -1,0 +1,48 @@
+<div class="files-section">
+    <div class="files-header">
+        <div class="header-cell name">Название</div>
+        <div class="header-cell type">Тип файла</div>
+        <div class="header-cell date">Дата загрузки</div>
+        <div class="header-cell size">Размер</div>
+        <div class="header-cell actions">
+            <button class="icon-btn" (click)="fileInput.click()">+</button>
+            <button class="icon-btn">⋯</button>
+            <input #fileInput type="file" multiple hidden (change)="onFilesSelected($event)" />
+        </div>
+    </div>
+
+    <div class="files-list">
+        @for (file of files; track $index) {
+        <div class="file-row">
+            <div class="file-cell name">
+                <div class="file-name-wrapper">
+                    <div class="file-icon">
+                        @if(file.preview) {
+                        <img [src]="file.preview" alt="preview" />
+                        }
+                        @else {
+                        <span>📄</span>
+                        }
+                    </div>
+                    <span class="file-name">{{ file.name }}</span>
+                </div>
+            </div>
+
+            <div class="file-cell type">{{ file.type }}</div>
+            <div class="file-cell date">{{ file.uploadDate }}</div>
+            <div class="file-cell size">{{ file.size }}</div>
+
+            <div class="file-cell row-actions">
+                <button class="file-more-btn" (click)="toggleFileItemMenu(file.id)">⋯</button>
+                @if (openedFileItemMenuId == file.id) {
+                <div class="dropdown-menu">
+                    <button (click)="downloadFile(file)">Скачать</button>
+                    <button (click)="removeFile(file)">Удалить</button>
+                </div>
+                }
+            </div>
+        </div>
+        }
+    </div>
+
+</div>

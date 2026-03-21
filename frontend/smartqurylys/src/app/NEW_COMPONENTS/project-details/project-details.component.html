@@ -3,7 +3,6 @@
 
     <div class="page-container">
         <div class="details-body">
-
             <div class='project-description'>
                 @if(isEditorEnabled) {
                 <app-rich-editor [projectDescriptionHTML]="project.description" class="description-editor"
@@ -24,7 +23,10 @@
                 }
                 }
             </div>
-
+            
+            <div>
+                <app-project-files-section></app-project-files-section>
+            </div>
         </div>
 
         <div class="details-sidebar">

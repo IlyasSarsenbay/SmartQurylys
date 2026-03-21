@@ -130,7 +130,7 @@ export class ProjectService {
 
 
 
-  uploadProjectFile(projectId: number, file: File): Observable<void> {
+  uploadProjectFile(projectId: number, file: File): Observable<FileResponse> {
 
     const formData = new FormData();
 
@@ -138,7 +138,7 @@ export class ProjectService {
 
     // FormData usually sets its own Content-Type, so we only need Authorization
 
-    return this.http.post<void>(`${this.apiUrl}/${projectId}/files`, formData, {
+    return this.http.post<FileResponse>(`${this.apiUrl}/${projectId}/files`, formData, {
 
       headers: new HttpHeaders({ 'Authorization': `Bearer ${this.authService.getToken()}` })
 

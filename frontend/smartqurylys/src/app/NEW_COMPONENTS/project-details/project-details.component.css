@@ -1,6 +1,7 @@
 main {
     display: flex;
     flex-direction: column;
+    padding-bottom: 16px;
 }
 
 .page-container {
@@ -22,10 +23,13 @@ main {
 }
 
 .description-editor {
+    width: 100%;
     padding: 16px 32px;
 }
 
 .description-wrapper {
+    width: 100%;
+    min-height: 80px;
     position: relative;
     overflow: hidden;
     transition: max-height 0.25s ease;
@@ -33,11 +37,9 @@ main {
 }
 
 .description-wrapper.collapsed {
-    max-height: 120px;
-    /* your limit */
+    max-height: 300px;
 }
 
-/* optional fade at the bottom when collapsed */
 .description-wrapper.collapsed::after {
     content: "";
     position: absolute;
@@ -65,7 +67,8 @@ main {
 
 .toggle-btn {
     border: none;
-    padding: 5px 13px;
+    padding: 3px 12px;
+    margin-top: 4px;
     cursor: pointer;
     color: #0000008C;
     font: inherit;
@@ -76,7 +79,7 @@ main {
 }
 
 .toggle-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(158, 143, 143, 0.1);
     color: #000000d9;
     transition: background ease 0.3s, color ease 0.3s;
 }
