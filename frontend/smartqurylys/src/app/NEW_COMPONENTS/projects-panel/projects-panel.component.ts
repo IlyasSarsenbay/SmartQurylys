@@ -41,7 +41,9 @@ export class ProjectsPanelComponent implements OnInit {
 
   onClickProject(project: Project) {
     this.closePanelCommand.emit()
-    this.router.navigate(['/projects', project.id])
+    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.router.navigate(['/projects', project.id]);
+    });
   }
 
   toggleFavorite(project: Project) {

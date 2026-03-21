@@ -13,7 +13,7 @@ import { ProjectFilesSectionComponent } from "../project-files-section/project-f
 @Component({
   selector: 'app-project-details',
   standalone: true,
-  imports: [FormsModule, ProjectPageHeader, FormsModule, RichEditorComponent, NgClass, ProjectDescCardComponent, ProjectFilesSectionComponent],
+  imports: [FormsModule, ProjectPageHeader, FormsModule, RichEditorComponent, ProjectDescCardComponent, ProjectFilesSectionComponent],
   templateUrl: './project-details.component.html',
   styleUrl: './project-details.component.css'
 })
