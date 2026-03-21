@@ -6,6 +6,8 @@ import com.smartqurylys.backend.dto.project.ProjectResponse;
 import com.smartqurylys.backend.dto.project.UpdateProjectRequest;
 import com.smartqurylys.backend.dto.project.participant.CreateInvitationRequest;
 import com.smartqurylys.backend.dto.project.participant.InvitationResponse;
+import com.smartqurylys.backend.entity.File;
+import com.smartqurylys.backend.service.FileService;
 import com.smartqurylys.backend.service.ParticipantInvitationService;
 import com.smartqurylys.backend.service.ProjectService;
 import com.smartqurylys.backend.service.UserService;
@@ -34,6 +36,7 @@ public class ProjectController {
     private final ProjectService projectService;
     private final ParticipantInvitationService invitationService;
     private final com.smartqurylys.backend.service.UserService userService;
+    private final FileService fileService;
 
     // Создание нового проекта.
     @PostMapping
@@ -65,7 +68,8 @@ public class ProjectController {
 
     // Обновление данных проекта.
     @PutMapping("/{id}")
-    public ResponseEntity<ProjectResponse> updateProject(@PathVariable Long id, @Valid @RequestBody UpdateProjectRequest request) {
+    public ResponseEntity<ProjectResponse> updateProject(@PathVariable Long id,
+            @Valid @RequestBody UpdateProjectRequest request) {
         log.info("PUT /projects/id:" + id + "\n" + request);
         return ResponseEntity.ok(projectService.updateProject(id, request));
     }
@@ -81,20 +85,18 @@ public class ProjectController {
     @PostMapping("/{id}/invitations")
     public ResponseEntity<InvitationResponse> invite(
             @PathVariable Long id,
-            @Valid @RequestBody CreateInvitationRequest request
-    ) {
+            @Valid @RequestBody CreateInvitationRequest request) {
         com.smartqurylys.backend.entity.User sender = userService.getCurrentUserEntity();
         return ResponseEntity.ok(invitationService.sendInvitation(id, request, sender));
     }
 
     // Загрузка файла в проект.
     @PostMapping("/{projectId}/files")
-    public ResponseEntity<Void> uploadProjectFile(
+    public ResponseEntity<FileResponse> uploadProjectFile(
             @PathVariable Long projectId,
-            @RequestParam("file") MultipartFile file
-    ) throws IOException {
-        projectService.addFileToProject(projectId, file);
-        return ResponseEntity.ok().build();
+            @RequestParam("file") MultipartFile file) throws IOException {
+        File savedFile = projectService.addFileToProject(projectId, file);
+        return ResponseEntity.ok(fileService.mapToFileResponse(savedFile));
     }
 
     // Получение списка файлов проекта.
@@ -110,8 +112,8 @@ public class ProjectController {
     public ResponseEntity<com.smartqurylys.backend.dto.project.ProjectNoteResponse> createNote(
             @PathVariable Long projectId,
             @RequestBody com.smartqurylys.backend.dto.project.ProjectNoteRequest request) {
-        com.smartqurylys.backend.dto.project.ProjectNoteResponse response =
-                projectService.createProjectNote(projectId, request.getContent());
+        com.smartqurylys.backend.dto.project.ProjectNoteResponse response = projectService.createProjectNote(projectId,
+                request.getContent());
         return ResponseEntity.ok(response);
     }
 
@@ -119,8 +121,8 @@ public class ProjectController {
     @GetMapping("/{projectId}/notes")
     public ResponseEntity<List<com.smartqurylys.backend.dto.project.ProjectNoteResponse>> getProjectNotes(
             @PathVariable Long projectId) {
-        List<com.smartqurylys.backend.dto.project.ProjectNoteResponse> notes =
-                projectService.getProjectNotes(projectId);
+        List<com.smartqurylys.backend.dto.project.ProjectNoteResponse> notes = projectService
+                .getProjectNotes(projectId);
         return ResponseEntity.ok(notes);
     }
 

@@ -234,7 +234,7 @@ public class ProjectService {
     }
 
     // Добавляет файл к проекту.
-    public void addFileToProject(Long projectId, MultipartFile file) throws IOException {
+    public File addFileToProject(Long projectId, MultipartFile file) throws IOException {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
 
@@ -265,6 +265,8 @@ public class ProjectService {
 
         project.getFiles().add(savedFile);
         projectRepository.save(project);
+
+        return savedFile;
     }
 
     // Получает список файлов, связанных с проектом.
