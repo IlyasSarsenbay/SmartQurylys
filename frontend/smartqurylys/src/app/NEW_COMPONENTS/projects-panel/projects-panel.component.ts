@@ -17,6 +17,8 @@ export class ProjectsPanelComponent implements OnInit {
   selectedFilter: 'all' | 'name' | 'status' | 'contractor' = 'all';
   PROJECT_STATUS_RU = PROJECT_STATUS_RU;
 
+  searchTerm = '';
+
   projects!: Project[]
   @Output() closePanelCommand = new EventEmitter<void>();
 
@@ -32,7 +34,16 @@ export class ProjectsPanelComponent implements OnInit {
 
         console.log(value)
       })
+  }
 
+  get filteredProjects(): Project[] {
+    const value = this.searchTerm.toLowerCase().trim();
+
+    if (!value) return this.projects;
+
+    return this.projects.filter((project) =>
+      (project.name ?? '').toLowerCase().includes(value)
+    );
   }
 
   onClickCreateProject() {

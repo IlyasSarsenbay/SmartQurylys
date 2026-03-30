@@ -1,0 +1,304 @@
+.participants-page {
+  padding: 24px 40px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.page-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #000000D9;
+}
+
+.subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.participants-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+}
+
+.participants-toolbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.search-input {
+  width: 320px;
+  max-width: 100%;
+  padding: 8px 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 10px;
+  outline: none;
+  font-size: 14px;
+}
+
+.search-input::placeholder {
+  font-size: 14px;
+}
+
+.search-input:focus {
+  border-color: #2f6fed;
+}
+
+.participants-table-wrapper {
+  overflow-x: auto;
+}
+
+.participants-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.participants-table th,
+.participants-table td {
+  text-align: left;
+  padding: 14px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: top;
+}
+
+.participants-table th {
+  font-size: 13px;
+  color: #8c8c8c;
+  font-weight: 600;
+}
+
+.participant-name-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.participant-name {
+  font-weight: 600;
+  color: #000000D9;
+}
+
+.invitation-sent {
+  font-size: 12px;
+  color: #c0880f;
+  background-color: #fff7e6;
+  padding: 4px 6px;
+  border-radius: 8px;
+
+}
+
+.permissions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.permission-badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f2f2f2;
+  color: #777;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.permission-badge.active {
+  background: rgba(47, 111, 237, 0.12);
+  color: #2f6fed;
+}
+
+.invite-btn,
+.secondary-btn,
+.icon-btn {
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.invite-btn {
+  background: #2f6fed;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.invite-btn:hover {
+  background: #2458be;
+}
+
+.secondary-btn {
+  background: #f2f2f2;
+  color: #333;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.secondary-btn:hover {
+  background: #e6e6e6;
+}
+
+.icon-btn {
+  background: transparent;
+  font-size: 20px;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.icon-btn:hover {
+  background: #f5f5f5;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+}
+
+.empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #000000D9;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 16px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+
+.modal {
+  width: 100%;
+  max-width: 700px;
+  background: white;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.modal-header,
+.modal-footer {
+  padding: 18px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-footer {
+  border-top: 1px solid #f0f0f0;
+  border-bottom: none;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #777;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-group input {
+  padding: 10px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 10px;
+  outline: none;
+  font-size: 14px;
+}
+
+.form-group input:focus {
+  border-color: #2f6fed;
+}
+
+.permissions-section {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #000000D9;
+}
+
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+}

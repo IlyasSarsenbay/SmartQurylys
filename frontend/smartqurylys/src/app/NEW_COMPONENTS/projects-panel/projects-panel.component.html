@@ -6,13 +6,13 @@
 
     <section class="search">
         <div>
-            <input type="text" placeholder="Поиск проекта по названию" />
+            <input type="text" placeholder="Поиск проекта по названию" [(ngModel)]="searchTerm"/>
         </div>
     </section>
 
     <section class="projects">
         <ul class="project-list">
-            @for (project of projects; track project.id) {
+            @for (project of filteredProjects; track project.id) {
             <li class="project-item" (click)="onClickProject(project)">
                 <span>{{ project.name }}</span>
                 <div>

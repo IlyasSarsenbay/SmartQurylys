@@ -5,6 +5,8 @@ import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { mapToUpdateProjectRequest } from '../../core/models/project-requests';
 import { TaskService } from '../../core/task.service';
+import { ParticipantService } from '../../core/participant.service';
+import { mapParticipantResponsesToParticipants, Participant } from '../../core/models/participant';
 
 @Component({
   selector: 'app-project-header',
@@ -17,11 +19,15 @@ export class ProjectPageHeader implements OnInit {
   project!: Project
   numberOfCompletedTasks = 0
   numberOfTasks = 0
+  isAccessDialogOpen = false;
+
+  participants: Participant[] = []
 
   constructor(
     private route: ActivatedRoute,
     private projectService: ProjectService,
-    private taskService: TaskService
+    private taskService: TaskService,
+    private participantService: ParticipantService
   ) { }
 
   ngOnInit(): void {
@@ -66,5 +72,22 @@ export class ProjectPageHeader implements OnInit {
 
   private getNumberOfCompltedTasks() {
 
+  }
+
+  openDialog(): void {
+    this.isAccessDialogOpen = true;
+
+    this.participantService.getParticipantsByProject(this.project.id)
+    .subscribe(responses => {
+        this.participants = mapParticipantResponsesToParticipants(responses)
+    })
+  }
+
+  closeDialog(): void {
+    this.isAccessDialogOpen = false;
+  }
+
+  saveAccess(): void {
+    this.closeDialog();
   }
 }

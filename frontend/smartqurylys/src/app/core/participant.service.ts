@@ -18,6 +18,10 @@ export class ParticipantService {
      return this.http.get<ParticipantResponse[]>(`${this.apiUrl}/project/${projectId}`);
   }
 
+  getInvitedParticipantsByProject(projectId: number): Observable<ParticipantResponse[]> {
+    return this.http.get<ParticipantResponse[]>(`${this.apiUrl}/project/${projectId}/invitations`);
+  }
+
   updateParticipant(participantId: number, request: UpdateParticipantRequest): Observable<ParticipantResponse> {
     return this.http.patch<ParticipantResponse>(`${this.apiUrl}/${participantId}`, request);
 

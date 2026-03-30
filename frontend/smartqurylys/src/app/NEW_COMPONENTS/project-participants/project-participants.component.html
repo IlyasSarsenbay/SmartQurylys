@@ -1,0 +1,132 @@
+<main>
+    <app-project-header></app-project-header>
+    <div class="participants-page">
+        <div class="page-header">
+            <div>
+                <h2>Доступ к проекту «{{ project.name }}»</h2>
+                <!-- <p class="subtitle"></p> -->
+            </div>
+
+            <button class="invite-btn" (click)="isInviteModalOpen = true">
+                Пригласить участника
+            </button>
+        </div>
+
+        <div class="participants-card">
+            <div class="participants-toolbar">
+                <input type="text" placeholder="Имя, почта пользователя или ИИН" [(ngModel)]="searchTerm"
+                    class="search-input" />
+            </div>
+
+            <div class="participants-table-wrapper" *ngIf="filteredParticipants.length > 0; else emptyState">
+                <table class="participants-table">
+                    <thead>
+                        <tr>
+                            <th>Имя</th>
+                            <th>Роль</th>
+                            <th>Организация</th>
+                            <th>Телефон</th>
+                            <th>Почта</th>
+                            <th>Доступ</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(p of filteredParticipants; track p.id) {
+                        <tr>
+                            <td>
+                                <div class="participant-name-block">
+                                    <span>
+                                        {{ p.fullName }}
+                                    </span>
+
+                                    @if(!p.acceptedInvite) {
+                                    <div>
+                                        <span class="invitation-sent">
+                                            Приглашение отправлено
+                                        </span>
+                                    </div>
+                                    }
+                                </div>
+
+                            </td>
+
+                            <td>{{ p.role }}</td>
+                            <td>{{ p.organization }}</td>
+                            <td>{{ p.phone }}</td>
+                            <td>{{ p.email }}</td>
+                            <td>
+                                <div class="permissions">
+                                    <span class="permission-badge" [class.active]="p.canUploadDocuments">
+                                        Загрузка документов
+                                    </span>
+                                    <span class="permission-badge" [class.active]="p.canSendNotifications">
+                                        Уведомления
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <button class="icon-btn">⋯</button>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <ng-template #emptyState>
+                <div class="empty-state">
+                    <div class="empty-title">Участники не найдены</div>
+                    <div class="empty-text">
+                        Пригласите других пользователей в ваш проект
+                    </div>
+                    <button class="invite-btn" (click)="isInviteModalOpen = true">
+                        Пригласить
+                    </button>
+                </div>
+            </ng-template>
+        </div>
+
+
+        <div class="modal-backdrop" *ngIf="isInviteModalOpen">
+
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Добавить участника</h3>
+                    <button class="close-btn" (click)="closeInviteModal()">×</button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label>ИИН/БИН</label>
+                            <input type="text" [(ngModel)]="inviteForm.iinBin" />
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Роль</label>
+                            <input type="text" [(ngModel)]="inviteForm.role"
+                                placeholder="Например, Подрядчик, Тех.надзор" />
+                        </div>
+                    </div>
+
+                    <div class="permissions-section">
+                        <label class="checkbox-row">
+                            <input type="checkbox" [(ngModel)]="inviteForm.canUploadDocuments" />
+                            <span>Может загружать документы</span>
+                        </label>
+
+                        <label class="checkbox-row">
+                            <input type="checkbox" [(ngModel)]="inviteForm.canSendNotifications" />
+                            <span>Может отправлять уведомления</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="secondary-btn" (click)="closeInviteModal()">Отменить</button>
+                    <button class="invite-btn" (click)="inviteParticipant()">Отправить приглашение</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
