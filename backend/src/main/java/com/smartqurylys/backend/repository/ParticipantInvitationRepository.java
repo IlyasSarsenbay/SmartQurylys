@@ -5,6 +5,7 @@ import com.smartqurylys.backend.entity.Project;
 import com.smartqurylys.backend.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 // Репозиторий для работы с сущностями ParticipantInvitation.
@@ -15,6 +16,8 @@ public interface ParticipantInvitationRepository extends JpaRepository<Participa
 
     // Находит приглашение по проекту и пользователю.
     Optional<ParticipantInvitation> findByProjectAndUser(Project project, User user);
+
+    Optional<List<ParticipantInvitation>> findAllByProjectId(Long projectId);
 
     void deleteByUser(User user);
     void deleteBySender(User user);
