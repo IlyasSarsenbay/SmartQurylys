@@ -2,7 +2,7 @@ package com.smartqurylys.backend.dto.project.document;
 
 import com.smartqurylys.backend.dto.project.FileResponse;
 import com.smartqurylys.backend.dto.project.participant.ParticipantResponse;
-import com.smartqurylys.backend.entity.User;
+import com.smartqurylys.backend.entity.File;
 import com.smartqurylys.backend.shared.enums.DocumentStatus;
 import lombok.Builder;
 import lombok.Data;
@@ -28,7 +28,7 @@ public class DocumentDetailsResponse {
 
     private DocumentStatus status;
 
-    private List<FileResponse> files;
+    private FileResponse file;
 
     private List<ParticipantResponse> haveToSign;
 

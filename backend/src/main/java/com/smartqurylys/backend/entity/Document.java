@@ -45,10 +45,9 @@ public class Document {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private DocumentStatus status; // Текущий статус документа.
 
-    // files attached to document
-    @ManyToMany 
-    @JoinTable(name = "file_document", joinColumns = @JoinColumn(name = "document_id"), inverseJoinColumns = @JoinColumn(name = "file_id"))
-    private List<File> files;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "file_id")
+    private File file;
 
     @ManyToMany
     @JoinTable(name = "document_have_to_sign", joinColumns = @JoinColumn(name = "document_id"), inverseJoinColumns = @JoinColumn(name = "participant_id"))

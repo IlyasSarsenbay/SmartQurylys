@@ -17,8 +17,6 @@ public class DocumentRequest {
 
     private DocumentStatus status;
 
-    private List<Long> fileIds;
-
     private List<Long> haveToSignParticipantIds;
 
     private List<Long> signedParticipantIds;

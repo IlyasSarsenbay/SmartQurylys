@@ -31,7 +31,6 @@ public class DocumentService {
 
     private final DocumentRepository documentRepository;
     private final ProjectRepository projectRepository;
-    private final FileRepository fileRepository;
     private final ParticipantRepository participantRepository;
     private final UserRepository userRepository;
 
@@ -61,7 +60,7 @@ public class DocumentService {
 
         File savedFile = fileService.prepareFile(file, currentUser);
         document.setFilePath(savedFile.getFilepath());
-        document.setFiles(List.of(savedFile));
+        document.setFile(savedFile);
         document.setUploadedBy(currentUser);
 
         return mapToDetailsResponse(documentRepository.save(document));
@@ -80,10 +79,6 @@ public class DocumentService {
         Project project = projectRepository.findById(request.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
         document.setProject(project);
-
-        if (request.getFileIds() != null) {
-            document.setFiles(fileRepository.findAllById(request.getFileIds()));
-        }
 
         if (request.getHaveToSignParticipantIds() != null) {
             document.setHaveToSign(
@@ -120,10 +115,9 @@ public class DocumentService {
                 .id(document.getId().longValue())
                 .projectId(document.getProject() != null ? document.getProject().getId() : null)
                 .name(document.getName())
-                .filePath(document.getFilePath())
                 .uploadDate(document.getUploadDate())
                 .status(document.getStatus())
-                .files(FileService.mapToFileResponseList(document.getFiles()))
+                .file(FileService.mapToFileResponse(document.getFile()))
                 .haveToSign(ParticipantService.mapToParticipantResponseList(document.getHaveToSign()))
                 .signed(ParticipantService.mapToParticipantResponseList(document.getSigned()))
                 .uploaderEmail(document.getUploadedBy().getEmail())

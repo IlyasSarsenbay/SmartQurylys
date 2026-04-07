@@ -3,19 +3,17 @@ package com.smartqurylys.backend.controller;
 import com.smartqurylys.backend.dto.project.document.DocumentDetailsResponse;
 import com.smartqurylys.backend.dto.project.document.DocumentRequest;
 import com.smartqurylys.backend.dto.project.document.DocumentShortResponse;
-import com.smartqurylys.backend.entity.Comment;
 import com.smartqurylys.backend.entity.Document;
-import com.smartqurylys.backend.entity.User;
+import com.smartqurylys.backend.entity.File;
 import com.smartqurylys.backend.repository.DocumentRepository;
-import com.smartqurylys.backend.repository.UserRepository;
 import com.smartqurylys.backend.service.DocumentService;
+import com.smartqurylys.backend.service.FileService;
 
 import lombok.AllArgsConstructor;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +28,8 @@ import java.util.List;
 public class DocumentController {
 
     private final DocumentService documentService;
+    private final FileService fileService;
+    private final DocumentRepository documentRepository;
 
     // Get short info of all docs of the project
     @GetMapping("/project/{projectId}")
@@ -43,6 +43,26 @@ public class DocumentController {
         return documentService.getById(id);
     }
 
+    @GetMapping("/download/{id}")
+    public ResponseEntity<byte[]> downloadFile(@PathVariable Long id) throws IOException {
+        Document doc = documentRepository.findById(id.intValue()).orElseThrow();
+        File file = doc.getFile();
+
+        byte[] fileBytes = fileService.loadFileAsByteArray(file);
+
+        String contentType = fileService.getContentTypeByFilename(file.getFilepath());
+        if (contentType == null) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"")
+                .contentLength(fileBytes.length)
+                .body(fileBytes);
+    }
+
+    // Create Document
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DocumentDetailsResponse> create(
             @RequestPart("request") DocumentRequest request,
@@ -55,12 +75,6 @@ public class DocumentController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         documentService.delete(id);
-    }
-
-    // get short info about project's documents
-    @GetMapping("{id}/documents")
-    public ResponseEntity<List<DocumentShortResponse>> getProjectDocuments(@PathVariable Long id) {
-        return ResponseEntity.ok(documentService.getDocumentsByProject(id.intValue()));
     }
 
     // @PostMapping("/{id}/comment")
