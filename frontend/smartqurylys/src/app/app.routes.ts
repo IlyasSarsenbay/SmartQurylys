@@ -26,6 +26,7 @@ import { ProjectDetailsComponent } from './projects/project-details/project-deta
 import { NotificationModalComponent } from './notification-modal/notification-modal.component';
 import { ProjectTasksPageComponent } from './NEW_COMPONENTS/project-tasks-page/project-tasks-page.component';
 import { ProjectParticipantsComponent } from './NEW_COMPONENTS/project-participants/project-participants.component';
+import { ProjectDocumentsComponent } from './NEW_COMPONENTS/project-documents/project-documents.component';
 // Определение маршрутов приложения Angular.
 export const routes: Routes = [
   { path: '', component: HomeComponent }, // Главная страница.
@@ -56,7 +57,7 @@ export const routes: Routes = [
 
   { path: 'projects/:id', component: NewProjectDetailsComponent, canActivate: [authGuard] },
   { path: 'projects/:id/tasks', component: ProjectTasksPageComponent, canActivate: [authGuard] },
-  { path: 'projects/:id/documents', component: DocumentsComponent, canActivate: [authGuard] },
+  { path: 'projects/:id/documents', component: ProjectDocumentsComponent, canActivate: [authGuard] },
   { path: 'projects/:id/participants', component: ProjectParticipantsComponent, canActivate: [authGuard] },
   { path: 'contractor-registry', component: ContractorRegistryComponent, canActivate: [authGuard] }, // Реестр подрядчиков, требует аутентификации.
   

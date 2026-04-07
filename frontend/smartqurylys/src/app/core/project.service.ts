@@ -160,20 +160,12 @@ export class ProjectService {
 
   }
 
-
-
   downloadFile(fileId: string | number): Observable<HttpResponse<Blob>> {
-
       return this.http.get(`${environment.apiUrl}/files/download/${fileId}`, {
-
         responseType: 'blob',
-
         observe: 'response',
-
         headers: this.getAuthHeaders()
-
       });
-
     }
 
 }

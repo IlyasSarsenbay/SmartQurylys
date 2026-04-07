@@ -8,11 +8,12 @@ import { ProjectStatus } from '../../core/enums/project-status.enum';
 import { ProjectResponse } from '../../core/models/project';
 import { UserService } from '../../core/user.service';
 import { UserResponse } from '../../core/models/user';
+import { ProjectPageHeader } from "../../NEW_COMPONENTS/project-page-header/project-page-header.component";
 
 @Component({
   selector: 'app-documents',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ProjectPageHeader],
   templateUrl: './document.component.html',
   styleUrls: ['./document.component.css']
 })
