@@ -387,7 +387,7 @@ export class ProjectDashboardComponent implements OnInit {
     if (this.scheduleId !== null) {
       this.stageService.getStages(this.scheduleId).subscribe({
         next: (data) => {
-          this.stages = data.sort((a, b) => a.id - b.id);
+          this.stages = data.sort((a, b) => (a.id || 0) - (b.id || 0));
           this.loadParticipantsData();
         },
         error: (error) => {
@@ -1304,7 +1304,6 @@ export class ProjectDashboardComponent implements OnInit {
         startDate: this.editableTaskStartDate,
         endDate: this.editableTaskEndDate,
         responsiblePersonIds: this.selectedParticipantIds,
-        info: this.selectedTaskForEdit.info || '',
         isPriority: this.editableTaskPriority,
         executionRequested: this.selectedTaskForEdit.executionRequested,
         executed: this.selectedTaskForEdit.executionConfirmed,
@@ -1335,7 +1334,6 @@ export class ProjectDashboardComponent implements OnInit {
         startDate: this.editableTaskStartDate,
         endDate: this.editableTaskEndDate,
         responsiblePersonIds: this.selectedParticipantIds,
-        info: '',
         isPriority: this.editableTaskPriority,
         executionRequested: false,
         executed: false,

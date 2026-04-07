@@ -1,15 +1,16 @@
 package com.smartqurylys.backend.entity;
 
+// Перечисление типов уведомлений в системе.
 public enum NotificationType {
-    INVITATION,
-    PROJECT_UPDATE,
-    FILE_UPLOAD,
-    TASK_ASSIGNMENT,
-    MENTION,
-    STAGE_REACTIVATION,
-    LICENSE_APPROVED,
-    LICENSE_REJECTED,
-    TASK_ACCEPTED,
-    TASK_DECLINED,
-    TASK_RETURNED
+    INVITATION,            // Приглашение в проект.
+    PROJECT_UPDATE,        // Обновление проекта.
+    FILE_UPLOAD,           // Загрузка файла.
+    TASK_ASSIGNMENT,       // Назначение задачи.
+    MENTION,               // Упоминание в чате.
+    STAGE_REACTIVATION,    // Возврат этапа в активное состояние.
+    LICENSE_APPROVED,      // Лицензия одобрена.
+    LICENSE_REJECTED,      // Лицензия отклонена.
+    TASK_ACCEPTED,         // Задача принята.
+    TASK_DECLINED,         // Задача отклонена.
+    TASK_RETURNED          // Задача возвращена в работу.
 }

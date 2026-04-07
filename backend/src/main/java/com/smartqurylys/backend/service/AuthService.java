@@ -43,7 +43,7 @@ public class AuthService {
 
         // Проверяем, подтверждена ли почта.
         if (!mailService.isEmailVerified(request.getEmail())) {
-            throw new IllegalArgumentException("Почта не потдверждена");
+            throw new IllegalArgumentException("Почта не подтверждена");
         }
 
         City city = cityRepository.findById(request.getCityId())
@@ -63,7 +63,7 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
         phoneService.removeVerifiedPhone(request.getPhone()); // Удаляем временный код после успешной регистрации.
-        // Pass roles to generateToken
+        // Передаем роль в generateToken
         String token = jwtUtils.generateToken(savedUser.getEmail(), Collections.singletonList(savedUser.getRole()));
 
         UserResponse userResponse = UserResponse.builder()
@@ -89,7 +89,7 @@ public class AuthService {
             throw new IllegalArgumentException("Неверный пароль");
         }
 
-        // Pass roles to generateToken
+        // Передаем роль в generateToken
         return jwtUtils.generateToken(user.getEmail(), Collections.singletonList(user.getRole()));
     }
 }

@@ -34,7 +34,6 @@ export class TaskService {
       startDate: request.startDate,
       endDate: request.endDate,
       responsiblePersonIds: request.responsiblePersonIds || [],
-      info: request.info,
       isPriority: request.isPriority || false,
       executionRequested: request.executionRequested || false,
       executed: request.executed || false,

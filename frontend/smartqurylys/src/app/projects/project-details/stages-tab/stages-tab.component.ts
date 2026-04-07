@@ -113,7 +113,7 @@ export class StagesTabComponent implements OnInit, OnChanges {
           if (this.schedule.id) {
             return this.stageService.getStages(this.schedule.id).pipe(
               tap(stages => {
-                this.stages = stages;
+                this.stages = stages.sort((a, b) => (a.id || 0) - (b.id || 0));
               }),
               switchMap(stages => {
                 if (stages.length > 0) {

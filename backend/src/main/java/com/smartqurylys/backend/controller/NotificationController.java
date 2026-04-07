@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+// Контроллер для работы с уведомлениями.
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class NotificationController {
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
 
+    // Получение списка уведомлений текущего пользователя.
     @GetMapping
     public ResponseEntity<List<NotificationResponse>> getUserNotifications() {
         User currentUser = userService.getCurrentUserEntity();
@@ -31,12 +33,7 @@ public class NotificationController {
         return ResponseEntity.ok(notifications);
     }
 
-    @PostMapping("/{id}/read")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long id) {
-        notificationService.markAsRead(id);
-        return ResponseEntity.ok().build();
-    }
-
+    // Отметка всех уведомлений текущего пользователя как прочитанных.
     @PostMapping("/read-all")
     public ResponseEntity<Void> markAllAsRead() {
         User currentUser = userService.getCurrentUserEntity();
@@ -44,25 +41,27 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
+    // Удаление уведомления по идентификатору.
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNotification(@PathVariable Long id) {
         notificationService.deleteNotification(id);
         return ResponseEntity.ok().build();
     }
 
+    // Создание уведомления об упоминании пользователя в чате.
     @PostMapping("/mention")
     public ResponseEntity<Void> createMentionNotification(@RequestBody MentionNotificationRequest request) {
         User currentUser = userService.getCurrentUserEntity();
         
-        // Получаем упомянутого пользователя
+        // Получаем упомянутого пользователя.
         User mentionedUser = userRepository.findById(request.getMentionedUserId())
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
         
-        // Получаем беседу
+        // Получаем беседу.
         Conversation conversation = conversationRepository.findById(request.getConversationId())
                 .orElseThrow(() -> new IllegalArgumentException("Беседа не найдена"));
         
-        // Создаем уведомление об упоминании
+        // Создаём уведомление об упоминании.
         notificationService.createMentionNotification(currentUser, mentionedUser, conversation);
         
         return ResponseEntity.ok().build();

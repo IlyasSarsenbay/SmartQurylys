@@ -34,24 +34,16 @@ public class ActivityLogService {
                                ActivityEntityType entityType, Long entityId,
                                String entityName) {
         User actor = userService.getCurrentUserEntity();
-        // Принудительно загружаем сущность заново, чтобы избежать проблем с прокси и тенями полей (shadowing)
-        actor = userRepository.findById(actor.getId()).orElse(actor);
-
         String actorFullNameToLog = actor.getFullName();
 
-        // Если fullName пуст, пробуем взять organization (Lombok переопределяет геттер для Organisation)
+        // Если fullName пуст, пробуем взять название организации
         if (actorFullNameToLog == null || actorFullNameToLog.isBlank()) {
             actorFullNameToLog = actor.getOrganization();
         }
 
-        // Если все еще пусто, используем email как гарантированный непустой вариант
+        // Если всё еще пусто, используем email (гарантированно не пуст в БД)
         if (actorFullNameToLog == null || actorFullNameToLog.isBlank()) {
             actorFullNameToLog = actor.getEmail();
-        }
-
-        // Страховка на случай непредвиденных обстоятельств
-        if (actorFullNameToLog == null || actorFullNameToLog.isBlank()) {
-            actorFullNameToLog = "User ID: " + actor.getId();
         }
 
         Project project = projectRepository.findById(projectId)

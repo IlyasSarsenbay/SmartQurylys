@@ -9,8 +9,6 @@ export interface StageResponse {
   description?: string;
   startDate?: string; 
   endDate?: string;   
-  contractors?: string; 
-  resources?: string;   
   status: StageStatus;
   tasks: TaskResponse[]; 
   expanded?: boolean;
@@ -21,11 +19,8 @@ export interface CreateStageRequest {
   description?: string;
   startDate?: string;
   endDate?: string;
-  contractors?: string;
-  resources?: string;
   status?: StageStatus;
 }
 
 export interface UpdateStageRequest extends CreateStageRequest {
 }
-

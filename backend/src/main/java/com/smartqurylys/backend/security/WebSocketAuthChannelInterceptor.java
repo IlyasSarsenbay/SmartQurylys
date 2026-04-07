@@ -12,8 +12,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-// Interceptor for WebSocket connections: validates the JWT token during the CONNECT handshake.
-// This ensures that only authenticated users can establish a WebSocket session.
+// Перехватчик для соединений WebSocket: проверяет токен JWT во время установления соединения CONNECT.
+// Это гарантирует, что установить сессию WebSocket могут только аутентифицированные пользователи.
 @Component
 @RequiredArgsConstructor
 public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
@@ -26,11 +26,11 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor =
                 MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-        // We only need to validate the token during the initial CONNECT command.
+        // Проверка токена необходима только при выполнении первоначальной команды CONNECT.
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
             String authHeader = accessor.getFirstNativeHeader("Authorization");
 
-            // If no valid Authorization header is present, reject the connection.
+            // Если отсутствует действительный заголовок Authorization, соединение отклоняется.
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 throw new IllegalArgumentException("Missing or invalid Authorization header in WebSocket CONNECT.");
             }
@@ -38,16 +38,16 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             String token = authHeader.substring(7);
 
             try {
-                // Extract the username (email) from the token and load the user.
+                // Извлекаем имя пользователя (адрес электронной почты) из токена и загружаем пользователя.
                 String email = jwtUtils.extractUsername(token);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-                // Validate the token against the loaded user details.
+                // Проверяем токен на соответствие загруженным данным пользователя.
                 if (!jwtUtils.isTokenValid(token, userDetails)) {
                     throw new IllegalArgumentException("Invalid or expired JWT token in WebSocket CONNECT.");
                 }
 
-                // Set the authenticated user into the WebSocket session context.
+                // Устанавливаем аутентифицированного пользователя в контекст сессии WebSocket.
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,

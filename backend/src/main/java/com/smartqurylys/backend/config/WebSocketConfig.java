@@ -19,27 +19,27 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        // Enable a simple in-memory broker for /topic destinations only.
+        // Включить простой брокер в памяти только для адресов /topic.
         config.enableSimpleBroker("/topic");
-        // All messages sent from the client to the server must use the /app prefix.
-        // This routes them through the application controller layer (e.g., ChatController)
-        // where they are validated, persisted to the database, and then forwarded to /topic.
+        // Все сообщения, отправляемые с клиента на сервер, должны использовать префикс /app.
+        // Это направляет их через ChatController,
+        // где они проверяются, сохраняются в базе данных, а затем перенаправляются на /topic.
         config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // Register the /ws endpoint for the initial WebSocket handshake.
-        // Clients connect to this URL to establish a persistent WebSocket connection.
+        // Зарегистрировать конечную точку /ws для первоначального рукопожатия WebSocket.
+        // Клиенты подключаются к этому URL для установления постоянного соединения WebSocket.
         registry.addEndpoint("/ws")
                 .setAllowedOrigins("*")
-                .withSockJS(); // Fallback to SockJS for browsers that do not support native WebSocket.
+                .withSockJS(); // Для браузеров, не поддерживающих WebSocket, используется резервный вариант с SockJS.
     }
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        // Register the Channel Interceptor to validate JWT tokens on every CONNECT command.
-        // This ensures only authenticated users can open a WebSocket session.
+        // Регистрируем перехватчик канала для проверки токенов JWT при каждой команде CONNECT.
+        // Это гарантирует, что только аутентифицированные пользователи смогут открыть сессию WebSocket.
         registration.interceptors(webSocketAuthChannelInterceptor);
     }
 }

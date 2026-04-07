@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// Сервис для управления уведомлениями пользователей.
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -21,6 +22,7 @@ public class NotificationService {
     private final UserService userService;
 
 
+    // Создаёт уведомление о приглашении участника в проект.
     public void createInvitationNotification(ParticipantInvitation invitation) {
         User sender = invitation.getSender();
         User recipient = invitation.getUser();
@@ -44,25 +46,21 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    // Получает список уведомлений текущего пользователя.
     public List<NotificationResponse> getUserNotifications(User user) {
         return notificationRepository.findByRecipientOrderByCreatedAtDesc(user).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    @org.springframework.transaction.annotation.Transactional
-    public void markAsRead(Long notificationId) {
-        Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new IllegalArgumentException("Notification not found"));
-        notification.setRead(true);
-        notificationRepository.save(notification);
-    }
 
+    // Отмечает все уведомления пользователя как прочитанные.
     @org.springframework.transaction.annotation.Transactional
     public void markAllAsRead(User user) {
         notificationRepository.markAllAsReadForRecipient(user);
     }
 
+    // Удаляет уведомление по идентификатору.
     @org.springframework.transaction.annotation.Transactional
     public void deleteNotification(Long notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
@@ -70,6 +68,7 @@ public class NotificationService {
         notificationRepository.delete(notification);
     }
 
+    // Преобразует сущность Notification в DTO NotificationResponse.
     private NotificationResponse mapToResponse(Notification notification) {
         return NotificationResponse.builder()
                 .id(notification.getId())
@@ -83,13 +82,14 @@ public class NotificationService {
                 .build();
     }
     
+    // Создаёт уведомление об упоминании пользователя в чате.
     public void createMentionNotification(User sender, User recipient, com.smartqurylys.backend.entity.Conversation conversation) {
         String message = String.format("%s отметил вас в чате: %s", sender.getFullName(), conversation.getName());
 
         Notification notification = Notification.builder()
                 .recipient(recipient)
                 .sender(sender)
-                .project(null) // Can be null for private chats, or conversation.getProject() if available
+                .project(null) // Может быть null для личных чатов.
                 .message(message)
                 .isRead(false)
                 .createdAt(LocalDateTime.now())
@@ -100,10 +100,11 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    // Создаёт уведомление о возврате этапа в активное состояние.
     public void createStageReturnNotification(User recipient, com.smartqurylys.backend.entity.Project project, String message, Long stageId) {
         Notification notification = Notification.builder()
                 .recipient(recipient)
-                .sender(project.getOwner()) // Assume owner is the one returning it to active
+                .sender(project.getOwner()) // Владелец проекта возвращает этап в работу.
                 .project(project)
                 .message(message)
                 .isRead(false)
@@ -115,6 +116,7 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    // Создаёт уведомление о результате рассмотрения лицензии администратором.
     public void createLicenseReviewNotification(User recipient, String licenseName, boolean approved, Long licenseId, String rejectionReason) {
         String status = approved ? "одобрена" : "отклонена";
         String message;
@@ -131,7 +133,7 @@ public class NotificationService {
 
         Notification notification = Notification.builder()
                 .recipient(recipient)
-                .sender(null) // Admin notification, no specific sender
+                .sender(null) // Системное уведомление от администратора.
                 .project(null)
                 .message(message)
                 .isRead(false)
@@ -143,6 +145,7 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    // Создаёт уведомление о результате рассмотрения документа представителя администратором.
     public void createRepresentativeDocumentReviewNotification(User recipient, String documentName, boolean approved, Long documentId, String rejectionReason) {
         String status = approved ? "одобрен" : "отклонен";
         String message;
@@ -159,7 +162,7 @@ public class NotificationService {
 
         Notification notification = Notification.builder()
                 .recipient(recipient)
-                .sender(null) // Admin notification, no specific sender
+                .sender(null)
                 .project(null)
                 .message(message)
                 .isRead(false)
@@ -171,6 +174,7 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    // Создаёт уведомление о результате рассмотрения выполнения задачи (принята, отклонена, возвращена).
     public void createTaskExecutionNotification(User recipient, User sender,
                                                 com.smartqurylys.backend.entity.Project project,
                                                 Long taskId, String taskName,
@@ -182,14 +186,12 @@ public class NotificationService {
             case TASK_RETURNED -> action = "возвращена в работу";
             default -> action = "обновлена";
         }
-
         String message;
         if (reason != null && !reason.trim().isEmpty()) {
             message = String.format("Задача «%s» %s. Причина: %s", taskName, action, reason.trim());
         } else {
             message = String.format("Задача «%s» %s.", taskName, action);
         }
-
         Notification notification = Notification.builder()
                 .recipient(recipient)
                 .sender(sender)

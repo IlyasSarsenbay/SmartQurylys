@@ -15,7 +15,6 @@ public class TaskResponse {
     private Long id; // Идентификатор задачи.
     private String name; // Название задачи.
     private String description; // Описание задачи.
-    private String info; // Дополнительная информация.
     private List<ParticipantResponse> responsiblePersons; // Список ответственных лиц.
     private LocalDate startDate; // Дата начала задачи.
     private LocalDate endDate; // Дата окончания задачи.

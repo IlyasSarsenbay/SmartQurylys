@@ -13,7 +13,5 @@ public class StageResponse {
     private String description; // Описание этапа.
     private LocalDate startDate; // Дата начала этапа.
     private LocalDate endDate; // Дата окончания этапа.
-    private String contractors; // Список подрядчиков, назначенных на этап.
-//    private String resources;
     private StageStatus status; // Текущий статус этапа.
 }
