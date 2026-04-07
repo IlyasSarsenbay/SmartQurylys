@@ -35,4 +35,7 @@ public class File {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt; // Дата и время загрузки файла.
+
+    @Column(name = "document_id")
+    private Long documentId;
 }

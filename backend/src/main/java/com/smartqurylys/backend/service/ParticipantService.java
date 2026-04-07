@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 // Сервис для управления участниками проекта.
@@ -28,7 +29,8 @@ public class ParticipantService {
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
 
-    // Получает список участников для указанного проекта. Доступно только владельцу проекта.
+    // Получает список участников для указанного проекта. Доступно только владельцу
+    // проекта.
     public List<ParticipantResponse> getParticipantsByProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
@@ -128,5 +130,33 @@ public class ParticipantService {
 
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+    }
+
+    public static ParticipantResponse mapToParticipantResponse(Participant participant) {
+        if (participant == null) {
+            return null;
+        }
+        return ParticipantResponse.builder()
+                .id(participant.getId())
+                .fullName(participant.getUser().getFullName())
+                .iinBin(participant.getUser().getIinBin())
+                .organization(participant.getUser().getOrganization())
+                .phone(participant.getUser().getPhone())
+                .email(participant.getUser().getEmail())
+                .role(participant.getRole())
+                .canUploadDocuments(participant.isCanUploadDocuments())
+                .canSendNotifications(participant.isCanSendNotifications())
+                .build();
+    }
+
+    public static List<ParticipantResponse> mapToParticipantResponseList(List<Participant> participants) {
+        if (participants == null) {
+            return List.of();
+        }
+
+        return participants.stream()
+                .filter(Objects::nonNull)
+                .map(ParticipantService::mapToParticipantResponse)
+                .toList();
     }
 }

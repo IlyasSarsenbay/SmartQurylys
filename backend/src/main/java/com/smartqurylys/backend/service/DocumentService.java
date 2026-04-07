@@ -1,50 +1,151 @@
 package com.smartqurylys.backend.service;
 
+import com.smartqurylys.backend.dto.project.document.DocumentDetailsResponse;
+import com.smartqurylys.backend.dto.project.document.DocumentRequest;
+import com.smartqurylys.backend.dto.project.document.DocumentShortResponse;
 import com.smartqurylys.backend.entity.Document;
+import com.smartqurylys.backend.entity.File;
+import com.smartqurylys.backend.entity.Project;
+import com.smartqurylys.backend.entity.User;
 import com.smartqurylys.backend.repository.DocumentRepository;
+import com.smartqurylys.backend.repository.FileRepository;
+import com.smartqurylys.backend.repository.ParticipantRepository;
+import com.smartqurylys.backend.repository.ProjectRepository;
+import com.smartqurylys.backend.repository.UserRepository;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
-// Сервис для управления операциями с документами (CRUD).
 @Service
+@RequiredArgsConstructor
 public class DocumentService {
 
-    private final DocumentRepository repo;
+    private final DocumentRepository documentRepository;
+    private final ProjectRepository projectRepository;
+    private final FileRepository fileRepository;
+    private final ParticipantRepository participantRepository;
+    private final UserRepository userRepository;
 
-    public DocumentService(DocumentRepository repo) {
-        this.repo = repo;
+    private final FileService fileService;
+
+    public List<DocumentShortResponse> getDocumentsByProject(Integer projectId) {
+        List<Document> docs = documentRepository.findByProjectId(projectId);
+        return docs.stream()
+                .map(DocumentService::mapToDocumentShortResponse)
+                .toList();
     }
 
-    // Возвращает список всех документов.
-    public List<Document> getAll() {
-        return repo.findAll();
+    public DocumentDetailsResponse getById(Integer id) {
+        Document document = documentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Document not found"));
+
+        return mapToDetailsResponse(document);
     }
 
-    // Возвращает документ по его идентификатору.
-    public Optional<Document> getById(int id) {
-        return repo.findById(id);
+    @Transactional
+    public DocumentDetailsResponse addDocument(DocumentRequest request, MultipartFile file) throws IOException {
+        Document document = new Document();
+
+        applyRequestToDocument(document, request);
+
+        User currentUser = getAuthenticatedUser();
+
+        File savedFile = fileService.prepareFile(file, currentUser);
+        document.setFilePath(savedFile.getFilepath());
+        document.setFiles(List.of(savedFile));
+        document.setUploadedBy(currentUser);
+
+        return mapToDetailsResponse(documentRepository.save(document));
     }
 
-    // Создает новый документ.
-    public Document create(Document doc) {
-        doc.setUploadDate(new java.util.Date());
-        return repo.save(doc);
+    public void delete(Long id) {
+        documentRepository.deleteById(id.intValue());
     }
 
-    // Обновляет существующий документ.
-    public Document update(int id, Document doc) {
-        return repo.findById(id).map(existing -> {
-            existing.setName(doc.getName());
-            existing.setFilePath(doc.getFilePath());
-            existing.setStatus(doc.getStatus());
-            return repo.save(existing);
-        }).orElseThrow(() -> new RuntimeException("Not found"));
+    private void applyRequestToDocument(Document document, DocumentRequest request) {
+        document.setName(request.getName());
+        document.setStatus(request.getStatus());
+        document.setUploadDate(
+                request.getUploadDate() != null ? request.getUploadDate() : new Date());
+
+        Project project = projectRepository.findById(request.getProjectId())
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+        document.setProject(project);
+
+        if (request.getFileIds() != null) {
+            document.setFiles(fileRepository.findAllById(request.getFileIds()));
+        }
+
+        if (request.getHaveToSignParticipantIds() != null) {
+            document.setHaveToSign(
+                    participantRepository.findAllById(request.getHaveToSignParticipantIds()));
+        }
+
+        if (request.getSignedParticipantIds() != null) {
+            document.setSigned(
+                    participantRepository.findAllById(request.getSignedParticipantIds()));
+        }
     }
 
-    // Удаляет документ по его идентификатору.
-    public void delete(int id) {
-        repo.deleteById(id);
+    public static DocumentShortResponse mapToDocumentShortResponse(Document document) {
+        if (document == null) {
+            return null;
+        }
+
+        return DocumentShortResponse.builder()
+                .id(document.getId())
+                .name(document.getName())
+                .status(document.getStatus())
+                .uploadDate(document.getUploadDate())
+                .uploaderEmail(document.getUploadedBy().getEmail())
+                .uploaderName(document.getUploadedBy().getFullName())
+                .build();
     }
+
+    public static DocumentDetailsResponse mapToDetailsResponse(Document document) {
+        if (document == null) {
+            return null;
+        }
+
+        return DocumentDetailsResponse.builder()
+                .id(document.getId().longValue())
+                .projectId(document.getProject() != null ? document.getProject().getId() : null)
+                .name(document.getName())
+                .filePath(document.getFilePath())
+                .uploadDate(document.getUploadDate())
+                .status(document.getStatus())
+                .files(FileService.mapToFileResponseList(document.getFiles()))
+                .haveToSign(ParticipantService.mapToParticipantResponseList(document.getHaveToSign()))
+                .signed(ParticipantService.mapToParticipantResponseList(document.getSigned()))
+                .uploaderEmail(document.getUploadedBy().getEmail())
+                .uploaderName(document.getUploadedBy().getFullName())
+                .build();
+    }
+
+    // Вспомогательный метод для получения аутентифицированного пользователя.
+    private User getAuthenticatedUser() {
+        String email = getAuthenticatedEmail();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+    }
+
+    // Вспомогательный метод для получения email аутентифицированного пользователя.
+    private String getAuthenticatedEmail() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails userDetails) {
+            return userDetails.getUsername();
+        } else {
+            return principal.toString();
+        }
+    }
+
 }

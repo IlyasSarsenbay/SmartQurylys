@@ -41,7 +41,7 @@ public class TaskService {
     private RequirementResponse mapToRequirementResponse(Requirement requirement) {
         FileResponse sampleFileResponse = null;
         if (requirement.getSampleFile() != null) {
-            sampleFileResponse = fileService.mapToFileResponse(requirement.getSampleFile());
+            sampleFileResponse = FileService.mapToFileResponse(requirement.getSampleFile());
         }
         return RequirementResponse.builder()
                 .id(requirement.getId())
@@ -468,7 +468,7 @@ public class TaskService {
 
         task.getFiles().add(savedFile);
         taskRepository.save(task);
-        return fileService.mapToFileResponse(savedFile);
+        return FileService.mapToFileResponse(savedFile);
     }
 
     // Получает список файлов, связанных с задачей.
@@ -478,7 +478,7 @@ public class TaskService {
                 .orElseThrow(() -> new EntityNotFoundException("Задача не найдена с ID: " + taskId));
 
         return task.getFiles().stream()
-                .map(fileService::mapToFileResponse)
+                .map(FileService::mapToFileResponse)
                 .collect(Collectors.toList());
     }
 
@@ -638,7 +638,7 @@ public class TaskService {
                 .collect(Collectors.toList()) : new ArrayList<>();
 
         List<FileResponse> files = task.getFiles() != null ? task.getFiles().stream()
-                .map(fileService::mapToFileResponse)
+                .map(FileService::mapToFileResponse)
                 .toList() : new ArrayList<>();
 
         List<Long> dependsOnTaskIds = task.getDependsOn() != null ? task.getDependsOn().stream()

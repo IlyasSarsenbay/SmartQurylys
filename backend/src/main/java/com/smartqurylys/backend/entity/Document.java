@@ -1,5 +1,6 @@
 package com.smartqurylys.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.smartqurylys.backend.shared.enums.DocumentStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,6 +14,7 @@ import org.hibernate.type.SqlTypes;
 
 // Сущность для представления документа в системе.
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -35,28 +37,25 @@ public class Document {
     @Temporal(TemporalType.TIMESTAMP)
     private Date uploadDate; // Дата и время загрузки документа.
 
+    @ManyToOne
+    @JoinColumn(name = "uploaded_by_user_id")
+    private User uploadedBy;
+
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private DocumentStatus status; // Текущий статус документа.
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "document_id")
-    private List<File> files; // Прикрепленные к документу файлы.
+    // files attached to document
+    @ManyToMany 
+    @JoinTable(name = "file_document", joinColumns = @JoinColumn(name = "document_id"), inverseJoinColumns = @JoinColumn(name = "file_id"))
+    private List<File> files;
 
     @ManyToMany
-    @JoinTable(
-            name = "document_have_to_sign",
-            joinColumns = @JoinColumn(name = "document_id"),
-            inverseJoinColumns = @JoinColumn(name = "participant_id")
-    )
+    @JoinTable(name = "document_have_to_sign", joinColumns = @JoinColumn(name = "document_id"), inverseJoinColumns = @JoinColumn(name = "participant_id"))
     private List<Participant> haveToSign; // Список участников, которым предстоит подписать документ.
 
     @ManyToMany
-    @JoinTable(
-            name = "document_signed",
-            joinColumns = @JoinColumn(name = "document_id"),
-            inverseJoinColumns = @JoinColumn(name = "participant_id")
-    )
+    @JoinTable(name = "document_signed", joinColumns = @JoinColumn(name = "document_id"), inverseJoinColumns = @JoinColumn(name = "participant_id"))
     private List<Participant> signed; // Список участников, уже подписавших документ.
 
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)

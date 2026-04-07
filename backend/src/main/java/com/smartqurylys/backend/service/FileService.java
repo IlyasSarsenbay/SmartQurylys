@@ -62,7 +62,8 @@ public class FileService {
         }
 
         String safeExtension = (extension != null && !extension.startsWith(".")) ? "." + extension : extension;
-        String filename = "temp_" + System.currentTimeMillis() + "_" + UUID.randomUUID() + (safeExtension != null ? safeExtension : "");
+        String filename = "temp_" + System.currentTimeMillis() + "_" + UUID.randomUUID()
+                + (safeExtension != null ? safeExtension : "");
 
         Path destination = rootLocation.resolve(filename);
         Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
@@ -122,7 +123,7 @@ public class FileService {
     }
 
     // Преобразует сущность File в DTO FileResponse.
-    public FileResponse mapToFileResponse(File file) {
+    public static FileResponse mapToFileResponse(File file) {
         return FileResponse.builder()
                 .id(file.getId())
                 .name(file.getName())
@@ -131,6 +132,17 @@ public class FileService {
                 .createdAt(file.getCreatedAt())
                 .creatorIinBin(file.getUser() != null ? file.getUser().getIinBin() : null)
                 .build();
+    }
+
+    public static List<FileResponse> mapToFileResponseList(List<File> files) {
+        if (files == null) {
+            return List.of();
+        }
+
+        return files.stream()
+                .filter(Objects::nonNull)
+                .map(FileService::mapToFileResponse)
+                .toList();
     }
 
     // Вспомогательный метод для получения расширения файла из его имени.
@@ -144,7 +156,8 @@ public class FileService {
 
     // Вспомогательный метод для угадывания расширения файла по его MIME-типу.
     private String guessExtensionFromContentType(String contentType) {
-        if (contentType == null) return "";
+        if (contentType == null)
+            return "";
         for (Map.Entry<String, String> entry : MIME_TYPE_MAP.entrySet()) {
             if (entry.getValue().equalsIgnoreCase(contentType)) {
                 return entry.getKey();
@@ -153,5 +166,3 @@ public class FileService {
         return "";
     }
 }
-
-

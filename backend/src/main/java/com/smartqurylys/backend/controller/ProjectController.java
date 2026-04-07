@@ -36,7 +36,6 @@ public class ProjectController {
     private final ProjectService projectService;
     private final ParticipantInvitationService invitationService;
     private final com.smartqurylys.backend.service.UserService userService;
-    private final FileService fileService;
 
     // Создание нового проекта.
     @PostMapping
@@ -96,7 +95,7 @@ public class ProjectController {
             @PathVariable Long projectId,
             @RequestParam("file") MultipartFile file) throws IOException {
         File savedFile = projectService.addFileToProject(projectId, file);
-        return ResponseEntity.ok(fileService.mapToFileResponse(savedFile));
+        return ResponseEntity.ok(FileService.mapToFileResponse(savedFile));
     }
 
     // Получение списка файлов проекта.

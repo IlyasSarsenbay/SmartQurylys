@@ -357,7 +357,7 @@ public class OrganisationService {
                 .orElseThrow(() -> new EntityNotFoundException("Организация не найдена: " + id));
 
         return organisation.getFiles().stream()
-                .map(fileService::mapToFileResponse)
+                .map(FileService::mapToFileResponse)
                 .collect(Collectors.toList());
     }
 

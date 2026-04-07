@@ -40,7 +40,9 @@ public class ProjectService {
     private final com.smartqurylys.backend.repository.ParticipantRepository participantRepository;
     private final com.smartqurylys.backend.repository.ProjectNoteRepository projectNoteRepository;
 
-    // Создает новый проект. Только организации или администраторы могут создавать проекты.
+
+    // Создает новый проект. Только организации или администраторы могут создавать
+    // проекты.
     public ProjectResponse createProject(CreateProjectRequest request) {
         User owner = getAuthenticatedUser();
 
@@ -76,7 +78,8 @@ public class ProjectService {
         return mapToResponse(saved);
     }
 
-    // Получает список проектов, принадлежащих текущему аутентифицированному пользователю.
+    // Получает список проектов, принадлежащих текущему аутентифицированному
+    // пользователю.
     public List<ProjectResponse> getMyProjects() {
         User currentUser = getAuthenticatedUser();
 
@@ -96,9 +99,11 @@ public class ProjectService {
         return allProjects.stream()
                 .filter(p -> {
                     // Администраторы видят всё
-                    if ("ADMIN".equals(currentUser.getRole())) return true;
+                    if ("ADMIN".equals(currentUser.getRole()))
+                        return true;
                     // Владелец видит свои черновики
-                    if (p.getOwner().getId().equals(currentUser.getId())) return true;
+                    if (p.getOwner().getId().equals(currentUser.getId()))
+                        return true;
                     // Участники не видят черновики
                     return p.getStatus() != ProjectStatus.DRAFT;
                 })
@@ -117,7 +122,8 @@ public class ProjectService {
                 });
 
         User currentUser = getAuthenticatedUser();
-        System.out.println("Текущий аутентифицированный пользователь: ID = " + currentUser.getId() + ", Роль = " + currentUser.getRole());
+        System.out.println("Текущий аутентифицированный пользователь: ID = " + currentUser.getId() + ", Роль = "
+                + currentUser.getRole());
 
         boolean isAdmin = "ADMIN".equals(currentUser.getRole());
         boolean isOwner = project.getOwner() != null && project.getOwner().getId().equals(currentUser.getId());
@@ -140,12 +146,14 @@ public class ProjectService {
         return mapToResponse(project);
     }
 
-    // Получает список всех проектов (только для администраторов, если включена соответствующая авторизация).
+    // Получает список всех проектов (только для администраторов, если включена
+    // соответствующая авторизация).
     public List<ProjectResponse> getAllProjects() {
         return projectRepository.findAll().stream().map(this::getProjectResponse).collect(Collectors.toList());
     }
 
-    // Вспомогательный метод для преобразования сущности Project в DTO ProjectResponse.
+    // Вспомогательный метод для преобразования сущности Project в DTO
+    // ProjectResponse.
     private ProjectResponse getProjectResponse(Project project) {
         ScheduleResponse scheduleResponse = null;
         if (project.getSchedule() != null) {
@@ -166,8 +174,7 @@ public class ProjectService {
                 project.getCity().getName(),
                 project.getOwner().getIinBin(),
                 project.getOwner().getFullName(),
-                scheduleResponse
-        );
+                scheduleResponse);
     }
 
     // Обновляет информацию о проекте.
@@ -193,15 +200,15 @@ public class ProjectService {
                 ActivityActionType.PROJECT_UPDATED,
                 ActivityEntityType.PROJECT,
                 project.getId(),
-                project.getName()
-        );
-        
+                project.getName());
+
         Project updated = projectRepository.save(project);
         log.info("Updated project " + updated);
         return mapToResponse(updated);
     }
 
-    // Удаляет проект. Только владелец проекта или администратор могут удалить проект.
+    // Удаляет проект. Только владелец проекта или администратор могут удалить
+    // проект.
     public void deleteProject(Long id) {
         User currentUser = getAuthenticatedUser();
 
@@ -247,11 +254,11 @@ public class ProjectService {
         }
 
         // Запрещаем загрузку файлов в определенных статусах
-        if (project.getStatus() == ProjectStatus.ON_PAUSE || 
-            project.getStatus() == ProjectStatus.COMPLETED || 
-            project.getStatus() == ProjectStatus.CANCELLED) {
-            throw new AccessDeniedException("Загрузка файлов запрещена: проект " + 
-                (project.getStatus() == ProjectStatus.ON_PAUSE ? "на паузе" : "завершен/отменен"));
+        if (project.getStatus() == ProjectStatus.ON_PAUSE ||
+                project.getStatus() == ProjectStatus.COMPLETED ||
+                project.getStatus() == ProjectStatus.CANCELLED) {
+            throw new AccessDeniedException("Загрузка файлов запрещена: проект " +
+                    (project.getStatus() == ProjectStatus.ON_PAUSE ? "на паузе" : "завершен/отменен"));
         }
 
         // Записываем активность о добавлении файла.
@@ -260,8 +267,7 @@ public class ProjectService {
                 ActivityActionType.FILE_ADDED,
                 ActivityEntityType.PROJECT,
                 savedFile.getId(),
-                savedFile.getName()
-        );
+                savedFile.getName());
 
         project.getFiles().add(savedFile);
         projectRepository.save(project);
@@ -275,7 +281,7 @@ public class ProjectService {
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
 
         return project.getFiles().stream()
-                .map(fileService::mapToFileResponse)
+                .map(FileService::mapToFileResponse)
                 .collect(Collectors.toList());
     }
 
@@ -372,4 +378,3 @@ public class ProjectService {
                 .build();
     }
 }
-

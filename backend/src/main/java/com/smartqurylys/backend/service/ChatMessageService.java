@@ -176,7 +176,7 @@ public class ChatMessageService {
 
         FileResponse attachedFileResponse = null;
         if (message.getAttachedFile() != null) {
-            attachedFileResponse = fileService.mapToFileResponse(message.getAttachedFile());
+            attachedFileResponse = FileService.mapToFileResponse(message.getAttachedFile());
         }
 
         List<UserResponse> mentionedUserResponses = Collections.emptyList();
