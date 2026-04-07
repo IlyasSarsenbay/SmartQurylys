@@ -98,7 +98,8 @@ VALUES
 (103, 'FILE_ADDED', 'Гедатсу Зор', 103, 'ClassDiagramITM (1).png', 'PROJECT', '2026-02-01 19:12:57.596637', 17, 23),
 (104, 'FILE_ADDED', 'Гедатсу Зор', 104, 'ClassDiagramITM (1).png', 'PROJECT', '2026-02-01 19:20:16.032986', 17, 23),
 (105, 'PROJECT_UPDATED', 'admin', 18, 'Обновленное имя', 'PROJECT', '2026-02-02 20:30:24.188221', 18, 18),
-(106, 'FILE_ADDED', 'Гедатсу Зор', 114, 'ClassDiagramITM (1) (1).png', 'PROJECT', '2026-02-04 14:16:47.188756', 17, 23);
+(106, 'FILE_ADDED', 'Гедатсу Зор', 114, 'ClassDiagramITM (1) (1).png', 'PROJECT', '2026-02-04 14:16:47.188756', 17, 23)
+ON CONFLICT (id) DO NOTHING;
 
 
 SELECT pg_catalog.setval('public.activity_logs_id_seq', 106, true);

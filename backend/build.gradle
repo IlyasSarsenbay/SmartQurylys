@@ -56,3 +56,9 @@ tasks.named('test') {
 tasks.withType(JavaCompile) {
     options.forkOptions.javaHome = file('/usr/lib/jvm/java-21-openjdk')
 }
+flyway {
+    url = 'jdbc:postgresql://localhost:5432/smartqurylys_db'
+    user = 'postgres'
+    password = 'postgres'
+    locations = ['filesystem:src/main/resources/db/migration']
+}

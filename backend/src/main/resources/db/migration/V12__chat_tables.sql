@@ -20,7 +20,8 @@ INSERT INTO public.conversations (id, last_message_timestamp, name, type, projec
 (4, '2026-01-25 12:56:00.673761', 'Гедатсу Зор & admin', 'PRIVATE_CHAT', NULL),
 (5, '2026-01-28 13:35:33.875953', 'Ilyas & Гедатсу Зор', 'PRIVATE_CHAT', NULL),
 (8, '2026-02-01 20:13:33.606848', 'Чат проекта: test', 'PROJECT_CHAT', 23),
-(3, '2026-02-02 21:05:57.039248', 'Чат проекта: Обновленное имя', 'PROJECT_CHAT', 18);
+(3, '2026-02-02 21:05:57.039248', 'Чат проекта: Обновленное имя', 'PROJECT_CHAT', 18)
+ON CONFLICT (id) DO NOTHING;
 
 SELECT pg_catalog.setval('public.conversations_id_seq', 8, true);
 
@@ -112,7 +113,8 @@ VALUES
 (50, NULL, '@Гедатсу Зор', NULL, 'TEXT', NULL, '2026-01-28 14:57:43.077503', NULL, 3, NULL, 13),
 (51, NULL, '@Гедатсу Зор', NULL, 'TEXT', NULL, '2026-01-28 17:03:35.795158', NULL, 3, NULL, 13),
 (52, NULL, '@Ilyas', NULL, 'TEXT', NULL, '2026-02-02 21:05:49.074447', NULL, 3, NULL, 17),
-(53, 'PENDING', '', NULL, 'ACKNOWLEDGEMENT_REQUEST', NULL, '2026-02-02 21:05:57.039248', 113, 3, NULL, 17);
+(53, 'PENDING', '', NULL, 'ACKNOWLEDGEMENT_REQUEST', NULL, '2026-02-02 21:05:57.039248', 113, 3, NULL, 17)
+ON CONFLICT (id) DO NOTHING;
 
 
 SELECT pg_catalog.setval('public.chat_messages_id_seq', 53, true);
@@ -138,8 +140,8 @@ INSERT INTO public.chat_message_mentions (message_id, user_id) VALUES
 (49, 13),
 (50, 17),
 (51, 17),
-(52, 13);
-
+(52, 13)
+ON CONFLICT (message_id, user_id) DO NOTHING;
 
 -------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.conversation_users (
@@ -159,4 +161,5 @@ VALUES
 (4, 17),
 (4, 18),
 (5, 13),
-(5, 17);
+(5, 17)
+ON CONFLICT (conversation_id, user_id) DO NOTHING;

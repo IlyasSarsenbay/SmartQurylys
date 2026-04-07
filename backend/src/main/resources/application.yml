@@ -18,6 +18,7 @@ spring:
 
   flyway:
     enabled: true
+    baseline-on-migrate: true
     url: jdbc:postgresql://localhost:5432/smartqurylys_db
     user: postgres
     password: postgres

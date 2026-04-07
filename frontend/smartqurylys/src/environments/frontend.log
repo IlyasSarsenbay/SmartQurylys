@@ -1,0 +1,6 @@
+nohup: ignoring input
+ INFO  Accepting connections at http://localhost:4200
+ HTTP  9/25/2025 7:35:23 AM ::1 GET /login
+ HTTP  9/25/2025 7:35:23 AM ::1 Returned 404 in 13 ms
+ HTTP  9/25/2025 7:35:26 AM ::1 GET /login
+ HTTP  9/25/2025 7:35:26 AM ::1 Returned 404 in 1 ms

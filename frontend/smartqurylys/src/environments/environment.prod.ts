@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://finder-author-makeup-edward.trycloudflare.com/api' 
+  apiUrl: 'https://pub-anaheim-shakespeare-stereo.trycloudflare.com/api' 
 };

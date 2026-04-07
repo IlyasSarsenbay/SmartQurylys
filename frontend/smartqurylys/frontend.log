@@ -1,0 +1,4 @@
+nohup: ignoring input
+ INFO  Accepting connections at http://localhost:4200
+
+ INFO  Gracefully shutting down. Please wait...
