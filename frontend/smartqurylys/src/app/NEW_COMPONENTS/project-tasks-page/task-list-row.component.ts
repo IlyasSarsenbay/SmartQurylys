@@ -82,6 +82,7 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   @Output() titleDraftChange = new EventEmitter<{ itemId: number; value: string }>();
   @Output() saveTitleEdit = new EventEmitter<number>();
   @Output() cancelTitleEdit = new EventEmitter<number>();
+  @Output() openComments = new EventEmitter<number>();
   private shouldFocusTitleInput = false;
 
   readonly statusClassMap: Record<TodoStatus, string> = {
@@ -273,6 +274,11 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
 
   onClearDueDate(): void {
     this.clearDueDate.emit(this.item.id);
+  }
+
+  onOpenComments(event: MouseEvent): void {
+    event.stopPropagation();
+    this.openComments.emit(this.item.id);
   }
 
   onAddSubtask(event: MouseEvent): void {

@@ -4,6 +4,13 @@ export type TodoStatus = 'To do' | 'Idea' | 'In progress' | 'In review' | 'Done'
 
 export type TodoPriority = 'Low' | 'Medium' | 'High' | 'Critical';
 
+export interface TodoComment {
+  id: number;
+  author: string;
+  message: string;
+  createdAt: string;
+}
+
 export interface TodoItem {
   id: number;
   type: TodoItemType;

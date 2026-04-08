@@ -5,7 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Participant } from '../../core/models/participant';
 import { ParticipantService } from '../../core/participant.service';
 import { TaskListRowComponent } from './task-list-row.component';
-import { TodoItem, TodoPriority, TodoRowItem, TodoStatus } from './task-list.models';
+import { TodoComment, TodoItem, TodoPriority, TodoRowItem, TodoStatus } from './task-list.models';
 
 interface CalendarDay {
   date: Date;
@@ -58,6 +58,8 @@ export class ProjectTasksPageComponent implements OnInit {
   openDateMenuFor: number | null = null;
   openAssigneeMenuFor: number | null = null;
   openStageMenuFor: number | null = null;
+  commentsTaskId: number | null = null;
+  commentDraft = '';
   statusMenuTop = 0;
   statusMenuLeft = 0;
   priorityMenuTop = 0;
@@ -71,6 +73,38 @@ export class ProjectTasksPageComponent implements OnInit {
   calendarViewDate = new Date(2026, 3, 1);
   readonly weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   projectParticipants: Participant[] = [];
+  readonly commentsByTaskId: Record<number, TodoComment[]> = {
+    2: [
+      {
+        id: 1,
+        author: 'Dias',
+        message: 'We should confirm the supplier handoff before starting this package.',
+        createdAt: 'Today at 09:10'
+      },
+      {
+        id: 2,
+        author: 'Aruzhan',
+        message: 'Agreed. I will sync with procurement and update the due date if needed.',
+        createdAt: 'Today at 09:34'
+      }
+    ],
+    21: [
+      {
+        id: 3,
+        author: 'Madi',
+        message: 'Latest reinforcement drawings uploaded. Please review sheet B-14 first.',
+        createdAt: 'Today at 11:08'
+      }
+    ],
+    22: [
+      {
+        id: 4,
+        author: 'Dana',
+        message: 'Delivery window confirmed for 19 April, morning slot.',
+        createdAt: 'Today at 12:41'
+      }
+    ]
+  };
   private projectId: number | null = null;
 
   readonly stages: TaskStage[] = [
@@ -230,6 +264,18 @@ export class ProjectTasksPageComponent implements OnInit {
 
   get someVisibleSelected(): boolean {
     return this.visibleRows.some((item) => !!item.selected) && !this.allVisibleSelected;
+  }
+
+  get activeCommentsTask(): TodoItem | null {
+    return this.commentsTaskId === null ? null : this.findItemById(this.getAllTasks(), this.commentsTaskId);
+  }
+
+  get activeComments(): TodoComment[] {
+    if (this.commentsTaskId === null) {
+      return [];
+    }
+
+    return this.commentsByTaskId[this.commentsTaskId] ?? [];
   }
 
   isAllStageRowsSelected(stageId: number): boolean {
@@ -614,6 +660,51 @@ export class ProjectTasksPageComponent implements OnInit {
     this.openAssigneeMenuFor = null;
   }
 
+  onOpenComments(itemId: number): void {
+    this.commentsTaskId = itemId;
+    this.commentDraft = '';
+  }
+
+  onCloseComments(): void {
+    this.commentsTaskId = null;
+    this.commentDraft = '';
+  }
+
+  onSendComment(): void {
+    if (this.commentsTaskId === null) {
+      return;
+    }
+
+    const message = this.commentDraft.trim();
+
+    if (!message) {
+      return;
+    }
+
+    const nextComment: TodoComment = {
+      id: this.getNextCommentId(),
+      author: 'You',
+      message,
+      createdAt: 'Just now'
+    };
+
+    const existingComments = this.commentsByTaskId[this.commentsTaskId] ?? [];
+    this.commentsByTaskId[this.commentsTaskId] = [...existingComments, nextComment];
+
+    this.updateItemById(this.getAllTasks(), this.commentsTaskId, (item) => {
+      item.commentsCount = this.commentsByTaskId[this.commentsTaskId!].length;
+    });
+
+    this.commentDraft = '';
+  }
+
+  onCommentKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.onSendComment();
+    }
+  }
+
   @HostListener('window:resize')
   onWindowResize(): void {
     if (this.openDateMenuFor !== null) {
@@ -988,6 +1079,12 @@ export class ProjectTasksPageComponent implements OnInit {
       const childMax = item.subtasks?.length ? this.getNextId(item.subtasks) : 0;
       return Math.max(highestId, item.id, childMax);
     }, 0) + 1;
+  }
+
+  private getNextCommentId(): number {
+    return Object.values(this.commentsByTaskId)
+      .flat()
+      .reduce((highestId, comment) => Math.max(highestId, comment.id), 0) + 1;
   }
 
   private findItemById(items: TodoItem[], itemId: number): TodoItem | null {

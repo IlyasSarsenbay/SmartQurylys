@@ -217,8 +217,8 @@
 </td>
 
 <td class="comments-cell">
-  <span class="comment-link">
+  <button type="button" class="comment-link" (click)="onOpenComments($event)">
     <span class="comment-icon"></span>
     {{ item.commentsCount > 0 ? item.commentsCount + ' comments' : 'Add comment' }}
-  </span>
+  </button>
 </td>

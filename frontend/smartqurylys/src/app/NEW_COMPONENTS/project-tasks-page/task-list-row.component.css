@@ -513,7 +513,12 @@ td {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  padding: 0;
+  border: none;
+  background: transparent;
   color: #6b7280;
+  font: inherit;
+  cursor: pointer;
 }
 
 .comment-icon {

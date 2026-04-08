@@ -1,212 +1,296 @@
 <main class="tasks-page-shell">
   <section class="tasks-page">
-    <section class="tasks-board">
-      <header class="toolbar">
-        <div class="toolbar-left">
-          <label class="search-box">
-            <span class="search-icon"></span>
-            <input type="text" [(ngModel)]="searchTerm" placeholder="Search tasks" />
-          </label>
+    <div class="tasks-layout" [class.with-comments-panel]="!!activeCommentsTask">
+      <section class="tasks-board">
+        <header class="toolbar">
+          <div class="toolbar-left">
+            <label class="search-box">
+              <span class="search-icon"></span>
+              <input type="text" [(ngModel)]="searchTerm" placeholder="Search tasks" />
+            </label>
 
-          <div class="filter-pills">
-            <button type="button" class="filter-pill" [class.active]="selectedStatus === 'all'"
-              (click)="onStatusChange('all')">
-              All
-            </button>
-            <button type="button" class="filter-pill" [class.active]="selectedStatus === 'To do'"
-              (click)="onStatusChange('To do')">
-              To do
-            </button>
-            <button type="button" class="filter-pill" [class.active]="selectedStatus === 'In progress'"
-              (click)="onStatusChange('In progress')">
-              In progress
-            </button>
-            <button type="button" class="filter-pill" [class.active]="selectedStatus === 'Done'"
-              (click)="onStatusChange('Done')">
-              Done
+            <div class="filter-pills">
+              <button type="button" class="filter-pill" [class.active]="selectedStatus === 'all'" (click)="onStatusChange('all')">
+                All
+              </button>
+              <button type="button" class="filter-pill" [class.active]="selectedStatus === 'To do'" (click)="onStatusChange('To do')">
+                To do
+              </button>
+              <button type="button" class="filter-pill" [class.active]="selectedStatus === 'In progress'" (click)="onStatusChange('In progress')">
+                In progress
+              </button>
+              <button type="button" class="filter-pill" [class.active]="selectedStatus === 'Done'" (click)="onStatusChange('Done')">
+                Done
+              </button>
+            </div>
+          </div>
+
+          <div class="toolbar-right">
+            <button type="button" class="ghost-button" (click)="addStage()">Create stage</button>
+            <button type="button" class="icon-button" aria-label="More actions">
+              <span></span>
             </button>
           </div>
-        </div>
+        </header>
 
-        <div class="toolbar-right">
-          <button type="button" class="ghost-button" (click)="addStage()">Create stage</button>
-          <button type="button" class="icon-button" aria-label="More actions">
-            <span></span>
-          </button>
-        </div>
-      </header>
-
-      @if (visibleStages.length) {
-        <div class="stage-list">
-          @for (stage of visibleStages; track stage.id) {
-            <section class="stage-card">
-              <header class="stage-card-header">
-                <div class="stage-header-main">
-                  <button type="button" class="stage-chevron-button" (click)="onToggleStageExpanded(stage.id)">
-                    <span class="stage-chevron" [class.expanded]="stage.expanded"></span>
-                  </button>
-
-                  <div class="stage-heading">
-                    @if (editingStageId === stage.id) {
-                      <input
-                        [id]="'stage-title-input-' + stage.id"
-                        type="text"
-                        class="stage-title-input"
-                        [value]="editingStageValue"
-                        (input)="onStageTitleInput($any($event.target).value)"
-                        (blur)="onSaveStageTitle(stage.id)"
-                        (keydown)="onStageTitleKeydown($event, stage.id)"
-                        (click)="$event.stopPropagation()"
-                      />
-                    } @else {
-                      <button type="button" class="stage-button" (click)="onToggleStageExpanded(stage.id)">
-                        <span class="stage-title">{{ stage.title }}</span>
-                        <span class="stage-meta">{{ stage.rows.length || stage.tasks.length }} tasks</span>
-                      </button>
-                    }
-                  </div>
-
-                  <div class="stage-actions">
-                    <button
-                      type="button"
-                      class="stage-more-button"
-                      (click)="onToggleStageMenu(stage.id); $event.stopPropagation()"
-                      aria-label="Stage actions"
-                    >
-                      <span></span>
+        @if (visibleStages.length) {
+          <div class="stage-list">
+            @for (stage of visibleStages; track stage.id) {
+              <section class="stage-card">
+                <header class="stage-card-header">
+                  <div class="stage-header-main">
+                    <button type="button" class="stage-chevron-button" (click)="onToggleStageExpanded(stage.id)">
+                      <span class="stage-chevron" [class.expanded]="stage.expanded"></span>
                     </button>
 
-                    @if (openStageMenuFor === stage.id) {
-                      <div class="stage-menu">
-                        <button type="button" class="stage-menu-option" (click)="onRenameStage(stage.id)">
-                          Rename
+                    <div class="stage-heading">
+                      @if (editingStageId === stage.id) {
+                        <input
+                          [id]="'stage-title-input-' + stage.id"
+                          type="text"
+                          class="stage-title-input"
+                          [value]="editingStageValue"
+                          (input)="onStageTitleInput($any($event.target).value)"
+                          (blur)="onSaveStageTitle(stage.id)"
+                          (keydown)="onStageTitleKeydown($event, stage.id)"
+                          (click)="$event.stopPropagation()"
+                        />
+                      } @else {
+                        <button type="button" class="stage-button" (click)="onToggleStageExpanded(stage.id)">
+                          <span class="stage-title">{{ stage.title }}</span>
+                          <span class="stage-meta">{{ stage.rows.length || stage.tasks.length }} tasks</span>
                         </button>
-                        <button type="button" class="stage-menu-option delete" (click)="onDeleteStage(stage.id)">
-                          Delete
-                        </button>
-                      </div>
-                    }
-                  </div>
-                </div>
-              </header>
-
-              @if (stage.expanded) {
-                <div class="table-shell">
-                  <table class="tasks-table">
-                    <thead>
-                      <tr>
-                        <th class="checkbox-column">
-                          <input
-                            type="checkbox"
-                            class="header-checkbox"
-                            [checked]="isAllStageRowsSelected(stage.id)"
-                            [indeterminate]="isSomeStageRowsSelected(stage.id)"
-                            (change)="onToggleStageSelectAll(stage.id, $any($event.target).checked)"
-                            aria-label="Select all visible tasks"
-                          />
-                        </th>
-                        <th>
-                          <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'subject')" (click)="onSort(stage.id, 'subject')">
-                            Subject
-                            <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'subject')"></span>
-                          </button>
-                        </th>
-                        <th>
-                          <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'status')" (click)="onSort(stage.id, 'status')">
-                            Status
-                            <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'status')"></span>
-                          </button>
-                        </th>
-                        <th>
-                          <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'dueDate')" (click)="onSort(stage.id, 'dueDate')">
-                            Due date
-                            <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'dueDate')"></span>
-                          </button>
-                        </th>
-                        <th>
-                          <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'priority')" (click)="onSort(stage.id, 'priority')">
-                            Priority
-                            <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'priority')"></span>
-                          </button>
-                        </th>
-                        <th>
-                          <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'assignee')" (click)="onSort(stage.id, 'assignee')">
-                            Assignee
-                            <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'assignee')"></span>
-                          </button>
-                        </th>
-                        <th>Comments</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      @for (item of stage.rows; track item.id) {
-                        <tr
-                          app-task-list-row
-                          [item]="item"
-                          [isStatusMenuOpen]="openStatusMenuFor === item.id"
-                          [isPriorityMenuOpen]="openPriorityMenuFor === item.id"
-                          [isDateMenuOpen]="openDateMenuFor === item.id"
-                          [isAssigneeMenuOpen]="openAssigneeMenuFor === item.id"
-                          [availableStatuses]="statusOptions"
-                          [availablePriorities]="priorityOptions"
-                          [availableAssignees]="projectParticipants"
-                          [weekdayLabels]="weekdayLabels"
-                          [calendarMonthLabel]="calendarMonthLabel"
-                          [calendarWeeks]="calendarWeeks"
-                          [statusMenuTop]="statusMenuTop"
-                          [statusMenuLeft]="statusMenuLeft"
-                          [priorityMenuTop]="priorityMenuTop"
-                          [priorityMenuLeft]="priorityMenuLeft"
-                          [dateMenuTop]="dateMenuTop"
-                          [dateMenuLeft]="dateMenuLeft"
-                          [assigneeMenuTop]="assigneeMenuTop"
-                          [assigneeMenuLeft]="assigneeMenuLeft"
-                          [isEditingTitle]="editingTitleItemId === item.id"
-                          [editingTitleValue]="editingTitleItemId === item.id ? editingTitleValue : item.title"
-                          (toggleExpanded)="onToggleExpanded($event)"
-                          (toggleSelected)="onToggleSelected($event)"
-                          (addSubtask)="onAddSubtask($event)"
-                          (startTitleEdit)="onStartTitleEdit($event)"
-                          (titleDraftChange)="onTitleDraftChange($event)"
-                          (saveTitleEdit)="onSaveTitleEdit($event)"
-                          (cancelTitleEdit)="onCancelTitleEdit($event)"
-                          (toggleStatusMenu)="onToggleStatusMenu($event)"
-                          (togglePriorityMenu)="onTogglePriorityMenu($event)"
-                          (toggleDateMenu)="onToggleDateMenu($event)"
-                          (toggleAssigneeMenu)="onToggleAssigneeMenu($event)"
-                          (changeStatus)="onChangeStatus($event.itemId, $event.status)"
-                          (changePriority)="onChangePriority($event.itemId, $event.priority)"
-                          (changeAssignee)="onChangeAssignee($event.itemId, $event.assignee)"
-                          (previousMonth)="onPreviousMonth()"
-                          (nextMonth)="onNextMonth()"
-                          (changeDueDate)="onChangeDueDate($event.itemId, $event.isoDate)"
-                          (clearDueDate)="onClearDueDate($event)"
-                        ></tr>
                       }
+                    </div>
 
-                      <tr class="create-row">
-                        <td colspan="7">
-                          <button type="button" class="create-button" (click)="addTaskToStage(stage.id)">
-                            <span>+</span>
-                            Create task
+                    <div class="stage-actions">
+                      <button
+                        type="button"
+                        class="stage-more-button"
+                        (click)="onToggleStageMenu(stage.id); $event.stopPropagation()"
+                        aria-label="Stage actions"
+                      >
+                        <span></span>
+                      </button>
+
+                      @if (openStageMenuFor === stage.id) {
+                        <div class="stage-menu">
+                          <button type="button" class="stage-menu-option" (click)="onRenameStage(stage.id)">
+                            Rename
                           </button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                          <button type="button" class="stage-menu-option delete" (click)="onDeleteStage(stage.id)">
+                            Delete
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </header>
+
+                @if (stage.expanded) {
+                  <div class="table-shell">
+                    <table class="tasks-table">
+                      <thead>
+                        <tr>
+                          <th class="checkbox-column">
+                            <input
+                              type="checkbox"
+                              class="header-checkbox"
+                              [checked]="isAllStageRowsSelected(stage.id)"
+                              [indeterminate]="isSomeStageRowsSelected(stage.id)"
+                              (change)="onToggleStageSelectAll(stage.id, $any($event.target).checked)"
+                              aria-label="Select all visible tasks"
+                            />
+                          </th>
+                          <th>
+                            <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'subject')" (click)="onSort(stage.id, 'subject')">
+                              Subject
+                              <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'subject')"></span>
+                            </button>
+                          </th>
+                          <th>
+                            <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'status')" (click)="onSort(stage.id, 'status')">
+                              Status
+                              <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'status')"></span>
+                            </button>
+                          </th>
+                          <th>
+                            <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'dueDate')" (click)="onSort(stage.id, 'dueDate')">
+                              Due date
+                              <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'dueDate')"></span>
+                            </button>
+                          </th>
+                          <th>
+                            <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'priority')" (click)="onSort(stage.id, 'priority')">
+                              Priority
+                              <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'priority')"></span>
+                            </button>
+                          </th>
+                          <th>
+                            <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'assignee')" (click)="onSort(stage.id, 'assignee')">
+                              Assignee
+                              <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'assignee')"></span>
+                            </button>
+                          </th>
+                          <th>Comments</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        @for (item of stage.rows; track item.id) {
+                          <tr
+                            app-task-list-row
+                            [item]="item"
+                            [isStatusMenuOpen]="openStatusMenuFor === item.id"
+                            [isPriorityMenuOpen]="openPriorityMenuFor === item.id"
+                            [isDateMenuOpen]="openDateMenuFor === item.id"
+                            [isAssigneeMenuOpen]="openAssigneeMenuFor === item.id"
+                            [availableStatuses]="statusOptions"
+                            [availablePriorities]="priorityOptions"
+                            [availableAssignees]="projectParticipants"
+                            [weekdayLabels]="weekdayLabels"
+                            [calendarMonthLabel]="calendarMonthLabel"
+                            [calendarWeeks]="calendarWeeks"
+                            [statusMenuTop]="statusMenuTop"
+                            [statusMenuLeft]="statusMenuLeft"
+                            [priorityMenuTop]="priorityMenuTop"
+                            [priorityMenuLeft]="priorityMenuLeft"
+                            [dateMenuTop]="dateMenuTop"
+                            [dateMenuLeft]="dateMenuLeft"
+                            [assigneeMenuTop]="assigneeMenuTop"
+                            [assigneeMenuLeft]="assigneeMenuLeft"
+                            [isEditingTitle]="editingTitleItemId === item.id"
+                            [editingTitleValue]="editingTitleItemId === item.id ? editingTitleValue : item.title"
+                            (toggleExpanded)="onToggleExpanded($event)"
+                            (toggleSelected)="onToggleSelected($event)"
+                            (addSubtask)="onAddSubtask($event)"
+                            (startTitleEdit)="onStartTitleEdit($event)"
+                            (titleDraftChange)="onTitleDraftChange($event)"
+                            (saveTitleEdit)="onSaveTitleEdit($event)"
+                            (cancelTitleEdit)="onCancelTitleEdit($event)"
+                            (toggleStatusMenu)="onToggleStatusMenu($event)"
+                            (togglePriorityMenu)="onTogglePriorityMenu($event)"
+                            (toggleDateMenu)="onToggleDateMenu($event)"
+                            (toggleAssigneeMenu)="onToggleAssigneeMenu($event)"
+                            (changeStatus)="onChangeStatus($event.itemId, $event.status)"
+                            (changePriority)="onChangePriority($event.itemId, $event.priority)"
+                            (changeAssignee)="onChangeAssignee($event.itemId, $event.assignee)"
+                            (previousMonth)="onPreviousMonth()"
+                            (nextMonth)="onNextMonth()"
+                            (changeDueDate)="onChangeDueDate($event.itemId, $event.isoDate)"
+                            (clearDueDate)="onClearDueDate($event)"
+                            (openComments)="onOpenComments($event)"
+                          ></tr>
+                        }
+
+                        <tr class="create-row">
+                          <td colspan="7">
+                            <button type="button" class="create-button" (click)="addTaskToStage(stage.id)">
+                              <span>+</span>
+                              Create task
+                            </button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                }
+              </section>
+            }
+          </div>
+        } @else {
+          <div class="empty-stage-state">
+            <strong>No tasks found</strong>
+            <span>Try another search term or create a new task.</span>
+          </div>
+        }
+      </section>
+
+      @if (activeCommentsTask) {
+        <aside class="details-panel">
+          <header class="details-panel-header">
+            <div>
+              <span class="details-panel-label">Details</span>
+              <h2>{{ activeCommentsTask.title }}</h2>
+            </div>
+            <button type="button" class="details-panel-close" (click)="onCloseComments()" aria-label="Close panel">
+              ×
+            </button>
+          </header>
+
+          <div class="details-panel-body">
+            <section class="details-section">
+              <div class="details-section-header">
+                <h3>Overview</h3>
+              </div>
+              <dl class="details-grid">
+                <div>
+                  <dt>Status</dt>
+                  <dd>{{ activeCommentsTask.status }}</dd>
+                </div>
+                <div>
+                  <dt>Due date</dt>
+                  <dd>{{ activeCommentsTask.dueDate || 'No date' }}</dd>
+                </div>
+                <div>
+                  <dt>Priority</dt>
+                  <dd>{{ activeCommentsTask.priority || 'None' }}</dd>
+                </div>
+                <div>
+                  <dt>Assignee</dt>
+                  <dd>{{ activeCommentsTask.assignee || 'Unassigned' }}</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section class="details-section comments-section">
+              <div class="details-section-header">
+                <h3>Comments</h3>
+                <span>{{ activeComments.length }}</span>
+              </div>
+
+              @if (activeComments.length) {
+                <div class="comments-thread">
+                  @for (comment of activeComments; track comment.id) {
+                    <article class="comment-card">
+                      <div class="comment-avatar">{{ comment.author.slice(0, 2) }}</div>
+                      <div class="comment-content">
+                        <div class="comment-meta">
+                          <strong>{{ comment.author }}</strong>
+                          <span>{{ comment.createdAt }}</span>
+                        </div>
+                        <p>{{ comment.message }}</p>
+                      </div>
+                    </article>
+                  }
+                </div>
+              } @else {
+                <div class="comments-empty-state">
+                  <strong>No comments yet</strong>
+                  <span>Start the discussion for this task.</span>
                 </div>
               }
             </section>
-          }
-        </div>
-      } @else {
-        <div class="empty-stage-state">
-          <strong>No tasks found</strong>
-          <span>Try another search term or create a new task.</span>
-        </div>
+          </div>
+
+          <footer class="details-panel-footer">
+            <textarea
+              class="comment-input"
+              [(ngModel)]="commentDraft"
+              rows="4"
+              placeholder="Write a comment..."
+              (keydown)="onCommentKeydown($event)"
+            ></textarea>
+            <div class="comments-drawer-actions">
+              <span>Press Enter to send</span>
+              <button type="button" class="comment-send-button" (click)="onSendComment()" [disabled]="!commentDraft.trim()">
+                Send
+              </button>
+            </div>
+          </footer>
+        </aside>
       }
-    </section>
+    </div>
   </section>
 
   @if (selectedCount > 0) {
