@@ -58,7 +58,7 @@
                       } @else {
                         <button type="button" class="stage-button" (click)="onToggleStageExpanded(stage.id)">
                           <span class="stage-title">{{ stage.title }}</span>
-                          <span class="stage-meta">{{ stage.rows.length || stage.tasks.length }} задач</span>
+                          <span class="stage-meta">{{ getStageTaskCount(stage) }} задач</span>
                         </button>
                       }
                     </div>

@@ -191,6 +191,10 @@ export class ProjectTasksPageComponent implements OnInit {
     return !!stage && stage.rows.some((item) => !!item.selected) && !this.isAllStageRowsSelected(stageId);
   }
 
+  getStageTaskCount(stage: TaskStage): number {
+    return this.countItems(stage.tasks);
+  }
+
   constructor(
     private readonly route: ActivatedRoute,
     private readonly participantService: ParticipantService,

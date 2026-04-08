@@ -32,7 +32,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // Пропускаем запросы аутентификации без проверки токена.
-        if (path.startsWith("/api/auth")) {
+        if (path.startsWith("/api/auth")
+                || path.startsWith("/api/email")
+                || path.startsWith("/api/phone")
+                || path.startsWith("/api/cities")
+                || path.equals("/api/organisations/register")
+                || path.startsWith("/api/organisations/public/licenses")
+                || path.startsWith("/ws")) {
             filterChain.doFilter(request, response);
             return;
         }
