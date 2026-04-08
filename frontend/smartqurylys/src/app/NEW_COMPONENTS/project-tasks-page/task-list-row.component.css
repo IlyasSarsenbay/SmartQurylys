@@ -1,0 +1,514 @@
+:host {
+  border-bottom: 1px solid #edf0f4;
+  background: #ffffff;
+  transition: background-color 0.18s ease;
+}
+
+:host(:hover) {
+  background: #f9fafb;
+}
+
+:host(.subtask-row) {
+  background: #fcfcfd;
+}
+
+:host(.selected-row) {
+  background: #eef4ff;
+}
+
+:host(.selected-row):hover {
+  background: #e4eeff;
+}
+
+td {
+  padding: 0.85rem 0.75rem;
+  color: #111827;
+  font-size: 0.92rem;
+  vertical-align: middle;
+}
+
+.check-cell {
+  width: 54px;
+  text-align: center;
+}
+
+.checkbox-button {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #c4cbd6;
+  background: transparent;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.checkbox-button span {
+  width: 9px;
+  height: 6px;
+  border-left: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+.checkbox-button.checked {
+  border-color: #60a5fa;
+  background: #dbeafe;
+}
+
+.checkbox-button.checked span {
+  border-left-color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.expand-button,
+.expand-spacer {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+}
+
+.expand-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -4px;
+}
+
+.expand-button span {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid #6b7280;
+  border-bottom: 1.5px solid #6b7280;
+  transform: rotate(-45deg) translate(-1px, -1px);
+  transition: transform 0.18s ease;
+}
+
+.expand-button span.expanded {
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+.title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 260px;
+}
+
+.title-text {
+  font-weight: 500;
+}
+
+.title-input {
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  padding: 0 0.7rem;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.18);
+}
+
+.add-subtask-button {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #d7dde6;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, border-color 0.18s ease, color 0.18s ease, background-color 0.18s ease;
+}
+
+:host(:hover) .add-subtask-button,
+:host(:focus-within) .add-subtask-button {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.add-subtask-button:hover {
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.subtask-count {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.status-pill,
+.priority-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 0.55rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.status-cell {
+  position: relative;
+}
+
+.status-dropdown,
+.priority-dropdown,
+.date-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.status-trigger,
+.priority-trigger,
+.date-trigger {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: opacity 0.18s ease;
+}
+
+.status-trigger:hover,
+.status-trigger.open,
+.priority-trigger:hover,
+.priority-trigger.open,
+.date-trigger:hover,
+.date-trigger.open {
+  opacity: 0.9;
+}
+
+.status-menu,
+.priority-menu,
+.date-menu {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  left: 0;
+  min-width: 180px;
+  padding: 0.45rem;
+  border: 1px solid #d7dde6;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  z-index: 20;
+}
+
+.status-trigger-pill,
+.priority-trigger-pill {
+  min-height: 28px;
+}
+
+.date-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  min-width: 280px;
+  padding: 0.85rem;
+  z-index: 2000;
+}
+
+.status-menu,
+.priority-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2000;
+}
+
+.date-trigger .date-badge {
+  cursor: pointer;
+}
+
+.date-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.calendar-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.calendar-nav {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #4b5563;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.calendar-nav:hover {
+  background: #f3f4f6;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.2rem;
+}
+
+.calendar-weekdays {
+  margin-bottom: 0.35rem;
+}
+
+.calendar-weekdays span {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.calendar-day {
+  width: 100%;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #111827;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.calendar-day:hover {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.calendar-day.muted {
+  color: #9ca3af;
+}
+
+.calendar-day.selected {
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.clear-date-button {
+  width: 100%;
+  margin-top: 0.8rem;
+  padding: 0.65rem 0.75rem;
+  border: none;
+  border-radius: 10px;
+  background: #f3f4f6;
+  color: #4b5563;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.clear-date-button:hover {
+  background: #e5e7eb;
+}
+
+.status-option,
+.priority-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0.4rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.status-option:hover,
+.status-option.active,
+.priority-option:hover,
+.priority-option.active {
+  background: #f3f7fb;
+}
+
+.status-idea {
+  color: #4b5563;
+  background: #f3f4f6;
+}
+
+.status-todo {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.status-progress {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.status-review {
+  color: #7c3aed;
+  background: #ede9fe;
+}
+
+.status-done {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.status-blocked {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.date-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 30px;
+  padding: 0 0.7rem;
+  border: 1px solid #d7dde6;
+  border-radius: 8px;
+  color: #374151;
+  background: #ffffff;
+}
+
+.date-badge.empty {
+  color: #9ca3af;
+}
+
+.calendar-icon {
+  width: 13px;
+  height: 13px;
+  border: 1px solid #9ca3af;
+  border-radius: 3px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.calendar-icon::before,
+.calendar-icon::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 4px;
+  background: #9ca3af;
+  border-radius: 999px;
+}
+
+.calendar-icon::before {
+  left: 2px;
+}
+
+.calendar-icon::after {
+  right: 2px;
+}
+
+.priority-low {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.priority-medium {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.priority-high {
+  color: #c2410c;
+  background: #ffedd5;
+}
+
+.priority-critical {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.priority-none {
+  color: #6b7280;
+  background: #f3f4f6;
+}
+
+.assignee-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.assignee-wrap.empty {
+  color: #9ca3af;
+}
+
+.assignee-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e5efff;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  color: #2563eb;
+}
+
+.comment-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+}
+
+.comment-icon {
+  width: 14px;
+  height: 12px;
+  border: 1px solid #9ca3af;
+  border-radius: 3px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.comment-icon::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  bottom: -4px;
+  width: 5px;
+  height: 5px;
+  border-left: 1px solid #9ca3af;
+  border-bottom: 1px solid #9ca3af;
+  transform: skewY(35deg);
+}
+
+@media (max-width: 1080px) {
+  td {
+    padding: 0.75rem 0.6rem;
+    font-size: 0.88rem;
+  }
+
+  .title-wrap {
+    min-width: 180px;
+  }
+}

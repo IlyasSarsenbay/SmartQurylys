@@ -1,4 +1,129 @@
-<main>
-    <app-project-header></app-project-header>
-    Здесь будут задачи
+<main class="tasks-page-shell">
+  <section class="tasks-page">
+    <section class="tasks-board">
+      <header class="toolbar">
+        <div class="toolbar-left">
+          <label class="search-box">
+            <span class="search-icon"></span>
+            <input type="text" [(ngModel)]="searchTerm" placeholder="Search tasks" />
+          </label>
+
+          <div class="filter-pills">
+            <button type="button" class="filter-pill" [class.active]="selectedStatus === 'all'"
+              (click)="onStatusChange('all')">
+              All
+            </button>
+            <button type="button" class="filter-pill" [class.active]="selectedStatus === 'To do'"
+              (click)="onStatusChange('To do')">
+              To do
+            </button>
+            <button type="button" class="filter-pill" [class.active]="selectedStatus === 'In progress'"
+              (click)="onStatusChange('In progress')">
+              In progress
+            </button>
+            <button type="button" class="filter-pill" [class.active]="selectedStatus === 'Done'"
+              (click)="onStatusChange('Done')">
+              Done
+            </button>
+          </div>
+        </div>
+
+        <div class="toolbar-right">
+          <button type="button" class="ghost-button">Group</button>
+          <button type="button" class="icon-button" aria-label="More actions">
+            <span></span>
+          </button>
+        </div>
+      </header>
+
+      <div class="table-shell">
+        <table class="tasks-table">
+          <thead>
+            <tr>
+              <th class="checkbox-column">
+                <input
+                  type="checkbox"
+                  class="header-checkbox"
+                  [checked]="allVisibleSelected"
+                  [indeterminate]="someVisibleSelected"
+                  (change)="onToggleSelectAll($any($event.target).checked)"
+                  aria-label="Select all visible tasks"
+                />
+              </th>
+              <th>Subject</th>
+              <th>Status</th>
+              <th>Due date</th>
+              <th>Priority</th>
+              <th>Assignee</th>
+              <th>Comments</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (item of visibleRows; track item.id) {
+            <tr
+              app-task-list-row
+              [item]="item"
+              [isStatusMenuOpen]="openStatusMenuFor === item.id"
+              [isPriorityMenuOpen]="openPriorityMenuFor === item.id"
+              [isDateMenuOpen]="openDateMenuFor === item.id"
+              [availableStatuses]="statusOptions"
+              [availablePriorities]="priorityOptions"
+              [weekdayLabels]="weekdayLabels"
+              [calendarMonthLabel]="calendarMonthLabel"
+              [calendarWeeks]="calendarWeeks"
+              [statusMenuTop]="statusMenuTop"
+              [statusMenuLeft]="statusMenuLeft"
+              [priorityMenuTop]="priorityMenuTop"
+              [priorityMenuLeft]="priorityMenuLeft"
+              [dateMenuTop]="dateMenuTop"
+              [dateMenuLeft]="dateMenuLeft"
+              [isEditingTitle]="editingTitleItemId === item.id"
+              [editingTitleValue]="editingTitleItemId === item.id ? editingTitleValue : item.title"
+              (toggleExpanded)="onToggleExpanded($event)"
+              (toggleSelected)="onToggleSelected($event)"
+              (addSubtask)="onAddSubtask($event)"
+              (startTitleEdit)="onStartTitleEdit($event)"
+              (titleDraftChange)="onTitleDraftChange($event)"
+              (saveTitleEdit)="onSaveTitleEdit($event)"
+              (cancelTitleEdit)="onCancelTitleEdit($event)"
+              (toggleStatusMenu)="onToggleStatusMenu($event)"
+              (togglePriorityMenu)="onTogglePriorityMenu($event)"
+              (toggleDateMenu)="onToggleDateMenu($event)"
+              (changeStatus)="onChangeStatus($event.itemId, $event.status)"
+              (changePriority)="onChangePriority($event.itemId, $event.priority)"
+              (previousMonth)="onPreviousMonth()"
+              (nextMonth)="onNextMonth()"
+              (changeDueDate)="onChangeDueDate($event.itemId, $event.isoDate)"
+              (clearDueDate)="onClearDueDate($event)"
+            ></tr>
+            } @empty {
+            <tr>
+              <td colspan="7" class="empty-state">
+                <strong>No tasks found</strong>
+                <span>Try another search term or create a new task.</span>
+              </td>
+            </tr>
+            }
+
+            <tr class="create-row">
+              <td colspan="7">
+                <button type="button" class="create-button" (click)="addTask()">
+                  <span>+</span>
+                  Create task
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+
+  @if (selectedCount > 0) {
+    <div class="selection-bar">
+      <span class="selection-count">{{ selectedCount }} selected</span>
+      <button type="button" class="selection-delete" (click)="deleteSelected()">Delete</button>
+    </div>
+  }
 </main>

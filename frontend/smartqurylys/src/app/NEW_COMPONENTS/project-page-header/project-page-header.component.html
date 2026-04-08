@@ -47,7 +47,8 @@
                     [routerLinkActiveOptions]="{ exact: true }">О проекте</a>
                 <!-- <a class="tab" [routerLink]="['/projects', project.id, 'tasks']" routerLinkActive="active">Список
                     задач</a> -->
-                <a class="tab" [routerLink]="" routerLinkActive="active">График работ</a>
+                <a class="tab" [routerLink]="['/projects', project.id, 'tasks']" routerLinkActive="active">График
+                    работ</a>
                 <a class="tab" [routerLink]="['/projects', project.id, 'documents']"
                     routerLinkActive="active">Документы</a>
                 <a class="tab" [routerLink]="['/projects', project.id, 'participants']"

@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Project } from '../../core/models/project';
 import { ProjectService } from '../../core/project.service';
-import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { mapToUpdateProjectRequest } from '../../core/models/project-requests';
 import { TaskService } from '../../core/task.service';
@@ -24,19 +24,21 @@ export class ProjectPageHeader implements OnInit {
   participants: Participant[] = []
 
   constructor(
-    private route: ActivatedRoute,
     private projectService: ProjectService,
     private taskService: TaskService,
     private participantService: ParticipantService
   ) { }
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    this.projectService.getProjectById(Number(id))
-      .subscribe(value => {
-        this.project = value
-        this.getNumberOfTasks()
-      })
+    this.projectService.activeProject$
+      .subscribe((project) => {
+        if (!project) {
+          return;
+        }
+
+        this.project = project;
+        this.getNumberOfTasks();
+      });
   }
 
   toggleFavorite(project: Project) {

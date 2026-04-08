@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ProjectPageHeader } from "../project-page-header/project-page-header.component";
 import { DocumentService } from '../../core/document.service';
 import { ActivatedRoute } from '@angular/router';
 import { DocumentRequest, DocumentShortResponse, DocumentStatus } from '../../core/models/document';
@@ -22,7 +21,7 @@ interface ProjectDocument {
 @Component({
   selector: 'app-project-documents-tab',
   standalone: true,
-  imports: [CommonModule, FormsModule, ProjectPageHeader],
+  imports: [CommonModule, FormsModule],
   templateUrl: './project-documents.component.html',
   styleUrl: './project-documents.component.css'
 })
@@ -42,7 +41,7 @@ export class ProjectDocumentsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get("id")
+    const id = this.route.parent?.snapshot.paramMap.get('id') ?? this.route.snapshot.paramMap.get('id');
     this.projectId = Number(id)
     this.documentService.getProjectDocuments(this.projectId)
       .subscribe((dtos: DocumentShortResponse[]) => {

@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 
 import { HttpClient, HttpResponse, HttpHeaders } from '@angular/common/http'; // Added HttpHeaders
 
-import { map, Observable } from 'rxjs';
+import { BehaviorSubject, map, Observable, of, tap } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 
@@ -31,6 +31,9 @@ import { ScheduleService } from './schedule.service';
 export class ProjectService {
 
   private apiUrl = `${environment.apiUrl}/projects`;
+  private readonly projectCache = new Map<number, Project>();
+  private readonly activeProjectSubject = new BehaviorSubject<Project | null>(null);
+  readonly activeProject$ = this.activeProjectSubject.asObservable();
 
 
 
@@ -98,8 +101,17 @@ export class ProjectService {
   }
 
   getProjectById(id: number): Observable<Project> {
+    const cachedProject = this.projectCache.get(id);
+
+    if (cachedProject) {
+      return of(cachedProject);
+    }
+
     return this.http.get<ProjectResponse>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() })
-      .pipe(map(mapProjectResponseToProject))
+      .pipe(
+        map(mapProjectResponseToProject),
+        tap((project) => this.setCachedProject(project))
+      )
   }
 
   DEPRECATED_updateProject(id: number, request: UpdateProjectRequest): Observable<ProjectResponse> {
@@ -111,7 +123,40 @@ export class ProjectService {
     const id = project.id
     const request = mapToUpdateProjectRequest(project)
     return this.http.put<ProjectResponse>(`${this.apiUrl}/${id}`, request, { headers: this.getAuthHeaders() })
-    .pipe(map(mapProjectResponseToProject));
+    .pipe(
+      map(mapProjectResponseToProject),
+      tap((updatedProject) => this.setCachedProject(updatedProject))
+    );
+  }
+
+  setActiveProject(projectId: number): Observable<Project> {
+    const cachedProject = this.projectCache.get(projectId);
+
+    if (cachedProject) {
+      this.activeProjectSubject.next(cachedProject);
+      return of(cachedProject);
+    }
+
+    return this.http.get<ProjectResponse>(`${this.apiUrl}/${projectId}`, { headers: this.getAuthHeaders() })
+      .pipe(
+        map(mapProjectResponseToProject),
+        tap((project) => {
+          this.setCachedProject(project);
+          this.activeProjectSubject.next(project);
+        })
+      );
+  }
+
+  getActiveProjectSnapshot(): Project | null {
+    return this.activeProjectSubject.value;
+  }
+
+  private setCachedProject(project: Project): void {
+    this.projectCache.set(project.id, project);
+
+    if (this.activeProjectSubject.value?.id === project.id) {
+      this.activeProjectSubject.next(project);
+    }
   }
 
   deleteProject(id: number): Observable<void> {

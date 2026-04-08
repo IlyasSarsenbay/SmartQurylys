@@ -1,0 +1,189 @@
+<td class="check-cell">
+  <button
+    type="button"
+    class="checkbox-button"
+    [class.checked]="item.selected"
+    (click)="onToggleSelected()"
+    [attr.aria-label]="'Select task ' + item.title"
+  >
+    <span></span>
+  </button>
+</td>
+
+<td class="title-cell">
+  <div class="title-wrap" [style.padding-left.px]="item.level * 22" (click)="onStartTitleEdit($event)">
+    @if (hasChildren) {
+      <button
+        type="button"
+        class="expand-button"
+        (click)="onToggleExpanded($event)"
+        [attr.aria-label]="'Toggle subtasks for ' + item.title"
+      >
+        <span [class.expanded]="item.expanded"></span>
+      </button>
+    } @else {
+      <span class="expand-spacer"></span>
+    }
+
+    @if (isEditingTitle) {
+      <input
+        #titleInput
+        type="text"
+        class="title-input"
+        [value]="editingTitleValue"
+        (input)="onTitleInput($any($event.target).value)"
+        (blur)="onTitleBlur()"
+        (keydown)="onTitleKeydown($event)"
+        (click)="$event.stopPropagation()"
+      />
+    } @else {
+      <span class="title-text">{{ item.title }}</span>
+    }
+
+    <button
+      type="button"
+      class="add-subtask-button"
+      (mousedown)="onAddSubtaskMouseDown($event)"
+      (click)="onAddSubtask($event)"
+      [attr.aria-label]="'Add subtask to ' + item.title"
+    >
+      +
+    </button>
+  </div>
+</td>
+
+<td class="status-cell">
+  <div class="status-dropdown">
+    <button
+      type="button"
+      class="status-trigger"
+      [class.open]="isStatusMenuOpen"
+      (click)="onToggleStatusMenu($event)"
+    >
+      <span class="status-pill status-trigger-pill" [ngClass]="statusClass">{{ item.status }}</span>
+    </button>
+
+    @if (isStatusMenuOpen) {
+      <div class="status-menu" [style.top.px]="statusMenuTop" [style.left.px]="statusMenuLeft">
+        @for (status of availableStatuses; track trackStatus($index, status)) {
+          <button
+            type="button"
+            class="status-option"
+            [class.active]="status === item.status"
+            (click)="onChangeStatus(status)"
+          >
+            <span class="status-pill" [ngClass]="statusClassMap[status]">{{ status }}</span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+</td>
+
+<td class="date-cell">
+  <div class="date-dropdown">
+    <button
+      type="button"
+      class="date-trigger"
+      [class.open]="isDateMenuOpen"
+      (click)="onToggleDateMenu($event)"
+    >
+      <span class="date-badge" [class.empty]="!item.dueDate">
+        @if (item.dueDate) {
+          <span class="calendar-icon"></span>
+          {{ item.dueDate }}
+        } @else {
+          <span class="calendar-icon"></span>
+          No date
+        }
+      </span>
+    </button>
+
+    @if (isDateMenuOpen) {
+      <div class="date-menu" [style.top.px]="dateMenuTop" [style.left.px]="dateMenuLeft">
+        <div class="date-menu-header">
+          <button type="button" class="calendar-nav" (click)="onPreviousMonth()">&#8249;</button>
+          <span class="calendar-title">{{ calendarMonthLabel }}</span>
+          <button type="button" class="calendar-nav" (click)="onNextMonth()">&#8250;</button>
+        </div>
+
+        <div class="calendar-grid calendar-weekdays">
+          @for (label of weekdayLabels; track trackWeekday($index, label)) {
+            <span>{{ label }}</span>
+          }
+        </div>
+
+        @for (week of calendarWeeks; track $index) {
+          <div class="calendar-grid">
+            @for (day of week; track trackDay($index, day)) {
+              <button
+                type="button"
+                class="calendar-day"
+                [class.muted]="!day.currentMonth"
+                [class.selected]="day.iso === selectedDateIso"
+                (click)="onChangeDueDate(day.iso)"
+              >
+                {{ day.dayNumber }}
+              </button>
+            }
+          </div>
+        }
+
+        <button type="button" class="clear-date-button" (click)="onClearDueDate()">Clear date</button>
+      </div>
+    }
+  </div>
+</td>
+
+<td class="priority-cell">
+  <div class="priority-dropdown">
+    <button
+      type="button"
+      class="priority-trigger"
+      [class.open]="isPriorityMenuOpen"
+      (click)="onTogglePriorityMenu($event)"
+    >
+      <span class="priority-pill priority-trigger-pill" [ngClass]="priorityClass">
+        {{ item.priority ?? 'None' }}
+      </span>
+    </button>
+
+    @if (isPriorityMenuOpen) {
+      <div class="priority-menu" [style.top.px]="priorityMenuTop" [style.left.px]="priorityMenuLeft">
+        @for (priority of availablePriorities; track trackPriority($index, priority)) {
+          <button
+            type="button"
+            class="priority-option"
+            [class.active]="priority === item.priority"
+            (click)="onChangePriority(priority)"
+          >
+            <span
+              class="priority-pill"
+              [ngClass]="priority ? priorityClassMap[priority] : 'priority-none'"
+            >
+              {{ priority }}
+            </span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+</td>
+
+<td class="assignee-cell">
+  <div class="assignee-wrap" [class.empty]="!item.assignee">
+    @if (item.assignee) {
+      <span class="assignee-avatar">{{ item.assignee[0] }}</span>
+      <span>{{ item.assignee }}</span>
+    } @else {
+      Unassigned
+    }
+  </div>
+</td>
+
+<td class="comments-cell">
+  <span class="comment-link">
+    <span class="comment-icon"></span>
+    {{ item.commentsCount > 0 ? item.commentsCount + ' comments' : 'Add comment' }}
+  </span>
+</td>

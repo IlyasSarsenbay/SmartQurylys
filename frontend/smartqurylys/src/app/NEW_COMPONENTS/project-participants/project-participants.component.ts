@@ -1,10 +1,9 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { Participant, ParticipantResponse } from '../../core/models/participant';
+import { Component, OnInit } from '@angular/core';
+import { ParticipantResponse } from '../../core/models/participant';
 import { Project } from '../../core/models/project';
 import { ParticipantService } from '../../core/participant.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ProjectPageHeader } from "../project-page-header/project-page-header.component";
 import { ProjectService } from '../../core/project.service';
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -26,14 +25,13 @@ interface ParticipantItem {
 @Component({
   selector: 'app-project-participants',
   standalone: true,
-  imports: [CommonModule, FormsModule, ProjectPageHeader],
+  imports: [CommonModule, FormsModule],
   templateUrl: './project-participants.component.html',
   styleUrl: './project-participants.component.css'
 })
 export class ProjectParticipantsComponent implements OnInit {
   project!: Project
   participants: ParticipantItem[] = []
-  invitedParticipants: ParticipantItem[] = []
 
   isInviteModalOpen = false;
   searchTerm = '';
@@ -51,11 +49,14 @@ export class ProjectParticipantsComponent implements OnInit {
   };
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id')
-    this.projectService.getProjectById(Number(id))
-      .subscribe(value => {
-        this.project = value
-      })
+    const id = this.route.parent?.snapshot.paramMap.get('id') ?? this.route.snapshot.paramMap.get('id');
+
+    this.projectService.activeProject$
+      .subscribe((project) => {
+        if (project) {
+          this.project = project;
+        }
+      });
 
     forkJoin({
       participants: this.participantService.getParticipantsByProject(Number(id)),

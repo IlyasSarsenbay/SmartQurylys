@@ -24,9 +24,10 @@ import { DocumentsComponent } from './project-dashboard/document/document.compon
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { ProjectDetailsComponent } from './projects/project-details/project-details.component';
 import { NotificationModalComponent } from './notification-modal/notification-modal.component';
-import { ProjectTasksPageComponent } from './NEW_COMPONENTS/project-tasks-page/project-tasks-page.component';
 import { ProjectParticipantsComponent } from './NEW_COMPONENTS/project-participants/project-participants.component';
 import { ProjectDocumentsComponent } from './NEW_COMPONENTS/project-documents/project-documents.component';
+import { ProjectTasksPageComponent } from './NEW_COMPONENTS/project-tasks-page/project-tasks-page.component';
+import { ProjectLayoutComponent } from './NEW_COMPONENTS/project-layout/project-layout.component';
 // Определение маршрутов приложения Angular.
 export const routes: Routes = [
   { path: '', component: HomeComponent }, // Главная страница.
@@ -55,10 +56,17 @@ export const routes: Routes = [
   { path: 'projects', component: MyProjectsComponent, canActivate: [authGuard] }, // Список моих проектов, требует аутентификации.
   { path: 'projects/create', component: CreateProjectComponent, canActivate: [authGuard] }, // Создание нового проекта, требует аутентификации.
 
-  { path: 'projects/:id', component: NewProjectDetailsComponent, canActivate: [authGuard] },
-  { path: 'projects/:id/tasks', component: ProjectTasksPageComponent, canActivate: [authGuard] },
-  { path: 'projects/:id/documents', component: ProjectDocumentsComponent, canActivate: [authGuard] },
-  { path: 'projects/:id/participants', component: ProjectParticipantsComponent, canActivate: [authGuard] },
+  {
+    path: 'projects/:id',
+    component: ProjectLayoutComponent,
+    canActivate: [authGuard],
+    children: [
+      { path: '', component: NewProjectDetailsComponent },
+      { path: 'tasks', component: ProjectTasksPageComponent },
+      { path: 'documents', component: ProjectDocumentsComponent },
+      { path: 'participants', component: ProjectParticipantsComponent }
+    ]
+  },
   { path: 'contractor-registry', component: ContractorRegistryComponent, canActivate: [authGuard] }, // Реестр подрядчиков, требует аутентификации.
   
   //  old front

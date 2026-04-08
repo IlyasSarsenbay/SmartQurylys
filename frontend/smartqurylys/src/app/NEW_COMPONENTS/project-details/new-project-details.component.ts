@@ -1,19 +1,15 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ProjectPageHeader } from "../project-page-header/project-page-header.component";
 import { Project } from '../../core/models/project';
 import { ProjectService } from '../../core/project.service';
 import { RichEditorComponent } from "../rich-editor/rich-editor.component";
-import { PROJECT_STATUS_RU } from '../../core/models/project';
-import { NgClass } from '@angular/common';
 import { ProjectDescCardComponent } from "../project-desc-card/project-desc-card.component";
 import { ProjectFilesSectionComponent } from "../project-files-section/project-files-section.component";
 
 @Component({
   selector: 'app-project-details',
   standalone: true,
-  imports: [FormsModule, ProjectPageHeader, FormsModule, RichEditorComponent, ProjectDescCardComponent, ProjectFilesSectionComponent],
+  imports: [FormsModule, FormsModule, RichEditorComponent, ProjectDescCardComponent, ProjectFilesSectionComponent],
   templateUrl: './project-details.component.html',
   styleUrl: './project-details.component.css'
 })
@@ -32,16 +28,16 @@ export class NewProjectDetailsComponent implements OnInit, AfterViewInit {
 
 
   constructor(
-    private route: ActivatedRoute,
     private projectService: ProjectService
   ) { }
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get("id")
-    this.projectService.getProjectById(Number(id))
-      .subscribe(value => {
-        this.project = value
-      })
+    this.projectService.activeProject$
+      .subscribe((project) => {
+        if (project) {
+          this.project = project;
+        }
+      });
   }
 
   ngAfterViewInit(): void {
