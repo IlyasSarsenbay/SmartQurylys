@@ -18,6 +18,7 @@ import { InvitationResponse } from './models/project-invitation';
 import { FileResponse } from './models/file';
 
 import { AuthService } from '../auth/auth.service'; // Import AuthService
+import { ParticipantService } from './participant.service';
 import { ScheduleService } from './schedule.service';
 
 
@@ -40,6 +41,7 @@ export class ProjectService {
   constructor(
     private http: HttpClient, 
     private authService: AuthService,
+    private participantService: ParticipantService,
     private scheduleService: ScheduleService
   ) { } // Injected AuthService
 
@@ -169,7 +171,9 @@ export class ProjectService {
 
   inviteParticipant(projectId: number, request: CreateInvitationRequest): Observable<InvitationResponse> {
 
-    return this.http.post<InvitationResponse>(`${this.apiUrl}/${projectId}/invitations`, request, { headers: this.getAuthHeaders() });
+    return this.http.post<InvitationResponse>(`${this.apiUrl}/${projectId}/invitations`, request, { headers: this.getAuthHeaders() }).pipe(
+      tap(() => this.participantService.invalidateProjectParticipants(projectId))
+    );
 
   }
 

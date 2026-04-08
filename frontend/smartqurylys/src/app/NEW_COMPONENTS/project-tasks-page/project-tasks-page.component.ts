@@ -1,6 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { Participant } from '../../core/models/participant';
+import { ParticipantService } from '../../core/participant.service';
 import { TaskListRowComponent } from './task-list-row.component';
 import { TodoItem, TodoPriority, TodoRowItem, TodoStatus } from './task-list.models';
 
@@ -20,6 +23,9 @@ interface OverlayAnchorRect {
   height: number;
 }
 
+type SortColumn = 'subject' | 'status' | 'dueDate' | 'priority' | 'assignee';
+type SortDirection = 'asc' | 'desc';
+
 @Component({
   selector: 'app-project-tasks-page',
   standalone: true,
@@ -27,7 +33,7 @@ interface OverlayAnchorRect {
   templateUrl: './project-tasks-page.component.html',
   styleUrl: './project-tasks-page.component.css'
 })
-export class ProjectTasksPageComponent {
+export class ProjectTasksPageComponent implements OnInit {
   searchTerm = '';
   selectedStatus: 'all' | TodoStatus = 'all';
   editingTitleItemId: number | null = null;
@@ -35,16 +41,23 @@ export class ProjectTasksPageComponent {
   openStatusMenuFor: number | null = null;
   openPriorityMenuFor: number | null = null;
   openDateMenuFor: number | null = null;
+  openAssigneeMenuFor: number | null = null;
   statusMenuTop = 0;
   statusMenuLeft = 0;
   priorityMenuTop = 0;
   priorityMenuLeft = 0;
   dateMenuTop = 0;
   dateMenuLeft = 0;
+  assigneeMenuTop = 0;
+  assigneeMenuLeft = 0;
   readonly statusOptions: TodoStatus[] = ['To do', 'Idea', 'In progress', 'In review', 'Done', 'Blocked'];
   readonly priorityOptions: TodoPriority[] = ['Low', 'Medium', 'High', 'Critical'];
   calendarViewDate = new Date(2026, 3, 1);
   readonly weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  projectParticipants: Participant[] = [];
+  sortColumn: SortColumn = 'subject';
+  sortDirection: SortDirection = 'asc';
+  private projectId: number | null = null;
 
   readonly tasks: TodoItem[] = [
     {
@@ -169,8 +182,65 @@ export class ProjectTasksPageComponent {
     return this.visibleRows.some((item) => !!item.selected) && !this.allVisibleSelected;
   }
 
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly participantService: ParticipantService
+  ) {}
+
+  ngOnInit(): void {
+    const projectId = Number(this.route.parent?.snapshot.paramMap.get('id') ?? this.route.snapshot.paramMap.get('id'));
+
+    if (!Number.isFinite(projectId)) {
+      return;
+    }
+
+    this.projectId = projectId;
+    this.loadProjectParticipants();
+
+    this.participantService.participantsChanged$.subscribe((changedProjectId) => {
+      if (this.projectId === null) {
+        return;
+      }
+
+      if (changedProjectId === null || changedProjectId === this.projectId) {
+        this.loadProjectParticipants(true);
+      }
+    });
+  }
+
+  private loadProjectParticipants(forceRefresh = false): void {
+    if (this.projectId === null) {
+      return;
+    }
+
+    this.participantService.getProjectParticipants(this.projectId, forceRefresh).subscribe({
+      next: (participants) => {
+        this.projectParticipants = participants;
+      },
+      error: (error) => {
+        console.error('Failed to load project participants for tasks page:', error);
+      }
+    });
+  }
+
   onStatusChange(status: 'all' | TodoStatus): void {
     this.selectedStatus = status;
+  }
+
+  onSort(column: SortColumn): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+      this.collapseTaskGroups();
+      return;
+    }
+
+    this.sortColumn = column;
+    this.sortDirection = 'asc';
+    this.collapseTaskGroups();
+  }
+
+  isSortedBy(column: SortColumn): boolean {
+    return this.sortColumn === column;
   }
 
   onToggleExpanded(itemId: number): void {
@@ -231,20 +301,19 @@ export class ProjectTasksPageComponent {
 
   onAddSubtask(itemId: number): void {
     const nextId = this.getNextId(this.tasks);
+    const newSubtask: TodoItem = {
+      id: nextId,
+      type: 'task',
+      title: 'New subtask',
+      status: 'To do',
+      dueDate: '',
+      priority: 'Low',
+      assignee: '',
+      commentsCount: 0,
+      selected: false
+    };
 
     this.updateItemById(this.tasks, itemId, (item) => {
-      const newSubtask: TodoItem = {
-        id: nextId,
-        type: 'task',
-        title: 'New subtask',
-        status: 'To do',
-        dueDate: '',
-        priority: 'Low',
-        assignee: '',
-        commentsCount: 0,
-        selected: false
-      };
-
       if (item.type === 'group') {
         item.subtasks = [...(item.subtasks ?? []), newSubtask];
         item.expanded = true;
@@ -255,6 +324,9 @@ export class ProjectTasksPageComponent {
       item.subtasks = [newSubtask];
       item.expanded = true;
     });
+
+    this.editingTitleItemId = nextId;
+    this.editingTitleValue = newSubtask.title;
   }
 
   onToggleSelectAll(checked: boolean): void {
@@ -269,6 +341,7 @@ export class ProjectTasksPageComponent {
   onToggleStatusMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
     this.openPriorityMenuFor = null;
     this.openDateMenuFor = null;
+    this.openAssigneeMenuFor = null;
 
     if (this.openStatusMenuFor === payload.itemId) {
       this.openStatusMenuFor = null;
@@ -292,6 +365,7 @@ export class ProjectTasksPageComponent {
   onTogglePriorityMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
     this.openStatusMenuFor = null;
     this.openDateMenuFor = null;
+    this.openAssigneeMenuFor = null;
 
     if (this.openPriorityMenuFor === payload.itemId) {
       this.openPriorityMenuFor = null;
@@ -315,6 +389,7 @@ export class ProjectTasksPageComponent {
   onToggleDateMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
     this.openStatusMenuFor = null;
     this.openPriorityMenuFor = null;
+    this.openAssigneeMenuFor = null;
 
     if (this.openDateMenuFor === payload.itemId) {
       this.openDateMenuFor = null;
@@ -362,17 +437,52 @@ export class ProjectTasksPageComponent {
     this.openDateMenuFor = null;
   }
 
+  onToggleAssigneeMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
+    this.openStatusMenuFor = null;
+    this.openPriorityMenuFor = null;
+    this.openDateMenuFor = null;
+
+    if (this.openAssigneeMenuFor === payload.itemId) {
+      this.openAssigneeMenuFor = null;
+      return;
+    }
+
+    this.openAssigneeMenuFor = payload.itemId;
+    this.setOverlayPosition(payload.anchorRect, 260, 320, (top, left) => {
+      this.assigneeMenuTop = top;
+      this.assigneeMenuLeft = left;
+    });
+  }
+
+  onChangeAssignee(itemId: number, assignee: string): void {
+    this.updateItemById(this.tasks, itemId, (item) => {
+      item.assignee = assignee;
+    });
+    this.openAssigneeMenuFor = null;
+  }
+
   @HostListener('window:resize')
   onWindowResize(): void {
     if (this.openDateMenuFor !== null) {
       this.openDateMenuFor = null;
     }
+
+    if (this.openStatusMenuFor !== null) {
+      this.openStatusMenuFor = null;
+    }
+
+    if (this.openPriorityMenuFor !== null) {
+      this.openPriorityMenuFor = null;
+    }
+
+    if (this.openAssigneeMenuFor !== null) {
+      this.openAssigneeMenuFor = null;
+    }
   }
 
   addTask(): void {
     const nextId = this.getNextId(this.tasks);
-
-    this.tasks.unshift({
+    const newTask: TodoItem = {
       id: nextId,
       type: 'task',
       title: 'New task',
@@ -382,7 +492,11 @@ export class ProjectTasksPageComponent {
       assignee: '',
       commentsCount: 0,
       selected: false
-    });
+    };
+
+    this.tasks.push(newTask);
+    this.editingTitleItemId = nextId;
+    this.editingTitleValue = newTask.title;
   }
 
   deleteSelected(): void {
@@ -405,12 +519,18 @@ export class ProjectTasksPageComponent {
     if (!target?.closest('.date-dropdown')) {
       this.openDateMenuFor = null;
     }
+
+    if (!target?.closest('.assignee-dropdown')) {
+      this.openAssigneeMenuFor = null;
+    }
   }
 
   private get filteredTasks(): TodoItem[] {
-    return this.tasks
+    const filteredItems = this.tasks
       .map((item) => this.filterItem(item))
       .filter((item): item is TodoItem => item !== null);
+
+    return this.sortItems(filteredItems);
   }
 
   private filterItem(item: TodoItem): TodoItem | null {
@@ -447,6 +567,113 @@ export class ProjectTasksPageComponent {
       item.priority ?? '',
       item.assignee ?? ''
     ].some((value) => value.toLowerCase().includes(query));
+  }
+
+  private sortItems(items: TodoItem[]): TodoItem[] {
+    const directionFactor = this.sortDirection === 'asc' ? 1 : -1;
+
+    return [...items]
+      .map((item) => ({
+        ...item,
+        subtasks: item.subtasks?.length ? this.sortItems(item.subtasks) : item.subtasks
+      }))
+      .sort((left, right) => directionFactor * this.compareItems(left, right));
+  }
+
+  private compareItems(left: TodoItem, right: TodoItem): number {
+    switch (this.sortColumn) {
+      case 'subject':
+        return this.compareText(left.title, right.title);
+      case 'status':
+        return this.compareRank(
+          this.statusOptions.indexOf(left.status),
+          this.statusOptions.indexOf(right.status),
+          left.title,
+          right.title
+        );
+      case 'dueDate':
+        return this.compareDueDates(left.dueDate, right.dueDate, left.title, right.title);
+      case 'priority':
+        return this.compareRank(
+          this.priorityOptions.indexOf(left.priority ?? 'Low'),
+          this.priorityOptions.indexOf(right.priority ?? 'Low'),
+          left.title,
+          right.title
+        );
+      case 'assignee':
+        return this.compareOptionalText(left.assignee, right.assignee, left.title, right.title);
+      default:
+        return 0;
+    }
+  }
+
+  private compareText(left: string, right: string): number {
+    return left.localeCompare(right, undefined, { sensitivity: 'base' });
+  }
+
+  private compareOptionalText(
+    left: string | undefined,
+    right: string | undefined,
+    leftFallback: string,
+    rightFallback: string
+  ): number {
+    const leftValue = left?.trim();
+    const rightValue = right?.trim();
+
+    if (!leftValue && !rightValue) {
+      return this.compareText(leftFallback, rightFallback);
+    }
+
+    if (!leftValue) {
+      return 1;
+    }
+
+    if (!rightValue) {
+      return -1;
+    }
+
+    return this.compareText(leftValue, rightValue) || this.compareText(leftFallback, rightFallback);
+  }
+
+  private compareRank(leftRank: number, rightRank: number, leftFallback: string, rightFallback: string): number {
+    if (leftRank !== rightRank) {
+      return leftRank - rightRank;
+    }
+
+    return this.compareText(leftFallback, rightFallback);
+  }
+
+  private compareDueDates(
+    leftDueDate: string | undefined,
+    rightDueDate: string | undefined,
+    leftFallback: string,
+    rightFallback: string
+  ): number {
+    const leftDate = this.parseDueDate(leftDueDate);
+    const rightDate = this.parseDueDate(rightDueDate);
+
+    if (!leftDate && !rightDate) {
+      return this.compareText(leftFallback, rightFallback);
+    }
+
+    if (!leftDate) {
+      return 1;
+    }
+
+    if (!rightDate) {
+      return -1;
+    }
+
+    const difference = leftDate.getTime() - rightDate.getTime();
+    return difference || this.compareText(leftFallback, rightFallback);
+  }
+
+  private collapseTaskGroups(): void {
+    this.updateItems(this.tasks, (item) => {
+      if (item.type === 'group') {
+        item.expanded = false;
+      }
+    });
   }
 
   private flattenItems(items: TodoItem[], level = 0, parentId?: number): TodoRowItem[] {

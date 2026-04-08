@@ -50,11 +50,36 @@
                   aria-label="Select all visible tasks"
                 />
               </th>
-              <th>Subject</th>
-              <th>Status</th>
-              <th>Due date</th>
-              <th>Priority</th>
-              <th>Assignee</th>
+              <th>
+                <button type="button" class="sort-button" [class.active]="isSortedBy('subject')" (click)="onSort('subject')">
+                  Subject
+                  <span class="sort-indicator" [class.desc]="sortDirection === 'desc' && isSortedBy('subject')"></span>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-button" [class.active]="isSortedBy('status')" (click)="onSort('status')">
+                  Status
+                  <span class="sort-indicator" [class.desc]="sortDirection === 'desc' && isSortedBy('status')"></span>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-button" [class.active]="isSortedBy('dueDate')" (click)="onSort('dueDate')">
+                  Due date
+                  <span class="sort-indicator" [class.desc]="sortDirection === 'desc' && isSortedBy('dueDate')"></span>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-button" [class.active]="isSortedBy('priority')" (click)="onSort('priority')">
+                  Priority
+                  <span class="sort-indicator" [class.desc]="sortDirection === 'desc' && isSortedBy('priority')"></span>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-button" [class.active]="isSortedBy('assignee')" (click)="onSort('assignee')">
+                  Assignee
+                  <span class="sort-indicator" [class.desc]="sortDirection === 'desc' && isSortedBy('assignee')"></span>
+                </button>
+              </th>
               <th>Comments</th>
             </tr>
           </thead>
@@ -67,8 +92,10 @@
               [isStatusMenuOpen]="openStatusMenuFor === item.id"
               [isPriorityMenuOpen]="openPriorityMenuFor === item.id"
               [isDateMenuOpen]="openDateMenuFor === item.id"
+              [isAssigneeMenuOpen]="openAssigneeMenuFor === item.id"
               [availableStatuses]="statusOptions"
               [availablePriorities]="priorityOptions"
+              [availableAssignees]="projectParticipants"
               [weekdayLabels]="weekdayLabels"
               [calendarMonthLabel]="calendarMonthLabel"
               [calendarWeeks]="calendarWeeks"
@@ -78,6 +105,8 @@
               [priorityMenuLeft]="priorityMenuLeft"
               [dateMenuTop]="dateMenuTop"
               [dateMenuLeft]="dateMenuLeft"
+              [assigneeMenuTop]="assigneeMenuTop"
+              [assigneeMenuLeft]="assigneeMenuLeft"
               [isEditingTitle]="editingTitleItemId === item.id"
               [editingTitleValue]="editingTitleItemId === item.id ? editingTitleValue : item.title"
               (toggleExpanded)="onToggleExpanded($event)"
@@ -90,8 +119,10 @@
               (toggleStatusMenu)="onToggleStatusMenu($event)"
               (togglePriorityMenu)="onTogglePriorityMenu($event)"
               (toggleDateMenu)="onToggleDateMenu($event)"
+              (toggleAssigneeMenu)="onToggleAssigneeMenu($event)"
               (changeStatus)="onChangeStatus($event.itemId, $event.status)"
               (changePriority)="onChangePriority($event.itemId, $event.priority)"
+              (changeAssignee)="onChangeAssignee($event.itemId, $event.assignee)"
               (previousMonth)="onPreviousMonth()"
               (nextMonth)="onNextMonth()"
               (changeDueDate)="onChangeDueDate($event.itemId, $event.isoDate)"

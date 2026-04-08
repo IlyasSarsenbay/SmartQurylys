@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ParticipantResponse } from '../../core/models/participant';
+import { Participant, ParticipantResponse } from '../../core/models/participant';
 import { Project } from '../../core/models/project';
 import { ParticipantService } from '../../core/participant.service';
 import { FormsModule } from '@angular/forms';
@@ -32,6 +32,7 @@ interface ParticipantItem {
 export class ProjectParticipantsComponent implements OnInit {
   project!: Project
   participants: ParticipantItem[] = []
+  private projectId: number | null = null;
 
   isInviteModalOpen = false;
   searchTerm = '';
@@ -50,6 +51,7 @@ export class ProjectParticipantsComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.parent?.snapshot.paramMap.get('id') ?? this.route.snapshot.paramMap.get('id');
+    this.projectId = Number(id);
 
     this.projectService.activeProject$
       .subscribe((project) => {
@@ -58,13 +60,31 @@ export class ProjectParticipantsComponent implements OnInit {
         }
       });
 
+    this.loadParticipants();
+
+    this.participantService.participantsChanged$.subscribe((changedProjectId) => {
+      if (this.projectId === null) {
+        return;
+      }
+
+      if (changedProjectId === null || changedProjectId === this.projectId) {
+        this.loadParticipants(true);
+      }
+    });
+  }
+
+  private loadParticipants(forceRefresh = false): void {
+    if (this.projectId === null || !Number.isFinite(this.projectId)) {
+      return;
+    }
+
     forkJoin({
-      participants: this.participantService.getParticipantsByProject(Number(id)),
-      invited: this.participantService.getInvitedParticipantsByProject(Number(id))
+      participants: this.participantService.getProjectParticipants(this.projectId, forceRefresh),
+      invited: this.participantService.getInvitedParticipantsByProject(this.projectId)
     }).subscribe({
       next: ({ participants, invited }) => {
         const mappedParticipants =
-          this.mapParticipantResponsesToParticipantItems(participants, true);
+          this.mapParticipantsToParticipantItems(participants, true);
 
         const mappedInvited =
           this.mapParticipantResponsesToParticipantItems(invited, false);
@@ -75,7 +95,6 @@ export class ProjectParticipantsComponent implements OnInit {
         console.error('Fetch failed:', err);
       }
     });
-
   }
 
   get filteredParticipants(): ParticipantItem[] {
@@ -142,6 +161,33 @@ export class ProjectParticipantsComponent implements OnInit {
   ): ParticipantItem[] {
     return responses.map(response =>
       this.mapParticipantResponseToParticipantItem(response, acceptedInvite)
+    );
+  }
+
+  mapParticipantToParticipantItem(
+    participant: Participant,
+    acceptedInvite: boolean
+  ): ParticipantItem {
+    return {
+      id: participant.id,
+      fullName: participant.fullName,
+      iinBin: participant.iinBin,
+      role: participant.role,
+      organization: participant.organization,
+      phone: participant.phone,
+      email: participant.email,
+      canUploadDocuments: participant.canUploadDocuments,
+      canSendNotifications: participant.canSendNotifications,
+      acceptedInvite
+    };
+  }
+
+  mapParticipantsToParticipantItems(
+    participants: Participant[],
+    acceptedInvite: boolean
+  ): ParticipantItem[] {
+    return participants.map((participant) =>
+      this.mapParticipantToParticipantItem(participant, acceptedInvite)
     );
   }
 }

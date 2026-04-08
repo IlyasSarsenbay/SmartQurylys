@@ -3,10 +3,9 @@ import { Project } from '../../core/models/project';
 import { ProjectService } from '../../core/project.service';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { mapToUpdateProjectRequest } from '../../core/models/project-requests';
 import { TaskService } from '../../core/task.service';
 import { ParticipantService } from '../../core/participant.service';
-import { mapParticipantResponsesToParticipants, Participant } from '../../core/models/participant';
+import { Participant } from '../../core/models/participant';
 
 @Component({
   selector: 'app-project-header',
@@ -79,10 +78,10 @@ export class ProjectPageHeader implements OnInit {
   openDialog(): void {
     this.isAccessDialogOpen = true;
 
-    this.participantService.getParticipantsByProject(this.project.id)
-    .subscribe(responses => {
-        this.participants = mapParticipantResponsesToParticipants(responses)
-    })
+    this.participantService.getProjectParticipants(this.project.id)
+      .subscribe((participants) => {
+        this.participants = participants;
+      });
   }
 
   closeDialog(): void {

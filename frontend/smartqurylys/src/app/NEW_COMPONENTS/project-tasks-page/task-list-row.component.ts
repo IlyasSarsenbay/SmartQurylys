@@ -1,5 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewChecked, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import {
+  AfterViewChecked,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
+import { Participant } from '../../core/models/participant';
 import { TodoPriority, TodoRowItem, TodoStatus } from './task-list.models';
 
 interface CalendarDay {
@@ -30,14 +41,16 @@ interface OverlayAnchorRect {
   templateUrl: './task-list-row.component.html',
   styleUrl: './task-list-row.component.css'
 })
-export class TaskListRowComponent {
+export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   @ViewChild('titleInput') titleInput?: ElementRef<HTMLInputElement>;
   @Input({ required: true }) item!: TodoRowItem;
   @Input() isStatusMenuOpen = false;
   @Input() isPriorityMenuOpen = false;
   @Input() isDateMenuOpen = false;
+  @Input() isAssigneeMenuOpen = false;
   @Input() availableStatuses: TodoStatus[] = [];
   @Input() availablePriorities: TodoPriority[] = [];
+  @Input() availableAssignees: Participant[] = [];
   @Input() weekdayLabels: string[] = [];
   @Input() calendarMonthLabel = '';
   @Input() calendarWeeks: CalendarDay[][] = [];
@@ -47,6 +60,8 @@ export class TaskListRowComponent {
   @Input() priorityMenuLeft = 0;
   @Input() dateMenuTop = 0;
   @Input() dateMenuLeft = 0;
+  @Input() assigneeMenuTop = 0;
+  @Input() assigneeMenuLeft = 0;
   @Input() isEditingTitle = false;
   @Input() editingTitleValue = '';
   @Output() toggleExpanded = new EventEmitter<number>();
@@ -54,8 +69,10 @@ export class TaskListRowComponent {
   @Output() toggleStatusMenu = new EventEmitter<{ itemId: number; anchorRect: OverlayAnchorRect }>();
   @Output() togglePriorityMenu = new EventEmitter<{ itemId: number; anchorRect: OverlayAnchorRect }>();
   @Output() toggleDateMenu = new EventEmitter<{ itemId: number; anchorRect: OverlayAnchorRect }>();
+  @Output() toggleAssigneeMenu = new EventEmitter<{ itemId: number; anchorRect: OverlayAnchorRect }>();
   @Output() changeStatus = new EventEmitter<{ itemId: number; status: TodoStatus }>();
   @Output() changePriority = new EventEmitter<{ itemId: number; priority: TodoPriority }>();
+  @Output() changeAssignee = new EventEmitter<{ itemId: number; assignee: string }>();
   @Output() previousMonth = new EventEmitter<void>();
   @Output() nextMonth = new EventEmitter<void>();
   @Output() changeDueDate = new EventEmitter<{ itemId: number; isoDate: string }>();
@@ -95,6 +112,18 @@ export class TaskListRowComponent {
     return this.item.priority
       ? this.priorityClassMap[this.item.priority]
       : 'priority-none';
+  }
+
+  get assigneeInitials(): string {
+    return this.getInitials(this.item.assignee ?? '');
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    const editingChange = changes['isEditingTitle'];
+
+    if (editingChange?.currentValue && !editingChange.previousValue) {
+      this.shouldFocusTitleInput = true;
+    }
   }
 
   ngAfterViewChecked(): void {
@@ -199,6 +228,34 @@ export class TaskListRowComponent {
     });
   }
 
+  onToggleAssigneeMenu(event: MouseEvent): void {
+    const target = event.currentTarget as HTMLElement | null;
+    const rect = target?.getBoundingClientRect();
+
+    if (!rect) {
+      return;
+    }
+
+    this.toggleAssigneeMenu.emit({
+      itemId: this.item.id,
+      anchorRect: {
+        top: rect.top,
+        left: rect.left,
+        bottom: rect.bottom,
+        right: rect.right,
+        width: rect.width,
+        height: rect.height
+      }
+    });
+  }
+
+  onChangeAssignee(assignee: string): void {
+    this.changeAssignee.emit({
+      itemId: this.item.id,
+      assignee
+    });
+  }
+
   onPreviousMonth(): void {
     this.previousMonth.emit();
   }
@@ -265,6 +322,10 @@ export class TaskListRowComponent {
     return priority;
   }
 
+  trackAssignee(_: number, assignee: Participant): number {
+    return assignee.id;
+  }
+
   trackWeekday(_: number, label: string): string {
     return label;
   }
@@ -287,5 +348,19 @@ export class TaskListRowComponent {
     const month = `${parsed.getMonth() + 1}`.padStart(2, '0');
     const day = `${parsed.getDate()}`.padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  getInitials(fullName: string): string {
+    const parts = fullName
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2);
+
+    if (!parts.length) {
+      return '?';
+    }
+
+    return parts.map((part) => part[0]?.toUpperCase() ?? '').join('');
   }
 }

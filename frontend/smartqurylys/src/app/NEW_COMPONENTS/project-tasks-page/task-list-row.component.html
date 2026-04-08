@@ -171,12 +171,47 @@
 </td>
 
 <td class="assignee-cell">
-  <div class="assignee-wrap" [class.empty]="!item.assignee">
-    @if (item.assignee) {
-      <span class="assignee-avatar">{{ item.assignee[0] }}</span>
-      <span>{{ item.assignee }}</span>
-    } @else {
-      Unassigned
+  <div class="assignee-dropdown">
+    <button
+      type="button"
+      class="assignee-trigger"
+      [class.open]="isAssigneeMenuOpen"
+      (click)="onToggleAssigneeMenu($event)"
+    >
+      <div class="assignee-wrap" [class.empty]="!item.assignee">
+        @if (item.assignee) {
+          <span class="assignee-avatar">{{ assigneeInitials }}</span>
+          <span>{{ item.assignee }}</span>
+        } @else {
+          Unassigned
+        }
+      </div>
+    </button>
+
+    @if (isAssigneeMenuOpen) {
+      <div class="assignee-menu" [style.top.px]="assigneeMenuTop" [style.left.px]="assigneeMenuLeft">
+        <button
+          type="button"
+          class="assignee-option"
+          [class.active]="!item.assignee"
+          (click)="onChangeAssignee('')"
+        >
+          <span class="assignee-avatar assignee-avatar-empty">?</span>
+          <span>Unassigned</span>
+        </button>
+
+        @for (assignee of availableAssignees; track trackAssignee($index, assignee)) {
+          <button
+            type="button"
+            class="assignee-option"
+            [class.active]="assignee.fullName === item.assignee"
+            (click)="onChangeAssignee(assignee.fullName)"
+          >
+            <span class="assignee-avatar">{{ getInitials(assignee.fullName) }}</span>
+            <span>{{ assignee.fullName }}</span>
+          </button>
+        }
+      </div>
     }
   </div>
 </td>
