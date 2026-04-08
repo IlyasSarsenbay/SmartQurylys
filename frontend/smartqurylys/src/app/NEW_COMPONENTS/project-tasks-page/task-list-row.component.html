@@ -4,7 +4,7 @@
     class="checkbox-button"
     [class.checked]="item.selected"
     (click)="onToggleSelected()"
-    [attr.aria-label]="'Select task ' + item.title"
+    [attr.aria-label]="'Выбрать задачу ' + item.title"
   >
     <span></span>
   </button>
@@ -17,7 +17,7 @@
         type="button"
         class="expand-button"
         (click)="onToggleExpanded($event)"
-        [attr.aria-label]="'Toggle subtasks for ' + item.title"
+        [attr.aria-label]="'Переключить подзадачи для ' + item.title"
       >
         <span [class.expanded]="item.expanded"></span>
       </button>
@@ -45,7 +45,7 @@
       class="add-subtask-button"
       (mousedown)="onAddSubtaskMouseDown($event)"
       (click)="onAddSubtask($event)"
-      [attr.aria-label]="'Add subtask to ' + item.title"
+      [attr.aria-label]="'Добавить подзадачу к ' + item.title"
     >
       +
     </button>
@@ -94,7 +94,7 @@
           {{ item.dueDate }}
         } @else {
           <span class="calendar-icon"></span>
-          No date
+          Нет даты
         }
       </span>
     </button>
@@ -129,7 +129,7 @@
           </div>
         }
 
-        <button type="button" class="clear-date-button" (click)="onClearDueDate()">Clear date</button>
+        <button type="button" class="clear-date-button" (click)="onClearDueDate()">Очистить дату</button>
       </div>
     }
   </div>
@@ -144,7 +144,7 @@
       (click)="onTogglePriorityMenu($event)"
     >
       <span class="priority-pill priority-trigger-pill" [ngClass]="priorityClass">
-        {{ item.priority ?? 'None' }}
+        {{ item.priority ?? 'Нет' }}
       </span>
     </button>
 
@@ -183,7 +183,7 @@
           <span class="assignee-avatar">{{ assigneeInitials }}</span>
           <span>{{ item.assignee }}</span>
         } @else {
-          Unassigned
+          Не назначен
         }
       </div>
     </button>
@@ -197,7 +197,7 @@
           (click)="onChangeAssignee(null)"
         >
           <span class="assignee-avatar assignee-avatar-empty">?</span>
-          <span>Unassigned</span>
+          <span>Не назначен</span>
         </button>
 
         @for (assignee of availableAssignees; track trackAssignee($index, assignee)) {
@@ -219,6 +219,6 @@
 <td class="comments-cell">
   <button type="button" class="comment-link" (click)="onOpenComments($event)">
     <span class="comment-icon"></span>
-    {{ item.commentsCount > 0 ? item.commentsCount + ' comments' : 'Add comment' }}
+    {{ item.commentsCount > 0 ? item.commentsCount + ' комментариев' : 'Добавить комментарий' }}
   </button>
 </td>

@@ -1,8 +1,8 @@
 export type TodoItemType = 'task' | 'group';
 
-export type TodoStatus = 'To do' | 'Idea' | 'In progress' | 'In review' | 'Done' | 'Blocked';
+export type TodoStatus = 'К выполнению' | 'В работе' | 'На проверке' | 'Готово' | 'Заблокировано';
 
-export type TodoPriority = 'Low' | 'Medium' | 'High' | 'Critical';
+export type TodoPriority = 'Низкий' | 'Средний' | 'Высокий' | 'Критический';
 
 export interface TodoComment {
   id: number;

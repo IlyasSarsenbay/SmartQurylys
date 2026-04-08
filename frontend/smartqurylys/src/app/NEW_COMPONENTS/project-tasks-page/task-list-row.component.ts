@@ -86,19 +86,18 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   private shouldFocusTitleInput = false;
 
   readonly statusClassMap: Record<TodoStatus, string> = {
-    'To do': 'status-todo',
-    Idea: 'status-idea',
-    'In progress': 'status-progress',
-    'In review': 'status-review',
-    Done: 'status-done',
-    Blocked: 'status-blocked'
+    'К выполнению': 'status-todo',
+    'В работе': 'status-progress',
+    'На проверке': 'status-review',
+    'Готово': 'status-done',
+    'Заблокировано': 'status-blocked'
   };
 
   readonly priorityClassMap: Record<TodoPriority, string> = {
-    Low: 'priority-low',
-    Medium: 'priority-medium',
-    High: 'priority-high',
-    Critical: 'priority-critical'
+    'Низкий': 'priority-low',
+    'Средний': 'priority-medium',
+    'Высокий': 'priority-high',
+    'Критический': 'priority-critical'
   };
 
   get hasChildren(): boolean {

@@ -6,28 +6,28 @@
           <div class="toolbar-left">
             <label class="search-box">
               <span class="search-icon"></span>
-              <input type="text" [(ngModel)]="searchTerm" placeholder="Search tasks" />
+              <input type="text" [(ngModel)]="searchTerm" placeholder="Поиск задач" />
             </label>
 
             <div class="filter-pills">
               <button type="button" class="filter-pill" [class.active]="selectedStatus === 'all'" (click)="onStatusChange('all')">
-                All
+                Все
               </button>
-              <button type="button" class="filter-pill" [class.active]="selectedStatus === 'To do'" (click)="onStatusChange('To do')">
-                To do
+              <button type="button" class="filter-pill" [class.active]="selectedStatus === 'К выполнению'" (click)="onStatusChange('К выполнению')">
+                К выполнению
               </button>
-              <button type="button" class="filter-pill" [class.active]="selectedStatus === 'In progress'" (click)="onStatusChange('In progress')">
-                In progress
+              <button type="button" class="filter-pill" [class.active]="selectedStatus === 'В работе'" (click)="onStatusChange('В работе')">
+                В работе
               </button>
-              <button type="button" class="filter-pill" [class.active]="selectedStatus === 'Done'" (click)="onStatusChange('Done')">
-                Done
+              <button type="button" class="filter-pill" [class.active]="selectedStatus === 'Готово'" (click)="onStatusChange('Готово')">
+                Готово
               </button>
             </div>
           </div>
 
           <div class="toolbar-right">
-            <button type="button" class="ghost-button" (click)="addStage()">Create stage</button>
-            <button type="button" class="icon-button" aria-label="More actions">
+            <button type="button" class="ghost-button" (click)="addStage()">Создать этап</button>
+            <button type="button" class="icon-button" aria-label="Ещё действия">
               <span></span>
             </button>
           </div>
@@ -58,7 +58,7 @@
                       } @else {
                         <button type="button" class="stage-button" (click)="onToggleStageExpanded(stage.id)">
                           <span class="stage-title">{{ stage.title }}</span>
-                          <span class="stage-meta">{{ stage.rows.length || stage.tasks.length }} tasks</span>
+                          <span class="stage-meta">{{ stage.rows.length || stage.tasks.length }} задач</span>
                         </button>
                       }
                     </div>
@@ -68,7 +68,7 @@
                         type="button"
                         class="stage-more-button"
                         (click)="onToggleStageMenu(stage.id); $event.stopPropagation()"
-                        aria-label="Stage actions"
+                        aria-label="Действия этапа"
                       >
                         <span></span>
                       </button>
@@ -76,10 +76,10 @@
                       @if (openStageMenuFor === stage.id) {
                         <div class="stage-menu">
                           <button type="button" class="stage-menu-option" (click)="onRenameStage(stage.id)">
-                            Rename
+                            Переименовать
                           </button>
                           <button type="button" class="stage-menu-option delete" (click)="onDeleteStage(stage.id)">
-                            Delete
+                            Удалить
                           </button>
                         </div>
                       }
@@ -99,40 +99,40 @@
                               [checked]="isAllStageRowsSelected(stage.id)"
                               [indeterminate]="isSomeStageRowsSelected(stage.id)"
                               (change)="onToggleStageSelectAll(stage.id, $any($event.target).checked)"
-                              aria-label="Select all visible tasks"
+                              aria-label="Выбрать все видимые задачи"
                             />
                           </th>
                           <th>
                             <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'subject')" (click)="onSort(stage.id, 'subject')">
-                              Subject
+                              Тема
                               <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'subject')"></span>
                             </button>
                           </th>
                           <th>
                             <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'status')" (click)="onSort(stage.id, 'status')">
-                              Status
+                              Статус
                               <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'status')"></span>
                             </button>
                           </th>
                           <th>
                             <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'dueDate')" (click)="onSort(stage.id, 'dueDate')">
-                              Due date
+                              Дата выполнения
                               <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'dueDate')"></span>
                             </button>
                           </th>
                           <th>
                             <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'priority')" (click)="onSort(stage.id, 'priority')">
-                              Priority
+                              Приоритет
                               <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'priority')"></span>
                             </button>
                           </th>
                           <th>
                             <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'assignee')" (click)="onSort(stage.id, 'assignee')">
-                              Assignee
+                              Исполнитель
                               <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'assignee')"></span>
                             </button>
                           </th>
-                          <th>Comments</th>
+                          <th>Комментарии</th>
                         </tr>
                       </thead>
 
@@ -187,7 +187,7 @@
                           <td colspan="7">
                             <button type="button" class="create-button" (click)="addTaskToStage(stage.id)">
                               <span>+</span>
-                              Create task
+                              Создать задачу
                             </button>
                           </td>
                         </tr>
@@ -200,8 +200,8 @@
           </div>
         } @else {
           <div class="empty-stage-state">
-            <strong>No tasks found</strong>
-            <span>Try another search term or create a new task.</span>
+            <strong>Задачи не найдены</strong>
+            <span>Попробуйте другой поисковый запрос или создайте новую задачу.</span>
           </div>
         }
       </section>
@@ -210,10 +210,10 @@
         <aside class="details-panel">
           <header class="details-panel-header">
             <div>
-              <span class="details-panel-label">Details</span>
+              <span class="details-panel-label">Детали</span>
               <h2>{{ activeCommentsTask.title }}</h2>
             </div>
-            <button type="button" class="details-panel-close" (click)="onCloseComments()" aria-label="Close panel">
+            <button type="button" class="details-panel-close" (click)="onCloseComments()" aria-label="Закрыть панель">
               ×
             </button>
           </header>
@@ -221,31 +221,31 @@
           <div class="details-panel-body">
             <section class="details-section">
               <div class="details-section-header">
-                <h3>Overview</h3>
+                <h3>Обзор</h3>
               </div>
               <dl class="details-grid">
                 <div>
-                  <dt>Status</dt>
+                  <dt>Статус</dt>
                   <dd>{{ activeCommentsTask.status }}</dd>
                 </div>
                 <div>
-                  <dt>Due date</dt>
-                  <dd>{{ activeCommentsTask.dueDate || 'No date' }}</dd>
+                  <dt>Дата выполнения</dt>
+                  <dd>{{ activeCommentsTask.dueDate || 'Нет даты' }}</dd>
                 </div>
                 <div>
-                  <dt>Priority</dt>
-                  <dd>{{ activeCommentsTask.priority || 'None' }}</dd>
+                  <dt>Приоритет</dt>
+                  <dd>{{ activeCommentsTask.priority || 'Нет' }}</dd>
                 </div>
                 <div>
-                  <dt>Assignee</dt>
-                  <dd>{{ activeCommentsTask.assignee || 'Unassigned' }}</dd>
+                  <dt>Исполнитель</dt>
+                  <dd>{{ activeCommentsTask.assignee || 'Не назначен' }}</dd>
                 </div>
               </dl>
             </section>
 
             <section class="details-section comments-section">
               <div class="details-section-header">
-                <h3>Comments</h3>
+                <h3>Комментарии</h3>
                 <span>{{ activeComments.length }}</span>
               </div>
 
@@ -266,8 +266,8 @@
                 </div>
               } @else {
                 <div class="comments-empty-state">
-                  <strong>No comments yet</strong>
-                  <span>Start the discussion for this task.</span>
+                  <strong>Комментариев пока нет</strong>
+                  <span>Начните обсуждение по этой задаче.</span>
                 </div>
               }
             </section>
@@ -278,13 +278,13 @@
               class="comment-input"
               [(ngModel)]="commentDraft"
               rows="4"
-              placeholder="Write a comment..."
+              placeholder="Напишите комментарий..."
               (keydown)="onCommentKeydown($event)"
             ></textarea>
             <div class="comments-drawer-actions">
-              <span>Press Enter to send</span>
+              <span>Нажмите Enter, чтобы отправить</span>
               <button type="button" class="comment-send-button" (click)="onSendComment()" [disabled]="!commentDraft.trim()">
-                Send
+                Отправить
               </button>
             </div>
           </footer>
@@ -295,8 +295,8 @@
 
   @if (selectedCount > 0) {
     <div class="selection-bar">
-      <span class="selection-count">{{ selectedCount }} selected</span>
-      <button type="button" class="selection-delete" (click)="deleteSelected()">Delete</button>
+      <span class="selection-count">Выбрано: {{ selectedCount }}</span>
+      <button type="button" class="selection-delete" (click)="deleteSelected()">Удалить</button>
     </div>
   }
 </main>

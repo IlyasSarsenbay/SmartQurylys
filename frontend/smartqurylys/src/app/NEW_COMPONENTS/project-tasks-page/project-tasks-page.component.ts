@@ -79,10 +79,10 @@ export class ProjectTasksPageComponent implements OnInit {
   dateMenuLeft = 0;
   assigneeMenuTop = 0;
   assigneeMenuLeft = 0;
-  readonly statusOptions: TodoStatus[] = ['To do', 'Idea', 'In progress', 'In review', 'Done', 'Blocked'];
-  readonly priorityOptions: TodoPriority[] = ['Low', 'Medium', 'High', 'Critical'];
+  readonly statusOptions: TodoStatus[] = ['К выполнению', 'В работе', 'На проверке', 'Готово', 'Заблокировано'];
+  readonly priorityOptions: TodoPriority[] = ['Низкий', 'Средний', 'Высокий', 'Критический'];
   calendarViewDate = new Date();
-  readonly weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  readonly weekdayLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
   projectParticipants: Participant[] = [];
   commentsByTaskId: Record<number, TodoComment[]> = {};
   stages: TaskStage[] = [];
@@ -128,7 +128,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   get calendarMonthLabel(): string {
-    return new Intl.DateTimeFormat('en-US', {
+    return new Intl.DateTimeFormat('ru-RU', {
       month: 'long',
       year: 'numeric'
     }).format(this.calendarViewDate);
@@ -424,7 +424,7 @@ export class ProjectTasksPageComponent implements OnInit {
     this.projectTaskBoardService.createTask(this.projectId, {
       stageId,
       parentTaskId: itemId,
-      title: 'New subtask'
+      title: 'Новая подзадача'
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -730,7 +730,7 @@ export class ProjectTasksPageComponent implements OnInit {
       return;
     }
 
-    this.projectTaskBoardService.createStage(this.projectId, { name: `New stage ${this.stages.length + 1}` })
+    this.projectTaskBoardService.createStage(this.projectId, { name: `Новый этап ${this.stages.length + 1}` })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (stage) => {
@@ -749,7 +749,7 @@ export class ProjectTasksPageComponent implements OnInit {
 
     this.projectTaskBoardService.createTask(this.projectId, {
       stageId,
-      title: 'New task'
+      title: 'Новая задача'
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -1049,8 +1049,8 @@ export class ProjectTasksPageComponent implements OnInit {
         return this.compareDueDates(left.dueDate, right.dueDate, left.title, right.title);
       case 'priority':
         return this.compareRank(
-          this.priorityOptions.indexOf(left.priority ?? 'Low'),
-          this.priorityOptions.indexOf(right.priority ?? 'Low'),
+          this.priorityOptions.indexOf(left.priority ?? 'Низкий'),
+          this.priorityOptions.indexOf(right.priority ?? 'Низкий'),
           left.title,
           right.title
         );
@@ -1181,7 +1181,7 @@ export class ProjectTasksPageComponent implements OnInit {
 
   private countDoneItems(items: TodoItem[]): number {
     return items.reduce((count, item) => {
-      const doneCount = item.status === 'Done' ? 1 : 0;
+      const doneCount = item.status === 'Готово' ? 1 : 0;
       return count + doneCount + this.countDoneItems(item.subtasks ?? []);
     }, 0);
   }
@@ -1256,7 +1256,7 @@ export class ProjectTasksPageComponent implements OnInit {
 
   private formatDueDate(isoDate: string): string {
     const date = new Date(isoDate);
-    return new Intl.DateTimeFormat('en-GB', {
+    return new Intl.DateTimeFormat('ru-RU', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
@@ -1269,7 +1269,7 @@ export class ProjectTasksPageComponent implements OnInit {
       return value;
     }
 
-    return new Intl.DateTimeFormat('en-GB', {
+    return new Intl.DateTimeFormat('ru-RU', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -1307,29 +1307,28 @@ export class ProjectTasksPageComponent implements OnInit {
   private fromApiStatus(status: ProjectTaskBoardStatus): TodoStatus {
     switch (status) {
       case 'TODO':
-        return 'To do';
+        return 'К выполнению';
       case 'IN_PROGRESS':
-        return 'In progress';
+        return 'В работе';
       case 'DONE':
-        return 'Done';
+        return 'Готово';
       case 'BLOCKED':
-        return 'Blocked';
+        return 'Заблокировано';
       default:
-        return 'To do';
+        return 'К выполнению';
     }
   }
 
   private toApiStatus(status: TodoStatus): ProjectTaskBoardStatus {
     switch (status) {
-      case 'To do':
-      case 'Idea':
-      case 'In review':
+      case 'К выполнению':
+      case 'На проверке':
         return 'TODO';
-      case 'In progress':
+      case 'В работе':
         return 'IN_PROGRESS';
-      case 'Done':
+      case 'Готово':
         return 'DONE';
-      case 'Blocked':
+      case 'Заблокировано':
         return 'BLOCKED';
       default:
         return 'TODO';
@@ -1339,27 +1338,27 @@ export class ProjectTasksPageComponent implements OnInit {
   private fromApiPriority(priority: ProjectTaskBoardPriority): TodoPriority {
     switch (priority) {
       case 'LOW':
-        return 'Low';
+        return 'Низкий';
       case 'MEDIUM':
-        return 'Medium';
+        return 'Средний';
       case 'HIGH':
-        return 'High';
+        return 'Высокий';
       case 'CRITICAL':
-        return 'Critical';
+        return 'Критический';
       default:
-        return 'Medium';
+        return 'Средний';
     }
   }
 
   private toApiPriority(priority: TodoPriority): ProjectTaskBoardPriority {
     switch (priority) {
-      case 'Low':
+      case 'Низкий':
         return 'LOW';
-      case 'Medium':
+      case 'Средний':
         return 'MEDIUM';
-      case 'High':
+      case 'Высокий':
         return 'HIGH';
-      case 'Critical':
+      case 'Критический':
         return 'CRITICAL';
       default:
         return 'MEDIUM';
