@@ -115,7 +115,6 @@ public class OrganisationService {
 
         Organisation savedOrganisation = organisationRepository.save(organisation);
 
-        phoneService.removeVerifiedPhone(request.getPhone()); // Удаляем временный код телефона после успешной регистрации.
         String token = jwtUtils.generateToken(savedOrganisation.getEmail(), Collections.singletonList(savedOrganisation.getRole()));
 
         OrganisationResponse organisationResponse = mapToResponse(savedOrganisation);

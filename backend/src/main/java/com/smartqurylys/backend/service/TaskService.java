@@ -103,7 +103,6 @@ public class TaskService {
                 .stage(stage)
                 .projectId(request.getProjectId())
                 .name(request.getName())
-                .info(request.getInfo())
                 .description(request.getDescription())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
@@ -201,7 +200,6 @@ public class TaskService {
         }
 
         Optional.ofNullable(request.getName()).ifPresent(task::setName);
-        Optional.ofNullable(request.getInfo()).ifPresent(task::setInfo);
         Optional.ofNullable(request.getDescription()).ifPresent(task::setDescription);
         Optional.ofNullable(request.getStartDate()).ifPresent(task::setStartDate);
         Optional.ofNullable(request.getEndDate()).ifPresent(task::setEndDate);
@@ -495,15 +493,12 @@ public class TaskService {
         if (task.equals(dependency)) {
             throw new IllegalArgumentException("Задача не может зависеть от самой себя");
         }
-
         if (task.getDependsOn() == null) {
             task.setDependsOn(new ArrayList<>());
         }
-
         if (task.getDependsOn().contains(dependency)) {
             throw new IllegalArgumentException("Зависимость уже существует");
         }
-
         task.getDependsOn().add(dependency);
         taskRepository.save(task);
     }
@@ -649,7 +644,6 @@ public class TaskService {
                 .id(task.getId())
                 .name(task.getName())
                 .description(task.getDescription())
-                .info(task.getInfo())
                 .responsiblePersons(responsiblePersons)
                 .startDate(task.getStartDate())
                 .endDate(task.getEndDate())

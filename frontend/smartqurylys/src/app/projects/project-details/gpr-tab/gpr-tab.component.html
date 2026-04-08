@@ -72,7 +72,6 @@
               <th>Описание</th>
               <th>Сроки</th>
               <th>Исполнитель</th>
-              <th>Ресурсы</th>
               <th>Статус</th>
               <th>Действия</th>
             </tr>
@@ -108,7 +107,6 @@
                   <td>{{ task.description || 'N/A' }}</td>
                   <td>{{ task.startDate | date:'dd.MM.yyyy' }} - {{ task.endDate | date:'dd.MM.yyyy' }}</td>
                   <td>{{ task.responsiblePerson?.fullName || 'Не назначен' }}</td> <!-- ИСПРАВЛЕНО -->
-                  <td>{{ stage.resources || 'N/A' }}</td>
                   <td>{{ task.executed ? 'Выполнена' : 'В процессе' }}</td>
                   <td class="task-actions-cell">
                     <button class="action-button small-button" (click)="markAsPriority(task)">
@@ -180,14 +178,6 @@
           <input type="date" id="stageEndDate" class="form-input" formControlName="endDate">
         </div>
         <div class="form-group">
-          <label for="stageContractors">Подрядчики</label>
-          <input type="text" id="stageContractors" class="form-input" formControlName="contractors">
-        </div>
-        <div class="form-group">
-          <label for="stageResources">Ресурсы</label>
-          <input type="text" id="stageResources" class="form-input" formControlName="resources">
-        </div>
-        <div class="form-group">
           <label for="stageStatus">Статус</label>
           <select id="stageStatus" class="form-input" formControlName="status">
             <option [ngValue]="null" disabled>Выберите статус</option>
@@ -233,14 +223,6 @@
         <div class="form-group">
           <label for="editStageEndDate">Дата окончания</label>
           <input type="date" id="editStageEndDate" class="form-input" formControlName="endDate">
-        </div>
-        <div class="form-group">
-          <label for="editStageContractors">Подрядчики</label>
-          <input type="text" id="editStageContractors" class="form-input" formControlName="contractors">
-        </div>
-        <div class="form-group">
-          <label for="editStageResources">Ресурсы</label>
-          <input type="text" id="editStageResources" class="form-input" formControlName="resources">
         </div>
         <div class="form-group">
           <label for="editStageStatus">Статус</label>

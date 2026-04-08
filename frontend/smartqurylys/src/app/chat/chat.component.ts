@@ -5,9 +5,12 @@ import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { ChatService } from '../core/chat.service';
 import { ConversationResponse, ChatMessageResponse } from '../core/models/chat';
 import { UserResponse } from '../core/models/user';
-import { Subscription, interval } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { NotificationService } from '../core/notification.service';
+import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-chat',
@@ -38,7 +41,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   isActionRegistryOpen = false;
   groupedActionMessages: { date: string, actions: ChatMessageResponse[] }[] = [];
 
-  private pollingSubscription?: Subscription;
+  // WebSocket STOMP client for real-time messaging
+  private stompClient?: Client;
+  private topicSubscription?: StompSubscription;
+
   public currentUserId?: number;
   private mentionedUserIds: number[] = [];
   public isStandalone: boolean = false;
@@ -57,26 +63,68 @@ export class ChatComponent implements OnInit, OnDestroy {
       next: (user) => {
         this.currentUserId = user.id;
         this.loadConversations();
-        this.startPolling();
+        this.connectWebSocket();
       },
       error: (err) => {
         console.error('Error loading current user:', err);
         this.loadConversations();
-        this.startPolling();
+        this.connectWebSocket();
       }
     });
   }
 
-  startPolling() {
-    this.pollingSubscription = interval(3000).subscribe(() => {
-      if (this.selectedConversation) {
-        this.loadMessageHistory(this.selectedConversation.id, false);
+  // Establishes a persistent WebSocket connection using STOMP over SockJS.
+  // The JWT token is sent in the CONNECT headers so the backend ChannelInterceptor can validate it.
+  connectWebSocket() {
+    const token = this.authService.getToken();
+    const wsUrl = `${environment.apiUrl.replace('/api', '')}/ws`;
+
+    this.stompClient = new Client({
+      webSocketFactory: () => new SockJS(wsUrl) as any,
+      connectHeaders: {
+        Authorization: `Bearer ${token}`
+      },
+      onConnect: () => {
+        console.log('WebSocket connected');
+        // If a conversation was already selected before connection was ready, subscribe now.
+        if (this.selectedConversation) {
+          this.subscribeToConversation(this.selectedConversation.id);
+        }
+      },
+      onDisconnect: () => {
+        console.log('WebSocket disconnected');
+      },
+      onStompError: (frame) => {
+        console.error('STOMP error:', frame);
+      }
+    });
+
+    this.stompClient.activate();
+  }
+
+  // Subscribes to the topic for a given conversation.
+  // Unsubscribes from the previous topic first to avoid duplicate listeners.
+  subscribeToConversation(conversationId: number) {
+    if (!this.stompClient?.connected) return;
+
+    // Unsubscribe from previous topic
+    this.topicSubscription?.unsubscribe();
+
+    const topic = `/topic/conversations/${conversationId}/messages`;
+    this.topicSubscription = this.stompClient.subscribe(topic, (message: IMessage) => {
+      const newMessage: ChatMessageResponse = JSON.parse(message.body);
+      const alreadyExists = this.messages.some(m => m.id === newMessage.id);
+      if (!alreadyExists) {
+        this.messages.push(newMessage);
+        this.updateActionRegistry();
+        setTimeout(() => this.scrollToBottom(), 100);
       }
     });
   }
 
   ngOnDestroy() {
-    this.pollingSubscription?.unsubscribe();
+    this.topicSubscription?.unsubscribe();
+    this.stompClient?.deactivate();
   }
 
   loadConversations() {
@@ -117,6 +165,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   selectConversation(conv: ConversationResponse) {
     this.selectedConversation = conv;
     this.loadMessageHistory(conv.id, true);
+    // Subscribe to real-time updates for the selected conversation via WebSocket
+    this.subscribeToConversation(conv.id);
 
     // Delete mention notifications for this conversation
     this.notificationService.getNotifications().subscribe({

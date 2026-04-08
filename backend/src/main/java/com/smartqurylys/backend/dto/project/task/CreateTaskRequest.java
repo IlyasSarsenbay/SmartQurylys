@@ -13,8 +13,6 @@ public class CreateTaskRequest {
     @NotBlank
     private String name; // Название задачи.
 
-    private String info; // Дополнительная информация о задаче.
-
     @NotBlank
     private String description; // Описание задачи.
 

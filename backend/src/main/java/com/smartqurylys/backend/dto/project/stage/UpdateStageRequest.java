@@ -16,9 +16,7 @@ public class UpdateStageRequest {
 
     private LocalDate endDate; // Новая дата окончания этапа.
 
-    private String contractors; // Обновленный список подрядчиков.
 
-//    private String resources;
 
     private StageStatus status; // Новый статус этапа.
 }

@@ -46,8 +46,7 @@ public class StageService {
                 .description(request.getDescription())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
-                .contractors(request.getContractors())
-//                .resources(request.getResources())
+
                 // Первый этап становится активным, остальные ждут.
                 .status(schedule.getStages().isEmpty() ? StageStatus.valueOf("ACTIVE") : StageStatus.valueOf("WAITING"))
                 .build();
@@ -91,7 +90,7 @@ public class StageService {
         Optional.ofNullable(request.getDescription()).ifPresent(stage::setDescription);
         Optional.ofNullable(request.getStartDate()).ifPresent(stage::setStartDate);
         Optional.ofNullable(request.getEndDate()).ifPresent(stage::setEndDate);
-        Optional.ofNullable(request.getContractors()).ifPresent(stage::setContractors);
+
         Optional.ofNullable(request.getStatus()).ifPresent(stage::setStatus);
 
         return mapToResponse(stageRepository.save(stage));
@@ -188,8 +187,7 @@ public class StageService {
         response.setDescription(stage.getDescription());
         response.setStartDate(stage.getStartDate());
         response.setEndDate(stage.getEndDate());
-        response.setContractors(stage.getContractors());
-//        response.setResources(stage.getResources());
+
         response.setStatus(stage.getStatus());
         return response;
     }

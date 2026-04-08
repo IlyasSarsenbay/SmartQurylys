@@ -35,9 +35,7 @@ public class Stage {
 
     private LocalDate endDate; // Дата окончания этапа.
 
-    private String contractors; // Подрядчики, ответственные за выполнение этапа.
 
-//    private String resources;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)

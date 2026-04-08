@@ -108,14 +108,14 @@ public class ConversationService {
     // Преобразует сущность Conversation в DTO ConversationResponse.
     private ConversationResponse mapToConversationResponse(Conversation conversation) {
         List<UserResponse> participantResponses = Collections.emptyList();
-        
-        // For project chats, get participants from project + owner
+
+        // Для чатов проекта, получайте участников из проекта + владельца.
         if (conversation.getType() == ConversationType.PROJECT_CHAT && conversation.getProject() != null) {
             participantResponses = conversation.getProject().getParticipants().stream()
                     .map(participant -> userService.mapToUserResponse(participant.getUser()))
                     .collect(Collectors.toList());
-            
-            // Add project owner if not already in participants
+
+            // Добавить владельца проекта, если его еще нет в списке участников
             User owner = conversation.getProject().getOwner();
             if (owner != null) {
                 boolean ownerAlreadyIncluded = participantResponses.stream()
@@ -124,8 +124,8 @@ public class ConversationService {
                     participantResponses.add(userService.mapToUserResponse(owner));
                 }
             }
-        } 
-        // For private chats, get participants from conversation
+        }
+        // Для приватных чатов, получайте участников из беседы.
         else if (conversation.getParticipants() != null && !conversation.getParticipants().isEmpty()) {
             participantResponses = conversation.getParticipants().stream()
                     .map(userService::mapToUserResponse)

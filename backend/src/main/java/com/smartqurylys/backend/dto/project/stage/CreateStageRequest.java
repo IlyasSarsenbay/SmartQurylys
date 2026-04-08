@@ -22,10 +22,7 @@ public class CreateStageRequest {
     @NotNull
     private LocalDate endDate; // Дата окончания этапа.
 
-    private String contractors; // Подрядчики, ответственные за этап.
 
-//    @NotBlank
-//    private String resources;
 
 //    @NotNull
 //    private StageStatus status;

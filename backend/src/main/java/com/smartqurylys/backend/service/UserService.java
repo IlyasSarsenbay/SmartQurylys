@@ -4,14 +4,10 @@ import com.smartqurylys.backend.dto.user.email.ChangeEmailRequest;
 import com.smartqurylys.backend.dto.user.ChangePasswordRequest;
 import com.smartqurylys.backend.dto.auth.RegisterRequest;
 import com.smartqurylys.backend.dto.user.UserResponse;
-import com.smartqurylys.backend.entity.City;
-import com.smartqurylys.backend.entity.Organisation;
-import com.smartqurylys.backend.entity.User;
-import com.smartqurylys.backend.repository.CityRepository;
-import com.smartqurylys.backend.repository.UserRepository;
+import com.smartqurylys.backend.entity.*;
+import com.smartqurylys.backend.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,6 +27,15 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 //    private final PhoneService phoneService; // Закомментировано, возможно, временно.
     private final EmailService emailService;
+    private final FileRepository fileRepository;
+    private final ParticipantRepository participantRepository;
+    private final ParticipantInvitationRepository participantInvitationRepository;
+    private final NotificationRepository notificationRepository;
+    private final ChatMessageRepository chatMessageRepository;
+    private final ActivityLogRepository activityLogRepository;
+    private final ProjectNoteRepository projectNoteRepository;
+    private final ConversationRepository conversationRepository;
+    private final ProjectRepository projectRepository;
 
     // Получает информацию о текущем аутентифицированном пользователе.
     public UserResponse getCurrentUserInfo() {
@@ -241,13 +246,56 @@ public class UserService {
         return mapToUserResponse(updatedUser);
     }
 
-    // Удаляет пользователя по его ID.
+    // Удаляет пользователя по его ID, предварительно очищая все связанные данные.
     @Transactional
     public void deleteUser(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new EntityNotFoundException("Пользователь не найден с ID: " + userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден с ID: " + userId));
+
+        // 1. Очистка участников проектов
+        participantRepository.deleteByUser(user);
+
+        // 2. Очистка приглашений (как отправитель и как получатель)
+        participantInvitationRepository.deleteByUser(user);
+        participantInvitationRepository.deleteBySender(user);
+
+        // 3. Очистка уведомлений (как отправитель и как получатель)
+        notificationRepository.deleteByRecipient(user);
+        notificationRepository.deleteBySender(user);
+
+        // 4. Очистка сообщений чата (отправленных этим пользователем)
+        chatMessageRepository.deleteBySender(user);
+
+        // 5. Очистка логов активности
+        activityLogRepository.deleteByActor(user);
+
+        // 6. Очистка заметок к проектам
+        projectNoteRepository.deleteByAuthorId(user.getId());
+
+        // 7. Удаление из участников бесед (ManyToMany)
+        List<Conversation> conversations = conversationRepository.findUserConversations(user);
+        for (Conversation conversation : conversations) {
+            if (conversation.getParticipants() != null) {
+                conversation.getParticipants().remove(user);
+                conversationRepository.save(conversation);
+            }
         }
-        userRepository.deleteById(userId);
+
+        // 8. Обработка файлов, загруженных этим пользователем в другие сущности
+        List<File> uploadedFiles = fileRepository.findByUser(user);
+        for (File file : uploadedFiles) {
+            file.setUser(null);
+            fileRepository.save(file);
+        }
+
+        // 9. Очистка проектов, владельцем которых является пользователь
+        List<Project> ownedProjects = projectRepository.findByOwner(user);
+        for (Project project : ownedProjects) {
+            projectRepository.delete(project);
+        }
+
+        // 10. Удаление самого пользователя
+        userRepository.delete(user);
     }
     
     // Поиск пользователей по имени или почте (исключая текущего пользователя).

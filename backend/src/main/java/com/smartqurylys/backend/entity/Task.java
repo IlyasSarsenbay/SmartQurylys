@@ -42,8 +42,6 @@ public class Task {
 
     private LocalDate endDate; // Дата окончания задачи.
 
-    private String info; // Дополнительная информация о задаче.
-
     private String description; // Описание задачи.
 
     @com.fasterxml.jackson.annotation.JsonProperty("isPriority")

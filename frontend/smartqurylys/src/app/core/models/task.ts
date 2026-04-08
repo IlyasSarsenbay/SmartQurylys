@@ -6,7 +6,6 @@ export interface TaskResponse {
   stageId: number;
   name: string;
   description?: string;
-  info?: string;
   responsiblePersons: ParticipantResponse[];
   startDate?: string;
   endDate?: string;
@@ -26,7 +25,6 @@ export interface CreateTaskRequest {
   startDate: string;
   endDate: string;
   responsiblePersonIds?: number[];
-  info?: string;
   isPriority?: boolean;
   executionRequested?: boolean;
   executed?: boolean;
@@ -40,7 +38,6 @@ export interface UpdateTaskRequest {
   startDate?: string;
   endDate?: string;
   responsiblePersonIds?: number[];
-  info?: string;
   isPriority?: boolean;
   executionRequested?: boolean;
   executed?: boolean;
