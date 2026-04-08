@@ -35,11 +35,8 @@
 }
 
 .tasks-board {
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
   overflow: visible;
-  background: #ffffff;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+  background: transparent;
 }
 
 .toolbar {
@@ -48,8 +45,11 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
   border-bottom: 1px solid #e5e7eb;
   background: #ffffff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
 }
 
 .toolbar-left,
@@ -187,8 +187,6 @@
 .table-shell {
   overflow-x: auto;
   overflow-y: visible;
-  border-bottom-left-radius: 18px;
-  border-bottom-right-radius: 18px;
 }
 
 .tasks-table {
@@ -249,6 +247,225 @@
 
 .checkbox-column {
   width: 54px;
+}
+
+.stage-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.stage-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+.stage-card-header {
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.stage-header-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0.9rem;
+}
+
+.stage-chevron-button,
+.stage-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.stage-chevron-button {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 10px;
+}
+
+.stage-chevron-button:hover {
+  background: #f1f5f9;
+}
+
+.stage-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.stage-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.25rem 0;
+  color: #0f172a;
+  text-align: left;
+}
+
+.stage-button:hover {
+  opacity: 0.88;
+}
+
+.stage-chevron {
+  width: 9px;
+  height: 9px;
+  border-right: 1.5px solid #64748b;
+  border-bottom: 1.5px solid #64748b;
+  transform: rotate(-45deg);
+  transition: transform 0.18s ease;
+}
+
+.stage-chevron.expanded {
+  transform: rotate(45deg);
+}
+
+.stage-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.stage-meta {
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.stage-title-input {
+  width: 100%;
+  max-width: 340px;
+  height: 38px;
+  padding: 0 0.8rem;
+  border: 1px solid #93c5fd;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-weight: 700;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.18);
+}
+
+.stage-actions {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.stage-more-button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d7dde6;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.stage-more-button:hover {
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.stage-more-button span,
+.stage-more-button span::before,
+.stage-more-button span::after {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+  content: '';
+}
+
+.stage-more-button span {
+  position: relative;
+}
+
+.stage-more-button span::before,
+.stage-more-button span::after {
+  position: absolute;
+  top: 0;
+}
+
+.stage-more-button span::before {
+  left: -8px;
+}
+
+.stage-more-button span::after {
+  right: -8px;
+}
+
+.stage-menu {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  min-width: 140px;
+  padding: 0.35rem;
+  border: 1px solid #d7dde6;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  z-index: 20;
+}
+
+.stage-menu-option {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #374151;
+  text-align: left;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.stage-menu-option:hover {
+  background: #f3f7fb;
+}
+
+.stage-menu-option.delete {
+  color: #b91c1c;
+}
+
+.stage-menu-option.delete:hover {
+  background: #fef2f2;
+}
+
+.empty-stage-state {
+  margin-top: 1rem;
+  padding: 2.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+  text-align: center;
+  color: #6b7280;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+}
+
+.empty-stage-state strong,
+.empty-stage-state span {
+  display: block;
+}
+
+.empty-stage-state strong {
+  color: #111827;
+  margin-bottom: 0.35rem;
 }
 
 .header-checkbox {

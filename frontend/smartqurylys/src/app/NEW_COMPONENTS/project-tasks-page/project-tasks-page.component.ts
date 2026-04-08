@@ -26,6 +26,19 @@ interface OverlayAnchorRect {
 type SortColumn = 'subject' | 'status' | 'dueDate' | 'priority' | 'assignee';
 type SortDirection = 'asc' | 'desc';
 
+interface TaskStage {
+  id: number;
+  title: string;
+  expanded: boolean;
+  sortColumn: SortColumn;
+  sortDirection: SortDirection;
+  tasks: TodoItem[];
+}
+
+interface VisibleTaskStage extends TaskStage {
+  rows: TodoRowItem[];
+}
+
 @Component({
   selector: 'app-project-tasks-page',
   standalone: true,
@@ -38,10 +51,13 @@ export class ProjectTasksPageComponent implements OnInit {
   selectedStatus: 'all' | TodoStatus = 'all';
   editingTitleItemId: number | null = null;
   editingTitleValue = '';
+  editingStageId: number | null = null;
+  editingStageValue = '';
   openStatusMenuFor: number | null = null;
   openPriorityMenuFor: number | null = null;
   openDateMenuFor: number | null = null;
   openAssigneeMenuFor: number | null = null;
+  openStageMenuFor: number | null = null;
   statusMenuTop = 0;
   statusMenuLeft = 0;
   priorityMenuTop = 0;
@@ -55,85 +71,119 @@ export class ProjectTasksPageComponent implements OnInit {
   calendarViewDate = new Date(2026, 3, 1);
   readonly weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   projectParticipants: Participant[] = [];
-  sortColumn: SortColumn = 'subject';
-  sortDirection: SortDirection = 'asc';
   private projectId: number | null = null;
 
-  readonly tasks: TodoItem[] = [
+  readonly stages: TaskStage[] = [
     {
-      id: 1,
-      type: 'task',
-      title: 'Prepare project charter approval',
-      status: 'To do',
-      dueDate: '15 Apr 2026',
-      priority: 'High',
-      assignee: 'Aruzhan',
-      commentsCount: 0,
-      selected: false
-    },
-    {
-      id: 2,
-      type: 'group',
-      title: 'Foundation work package',
-      status: 'To do',
-      dueDate: '22 Apr 2026',
-      priority: 'Critical',
-      assignee: 'Dias',
-      commentsCount: 3,
-      selected: false,
+      id: 101,
+      title: 'Planning',
       expanded: true,
-      subtasks: [
+      sortColumn: 'subject',
+      sortDirection: 'asc',
+      tasks: [
         {
-          id: 21,
+          id: 1,
           type: 'task',
-          title: 'Review reinforcement drawings',
-          status: 'In progress',
-          dueDate: '18 Apr 2026',
+          title: 'Prepare project charter approval',
+          status: 'To do',
+          dueDate: '15 Apr 2026',
           priority: 'High',
-          assignee: 'Madi',
-          commentsCount: 2,
-          selected: false
-        },
-        {
-          id: 22,
-          type: 'task',
-          title: 'Confirm concrete delivery schedule',
-          status: 'Done',
-          dueDate: '19 Apr 2026',
-          priority: 'Medium',
-          assignee: 'Dana',
-          commentsCount: 1,
+          assignee: 'Aruzhan',
+          commentsCount: 0,
           selected: false
         }
       ]
     },
     {
-      id: 3,
-      type: 'task',
-      title: 'Approve safety induction checklist',
-      status: 'Blocked',
-      dueDate: '24 Apr 2026',
-      priority: 'Medium',
-      assignee: '',
-      commentsCount: 0,
-      selected: false
+      id: 102,
+      title: 'Foundation',
+      expanded: true,
+      sortColumn: 'subject',
+      sortDirection: 'asc',
+      tasks: [
+        {
+          id: 2,
+          type: 'group',
+          title: 'Foundation work package',
+          status: 'To do',
+          dueDate: '22 Apr 2026',
+          priority: 'Critical',
+          assignee: 'Dias',
+          commentsCount: 3,
+          selected: false,
+          expanded: true,
+          subtasks: [
+            {
+              id: 21,
+              type: 'task',
+              title: 'Review reinforcement drawings',
+              status: 'In progress',
+              dueDate: '18 Apr 2026',
+              priority: 'High',
+              assignee: 'Madi',
+              commentsCount: 2,
+              selected: false
+            },
+            {
+              id: 22,
+              type: 'task',
+              title: 'Confirm concrete delivery schedule',
+              status: 'Done',
+              dueDate: '19 Apr 2026',
+              priority: 'Medium',
+              assignee: 'Dana',
+              commentsCount: 1,
+              selected: false
+            }
+          ]
+        },
+        {
+          id: 3,
+          type: 'task',
+          title: 'Approve safety induction checklist',
+          status: 'Blocked',
+          dueDate: '24 Apr 2026',
+          priority: 'Medium',
+          assignee: '',
+          commentsCount: 0,
+          selected: false
+        }
+      ]
     }
   ];
 
+  get visibleStages(): VisibleTaskStage[] {
+    return this.stages
+      .map((stage) => {
+        const filteredTasks = this.filterAndSortStageTasks(stage.tasks);
+
+        if (!filteredTasks.length && this.hasActiveStageFilters()) {
+          return null;
+        }
+
+        return {
+          ...stage,
+          tasks: filteredTasks,
+          rows: stage.expanded ? this.flattenItems(filteredTasks) : []
+        };
+      })
+      .filter((stage): stage is VisibleTaskStage => stage !== null);
+  }
+
   get visibleRows(): TodoRowItem[] {
-    return this.flattenItems(this.filteredTasks);
+    return this.visibleStages.flatMap((stage) => stage.rows);
   }
 
   get totalTasks(): number {
-    return this.countItems(this.tasks);
+    return this.countItems(this.getAllTasks());
   }
 
   get completedTasks(): number {
-    return this.countDoneItems(this.tasks);
+    return this.countDoneItems(this.getAllTasks());
   }
 
   get groupCount(): number {
-    return this.tasks.filter((task) => task.type === 'group').length;
+    return this.countGroups(this.getAllTasks());
   }
 
   get taskCount(): number {
@@ -171,7 +221,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   get selectedCount(): number {
-    return this.countSelectedItems(this.tasks);
+    return this.countSelectedItems(this.getAllTasks());
   }
 
   get allVisibleSelected(): boolean {
@@ -180,6 +230,16 @@ export class ProjectTasksPageComponent implements OnInit {
 
   get someVisibleSelected(): boolean {
     return this.visibleRows.some((item) => !!item.selected) && !this.allVisibleSelected;
+  }
+
+  isAllStageRowsSelected(stageId: number): boolean {
+    const stage = this.visibleStages.find((item) => item.id === stageId);
+    return !!stage && stage.rows.length > 0 && stage.rows.every((item) => !!item.selected);
+  }
+
+  isSomeStageRowsSelected(stageId: number): boolean {
+    const stage = this.visibleStages.find((item) => item.id === stageId);
+    return !!stage && stage.rows.some((item) => !!item.selected) && !this.isAllStageRowsSelected(stageId);
   }
 
   constructor(
@@ -208,55 +268,131 @@ export class ProjectTasksPageComponent implements OnInit {
     });
   }
 
-  private loadProjectParticipants(forceRefresh = false): void {
-    if (this.projectId === null) {
-      return;
-    }
-
-    this.participantService.getProjectParticipants(this.projectId, forceRefresh).subscribe({
-      next: (participants) => {
-        this.projectParticipants = participants;
-      },
-      error: (error) => {
-        console.error('Failed to load project participants for tasks page:', error);
-      }
-    });
-  }
-
   onStatusChange(status: 'all' | TodoStatus): void {
     this.selectedStatus = status;
   }
 
-  onSort(column: SortColumn): void {
-    if (this.sortColumn === column) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-      this.collapseTaskGroups();
+  onSort(stageId: number, column: SortColumn): void {
+    const stage = this.stages.find((item) => item.id === stageId);
+
+    if (!stage) {
       return;
     }
 
-    this.sortColumn = column;
-    this.sortDirection = 'asc';
-    this.collapseTaskGroups();
+    if (stage.sortColumn === column) {
+      stage.sortDirection = stage.sortDirection === 'asc' ? 'desc' : 'asc';
+      this.collapseTaskGroups(stage.tasks);
+      return;
+    }
+
+    stage.sortColumn = column;
+    stage.sortDirection = 'asc';
+    this.collapseTaskGroups(stage.tasks);
   }
 
-  isSortedBy(column: SortColumn): boolean {
-    return this.sortColumn === column;
+  isSortedBy(stageId: number, column: SortColumn): boolean {
+    const stage = this.stages.find((item) => item.id === stageId);
+    return stage?.sortColumn === column;
+  }
+
+  onToggleStageExpanded(stageId: number): void {
+    if (this.editingStageId === stageId) {
+      return;
+    }
+
+    const stage = this.stages.find((item) => item.id === stageId);
+
+    if (stage) {
+      stage.expanded = !stage.expanded;
+    }
+  }
+
+  onToggleStageMenu(stageId: number): void {
+    this.openStageMenuFor = this.openStageMenuFor === stageId ? null : stageId;
+  }
+
+  onRenameStage(stageId: number): void {
+    const stage = this.stages.find((item) => item.id === stageId);
+
+    if (!stage) {
+      return;
+    }
+
+    this.startStageTitleEdit(stageId, stage.title);
+    this.openStageMenuFor = null;
+  }
+
+  onDeleteStage(stageId: number): void {
+    const stageIndex = this.stages.findIndex((item) => item.id === stageId);
+
+    if (stageIndex === -1) {
+      return;
+    }
+
+    this.stages.splice(stageIndex, 1);
+    this.openStageMenuFor = null;
+    if (this.editingStageId === stageId) {
+      this.editingStageId = null;
+      this.editingStageValue = '';
+    }
+  }
+
+  onStageTitleInput(value: string): void {
+    this.editingStageValue = value;
+  }
+
+  onSaveStageTitle(stageId: number): void {
+    if (this.editingStageId !== stageId) {
+      return;
+    }
+
+    const nextTitle = this.editingStageValue.trim();
+    const stage = this.stages.find((item) => item.id === stageId);
+
+    if (stage && nextTitle) {
+      stage.title = nextTitle;
+    }
+
+    this.editingStageId = null;
+    this.editingStageValue = '';
+  }
+
+  onCancelStageTitle(stageId: number): void {
+    if (this.editingStageId !== stageId) {
+      return;
+    }
+
+    this.editingStageId = null;
+    this.editingStageValue = '';
+  }
+
+  onStageTitleKeydown(event: KeyboardEvent, stageId: number): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.onSaveStageTitle(stageId);
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.onCancelStageTitle(stageId);
+    }
   }
 
   onToggleExpanded(itemId: number): void {
-    this.updateItemById(this.tasks, itemId, (item) => {
+    this.updateItemById(this.getAllTasks(), itemId, (item) => {
       item.expanded = !item.expanded;
     });
   }
 
   onToggleSelected(itemId: number): void {
-    this.updateItemById(this.tasks, itemId, (item) => {
+    this.updateItemById(this.getAllTasks(), itemId, (item) => {
       item.selected = !item.selected;
     });
   }
 
   onStartTitleEdit(itemId: number): void {
-    const item = this.findItemById(this.tasks, itemId);
+    const item = this.findItemById(this.getAllTasks(), itemId);
     if (!item) {
       return;
     }
@@ -281,7 +417,7 @@ export class ProjectTasksPageComponent implements OnInit {
     const trimmedValue = this.editingTitleValue.trim();
 
     if (trimmedValue) {
-      this.updateItemById(this.tasks, itemId, (item) => {
+      this.updateItemById(this.getAllTasks(), itemId, (item) => {
         item.title = trimmedValue;
       });
     }
@@ -300,7 +436,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onAddSubtask(itemId: number): void {
-    const nextId = this.getNextId(this.tasks);
+    const nextId = this.getNextId(this.getAllTasks());
     const newSubtask: TodoItem = {
       id: nextId,
       type: 'task',
@@ -313,7 +449,7 @@ export class ProjectTasksPageComponent implements OnInit {
       selected: false
     };
 
-    this.updateItemById(this.tasks, itemId, (item) => {
+    this.updateItemById(this.getAllTasks(), itemId, (item) => {
       if (item.type === 'group') {
         item.subtasks = [...(item.subtasks ?? []), newSubtask];
         item.expanded = true;
@@ -331,7 +467,22 @@ export class ProjectTasksPageComponent implements OnInit {
 
   onToggleSelectAll(checked: boolean): void {
     const visibleIds = new Set(this.visibleRows.map((item) => item.id));
-    this.updateItems(this.tasks, (item) => {
+    this.updateItems(this.getAllTasks(), (item) => {
+      if (visibleIds.has(item.id)) {
+        item.selected = checked;
+      }
+    });
+  }
+
+  onToggleStageSelectAll(stageId: number, checked: boolean): void {
+    const stage = this.visibleStages.find((item) => item.id === stageId);
+
+    if (!stage) {
+      return;
+    }
+
+    const visibleIds = new Set(stage.rows.map((item) => item.id));
+    this.updateItems(stage.tasks, (item) => {
       if (visibleIds.has(item.id)) {
         item.selected = checked;
       }
@@ -356,7 +507,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onChangeStatus(itemId: number, status: TodoStatus): void {
-    this.updateItemById(this.tasks, itemId, (item) => {
+    this.updateItemById(this.getAllTasks(), itemId, (item) => {
       item.status = status;
     });
     this.openStatusMenuFor = null;
@@ -380,7 +531,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onChangePriority(itemId: number, priority: TodoPriority): void {
-    this.updateItemById(this.tasks, itemId, (item) => {
+    this.updateItemById(this.getAllTasks(), itemId, (item) => {
       item.priority = priority;
     });
     this.openPriorityMenuFor = null;
@@ -402,7 +553,7 @@ export class ProjectTasksPageComponent implements OnInit {
       this.dateMenuLeft = left;
     });
 
-    const item = this.findItemById(this.tasks, payload.itemId);
+    const item = this.findItemById(this.getAllTasks(), payload.itemId);
     this.calendarViewDate = this.parseDueDate(item?.dueDate) ?? new Date(2026, 3, 1);
     this.calendarViewDate = new Date(this.calendarViewDate.getFullYear(), this.calendarViewDate.getMonth(), 1);
   }
@@ -424,14 +575,14 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onChangeDueDate(itemId: number, isoDate: string): void {
-    this.updateItemById(this.tasks, itemId, (item) => {
+    this.updateItemById(this.getAllTasks(), itemId, (item) => {
       item.dueDate = this.formatDueDate(isoDate);
     });
     this.openDateMenuFor = null;
   }
 
   onClearDueDate(itemId: number): void {
-    this.updateItemById(this.tasks, itemId, (item) => {
+    this.updateItemById(this.getAllTasks(), itemId, (item) => {
       item.dueDate = '';
     });
     this.openDateMenuFor = null;
@@ -448,14 +599,16 @@ export class ProjectTasksPageComponent implements OnInit {
     }
 
     this.openAssigneeMenuFor = payload.itemId;
-    this.setOverlayPosition(payload.anchorRect, 260, 320, (top, left) => {
+    const menuHeight = this.getAssigneeMenuHeight();
+
+    this.setOverlayPosition(payload.anchorRect, 260, menuHeight, (top, left) => {
       this.assigneeMenuTop = top;
       this.assigneeMenuLeft = left;
     });
   }
 
   onChangeAssignee(itemId: number, assignee: string): void {
-    this.updateItemById(this.tasks, itemId, (item) => {
+    this.updateItemById(this.getAllTasks(), itemId, (item) => {
       item.assignee = assignee;
     });
     this.openAssigneeMenuFor = null;
@@ -481,7 +634,32 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   addTask(): void {
-    const nextId = this.getNextId(this.tasks);
+    const targetStage = this.stages[this.stages.length - 1];
+
+    if (!targetStage) {
+      return;
+    }
+
+    this.addTaskToStage(targetStage.id);
+  }
+
+  addStage(): void {
+    const nextStageId = this.getNextStageId();
+    const newStage: TaskStage = {
+      id: nextStageId,
+      title: `New stage ${this.stages.length + 1}`,
+      expanded: true,
+      sortColumn: 'subject',
+      sortDirection: 'asc',
+      tasks: []
+    };
+
+    this.stages.push(newStage);
+    this.startStageTitleEdit(nextStageId, newStage.title);
+  }
+
+  addTaskToStage(stageId: number): void {
+    const nextId = this.getNextId(this.getAllTasks());
     const newTask: TodoItem = {
       id: nextId,
       type: 'task',
@@ -494,14 +672,22 @@ export class ProjectTasksPageComponent implements OnInit {
       selected: false
     };
 
-    this.tasks.push(newTask);
+    const targetStage = this.stages.find((stage) => stage.id === stageId);
+
+    if (!targetStage) {
+      return;
+    }
+
+    targetStage.tasks.push(newTask);
+    targetStage.expanded = true;
     this.editingTitleItemId = nextId;
     this.editingTitleValue = newTask.title;
   }
 
   deleteSelected(): void {
-    const remainingTasks = this.removeSelectedItems(this.tasks);
-    this.tasks.splice(0, this.tasks.length, ...remainingTasks);
+    for (const stage of this.stages) {
+      stage.tasks = this.removeSelectedItems(stage.tasks);
+    }
   }
 
   @HostListener('document:click', ['$event'])
@@ -523,14 +709,38 @@ export class ProjectTasksPageComponent implements OnInit {
     if (!target?.closest('.assignee-dropdown')) {
       this.openAssigneeMenuFor = null;
     }
+
+    if (!target?.closest('.stage-actions')) {
+      this.openStageMenuFor = null;
+    }
   }
 
-  private get filteredTasks(): TodoItem[] {
-    const filteredItems = this.tasks
+  private loadProjectParticipants(forceRefresh = false): void {
+    if (this.projectId === null) {
+      return;
+    }
+
+    this.participantService.getProjectParticipants(this.projectId, forceRefresh).subscribe({
+      next: (participants) => {
+        this.projectParticipants = participants;
+      },
+      error: (error) => {
+        console.error('Failed to load project participants for tasks page:', error);
+      }
+    });
+  }
+
+  private getAllTasks(): TodoItem[] {
+    return this.stages.flatMap((stage) => stage.tasks);
+  }
+
+  private filterAndSortStageTasks(tasks: TodoItem[]): TodoItem[] {
+    const filteredItems = tasks
       .map((item) => this.filterItem(item))
       .filter((item): item is TodoItem => item !== null);
 
-    return this.sortItems(filteredItems);
+    const stage = this.stages.find((item) => item.tasks === tasks);
+    return this.sortItems(filteredItems, stage?.sortColumn ?? 'subject', stage?.sortDirection ?? 'asc');
   }
 
   private filterItem(item: TodoItem): TodoItem | null {
@@ -569,19 +779,19 @@ export class ProjectTasksPageComponent implements OnInit {
     ].some((value) => value.toLowerCase().includes(query));
   }
 
-  private sortItems(items: TodoItem[]): TodoItem[] {
-    const directionFactor = this.sortDirection === 'asc' ? 1 : -1;
+  private sortItems(items: TodoItem[], sortColumn: SortColumn, sortDirection: SortDirection): TodoItem[] {
+    const directionFactor = sortDirection === 'asc' ? 1 : -1;
 
     return [...items]
       .map((item) => ({
         ...item,
-        subtasks: item.subtasks?.length ? this.sortItems(item.subtasks) : item.subtasks
+        subtasks: item.subtasks?.length ? this.sortItems(item.subtasks, sortColumn, sortDirection) : item.subtasks
       }))
-      .sort((left, right) => directionFactor * this.compareItems(left, right));
+      .sort((left, right) => directionFactor * this.compareItems(left, right, sortColumn));
   }
 
-  private compareItems(left: TodoItem, right: TodoItem): number {
-    switch (this.sortColumn) {
+  private compareItems(left: TodoItem, right: TodoItem, sortColumn: SortColumn): number {
+    switch (sortColumn) {
       case 'subject':
         return this.compareText(left.title, right.title);
       case 'status':
@@ -668,12 +878,16 @@ export class ProjectTasksPageComponent implements OnInit {
     return difference || this.compareText(leftFallback, rightFallback);
   }
 
-  private collapseTaskGroups(): void {
-    this.updateItems(this.tasks, (item) => {
+  private collapseTaskGroups(items: TodoItem[]): void {
+    this.updateItems(items, (item) => {
       if (item.type === 'group') {
         item.expanded = false;
       }
     });
+  }
+
+  private hasActiveStageFilters(): boolean {
+    return !!this.searchTerm.trim() || this.selectedStatus !== 'all';
   }
 
   private flattenItems(items: TodoItem[], level = 0, parentId?: number): TodoRowItem[] {
@@ -735,6 +949,40 @@ export class ProjectTasksPageComponent implements OnInit {
     }, 0);
   }
 
+  private countGroups(items: TodoItem[]): number {
+    return items.reduce((count, item) => {
+      const nextCount = item.type === 'group' ? 1 : 0;
+      return count + nextCount + this.countGroups(item.subtasks ?? []);
+    }, 0);
+  }
+
+  private getNextStageId(): number {
+    return this.stages.reduce((highestId, stage) => Math.max(highestId, stage.id), 100) + 1;
+  }
+
+  private startStageTitleEdit(stageId: number, title: string): void {
+    this.editingStageId = stageId;
+    this.editingStageValue = title;
+
+    setTimeout(() => {
+      const input = document.getElementById(`stage-title-input-${stageId}`) as HTMLInputElement | null;
+      if (!input) {
+        return;
+      }
+
+      input.focus();
+      const end = input.value.length;
+      input.setSelectionRange(end, end);
+      input.scrollLeft = input.scrollWidth;
+    });
+  }
+
+  private getAssigneeMenuHeight(): number {
+    const optionCount = this.projectParticipants.length + 1;
+    const estimatedHeight = optionCount * 44 + 16;
+    return Math.min(320, Math.max(72, estimatedHeight));
+  }
+
   private getNextId(items: TodoItem[]): number {
     return items.reduce((highestId, item) => {
       const childMax = item.subtasks?.length ? this.getNextId(item.subtasks) : 0;
@@ -782,13 +1030,6 @@ export class ProjectTasksPageComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  private setDateMenuPosition(anchorRect: OverlayAnchorRect): void {
-    this.setOverlayPosition(anchorRect, 312, 360, (top, left) => {
-      this.dateMenuTop = top;
-      this.dateMenuLeft = left;
-    });
-  }
-
   private setOverlayPosition(
     anchorRect: OverlayAnchorRect,
     menuWidth: number,
@@ -802,12 +1043,8 @@ export class ProjectTasksPageComponent implements OnInit {
     const left = Math.min(Math.max(preferredLeft, gutter), maxLeft);
 
     const belowTop = anchorRect.bottom + 8;
-    const aboveTop = anchorRect.top - menuHeight - 8;
-    const canFitBelow = belowTop + menuHeight <= window.innerHeight - gutter;
-
-    const top = canFitBelow
-      ? belowTop
-      : Math.max(gutter, aboveTop);
+    const maxTop = Math.max(gutter, window.innerHeight - menuHeight - gutter);
+    const top = Math.min(Math.max(belowTop, gutter), maxTop);
 
     apply(top, left);
   }

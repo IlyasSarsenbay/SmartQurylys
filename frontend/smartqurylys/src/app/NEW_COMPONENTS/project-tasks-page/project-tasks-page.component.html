@@ -29,125 +29,183 @@
         </div>
 
         <div class="toolbar-right">
-          <button type="button" class="ghost-button">Group</button>
+          <button type="button" class="ghost-button" (click)="addStage()">Create stage</button>
           <button type="button" class="icon-button" aria-label="More actions">
             <span></span>
           </button>
         </div>
       </header>
 
-      <div class="table-shell">
-        <table class="tasks-table">
-          <thead>
-            <tr>
-              <th class="checkbox-column">
-                <input
-                  type="checkbox"
-                  class="header-checkbox"
-                  [checked]="allVisibleSelected"
-                  [indeterminate]="someVisibleSelected"
-                  (change)="onToggleSelectAll($any($event.target).checked)"
-                  aria-label="Select all visible tasks"
-                />
-              </th>
-              <th>
-                <button type="button" class="sort-button" [class.active]="isSortedBy('subject')" (click)="onSort('subject')">
-                  Subject
-                  <span class="sort-indicator" [class.desc]="sortDirection === 'desc' && isSortedBy('subject')"></span>
-                </button>
-              </th>
-              <th>
-                <button type="button" class="sort-button" [class.active]="isSortedBy('status')" (click)="onSort('status')">
-                  Status
-                  <span class="sort-indicator" [class.desc]="sortDirection === 'desc' && isSortedBy('status')"></span>
-                </button>
-              </th>
-              <th>
-                <button type="button" class="sort-button" [class.active]="isSortedBy('dueDate')" (click)="onSort('dueDate')">
-                  Due date
-                  <span class="sort-indicator" [class.desc]="sortDirection === 'desc' && isSortedBy('dueDate')"></span>
-                </button>
-              </th>
-              <th>
-                <button type="button" class="sort-button" [class.active]="isSortedBy('priority')" (click)="onSort('priority')">
-                  Priority
-                  <span class="sort-indicator" [class.desc]="sortDirection === 'desc' && isSortedBy('priority')"></span>
-                </button>
-              </th>
-              <th>
-                <button type="button" class="sort-button" [class.active]="isSortedBy('assignee')" (click)="onSort('assignee')">
-                  Assignee
-                  <span class="sort-indicator" [class.desc]="sortDirection === 'desc' && isSortedBy('assignee')"></span>
-                </button>
-              </th>
-              <th>Comments</th>
-            </tr>
-          </thead>
+      @if (visibleStages.length) {
+        <div class="stage-list">
+          @for (stage of visibleStages; track stage.id) {
+            <section class="stage-card">
+              <header class="stage-card-header">
+                <div class="stage-header-main">
+                  <button type="button" class="stage-chevron-button" (click)="onToggleStageExpanded(stage.id)">
+                    <span class="stage-chevron" [class.expanded]="stage.expanded"></span>
+                  </button>
 
-          <tbody>
-            @for (item of visibleRows; track item.id) {
-            <tr
-              app-task-list-row
-              [item]="item"
-              [isStatusMenuOpen]="openStatusMenuFor === item.id"
-              [isPriorityMenuOpen]="openPriorityMenuFor === item.id"
-              [isDateMenuOpen]="openDateMenuFor === item.id"
-              [isAssigneeMenuOpen]="openAssigneeMenuFor === item.id"
-              [availableStatuses]="statusOptions"
-              [availablePriorities]="priorityOptions"
-              [availableAssignees]="projectParticipants"
-              [weekdayLabels]="weekdayLabels"
-              [calendarMonthLabel]="calendarMonthLabel"
-              [calendarWeeks]="calendarWeeks"
-              [statusMenuTop]="statusMenuTop"
-              [statusMenuLeft]="statusMenuLeft"
-              [priorityMenuTop]="priorityMenuTop"
-              [priorityMenuLeft]="priorityMenuLeft"
-              [dateMenuTop]="dateMenuTop"
-              [dateMenuLeft]="dateMenuLeft"
-              [assigneeMenuTop]="assigneeMenuTop"
-              [assigneeMenuLeft]="assigneeMenuLeft"
-              [isEditingTitle]="editingTitleItemId === item.id"
-              [editingTitleValue]="editingTitleItemId === item.id ? editingTitleValue : item.title"
-              (toggleExpanded)="onToggleExpanded($event)"
-              (toggleSelected)="onToggleSelected($event)"
-              (addSubtask)="onAddSubtask($event)"
-              (startTitleEdit)="onStartTitleEdit($event)"
-              (titleDraftChange)="onTitleDraftChange($event)"
-              (saveTitleEdit)="onSaveTitleEdit($event)"
-              (cancelTitleEdit)="onCancelTitleEdit($event)"
-              (toggleStatusMenu)="onToggleStatusMenu($event)"
-              (togglePriorityMenu)="onTogglePriorityMenu($event)"
-              (toggleDateMenu)="onToggleDateMenu($event)"
-              (toggleAssigneeMenu)="onToggleAssigneeMenu($event)"
-              (changeStatus)="onChangeStatus($event.itemId, $event.status)"
-              (changePriority)="onChangePriority($event.itemId, $event.priority)"
-              (changeAssignee)="onChangeAssignee($event.itemId, $event.assignee)"
-              (previousMonth)="onPreviousMonth()"
-              (nextMonth)="onNextMonth()"
-              (changeDueDate)="onChangeDueDate($event.itemId, $event.isoDate)"
-              (clearDueDate)="onClearDueDate($event)"
-            ></tr>
-            } @empty {
-            <tr>
-              <td colspan="7" class="empty-state">
-                <strong>No tasks found</strong>
-                <span>Try another search term or create a new task.</span>
-              </td>
-            </tr>
-            }
+                  <div class="stage-heading">
+                    @if (editingStageId === stage.id) {
+                      <input
+                        [id]="'stage-title-input-' + stage.id"
+                        type="text"
+                        class="stage-title-input"
+                        [value]="editingStageValue"
+                        (input)="onStageTitleInput($any($event.target).value)"
+                        (blur)="onSaveStageTitle(stage.id)"
+                        (keydown)="onStageTitleKeydown($event, stage.id)"
+                        (click)="$event.stopPropagation()"
+                      />
+                    } @else {
+                      <button type="button" class="stage-button" (click)="onToggleStageExpanded(stage.id)">
+                        <span class="stage-title">{{ stage.title }}</span>
+                        <span class="stage-meta">{{ stage.rows.length || stage.tasks.length }} tasks</span>
+                      </button>
+                    }
+                  </div>
 
-            <tr class="create-row">
-              <td colspan="7">
-                <button type="button" class="create-button" (click)="addTask()">
-                  <span>+</span>
-                  Create task
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+                  <div class="stage-actions">
+                    <button
+                      type="button"
+                      class="stage-more-button"
+                      (click)="onToggleStageMenu(stage.id); $event.stopPropagation()"
+                      aria-label="Stage actions"
+                    >
+                      <span></span>
+                    </button>
+
+                    @if (openStageMenuFor === stage.id) {
+                      <div class="stage-menu">
+                        <button type="button" class="stage-menu-option" (click)="onRenameStage(stage.id)">
+                          Rename
+                        </button>
+                        <button type="button" class="stage-menu-option delete" (click)="onDeleteStage(stage.id)">
+                          Delete
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </header>
+
+              @if (stage.expanded) {
+                <div class="table-shell">
+                  <table class="tasks-table">
+                    <thead>
+                      <tr>
+                        <th class="checkbox-column">
+                          <input
+                            type="checkbox"
+                            class="header-checkbox"
+                            [checked]="isAllStageRowsSelected(stage.id)"
+                            [indeterminate]="isSomeStageRowsSelected(stage.id)"
+                            (change)="onToggleStageSelectAll(stage.id, $any($event.target).checked)"
+                            aria-label="Select all visible tasks"
+                          />
+                        </th>
+                        <th>
+                          <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'subject')" (click)="onSort(stage.id, 'subject')">
+                            Subject
+                            <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'subject')"></span>
+                          </button>
+                        </th>
+                        <th>
+                          <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'status')" (click)="onSort(stage.id, 'status')">
+                            Status
+                            <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'status')"></span>
+                          </button>
+                        </th>
+                        <th>
+                          <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'dueDate')" (click)="onSort(stage.id, 'dueDate')">
+                            Due date
+                            <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'dueDate')"></span>
+                          </button>
+                        </th>
+                        <th>
+                          <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'priority')" (click)="onSort(stage.id, 'priority')">
+                            Priority
+                            <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'priority')"></span>
+                          </button>
+                        </th>
+                        <th>
+                          <button type="button" class="sort-button" [class.active]="isSortedBy(stage.id, 'assignee')" (click)="onSort(stage.id, 'assignee')">
+                            Assignee
+                            <span class="sort-indicator" [class.desc]="stage.sortDirection === 'desc' && isSortedBy(stage.id, 'assignee')"></span>
+                          </button>
+                        </th>
+                        <th>Comments</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      @for (item of stage.rows; track item.id) {
+                        <tr
+                          app-task-list-row
+                          [item]="item"
+                          [isStatusMenuOpen]="openStatusMenuFor === item.id"
+                          [isPriorityMenuOpen]="openPriorityMenuFor === item.id"
+                          [isDateMenuOpen]="openDateMenuFor === item.id"
+                          [isAssigneeMenuOpen]="openAssigneeMenuFor === item.id"
+                          [availableStatuses]="statusOptions"
+                          [availablePriorities]="priorityOptions"
+                          [availableAssignees]="projectParticipants"
+                          [weekdayLabels]="weekdayLabels"
+                          [calendarMonthLabel]="calendarMonthLabel"
+                          [calendarWeeks]="calendarWeeks"
+                          [statusMenuTop]="statusMenuTop"
+                          [statusMenuLeft]="statusMenuLeft"
+                          [priorityMenuTop]="priorityMenuTop"
+                          [priorityMenuLeft]="priorityMenuLeft"
+                          [dateMenuTop]="dateMenuTop"
+                          [dateMenuLeft]="dateMenuLeft"
+                          [assigneeMenuTop]="assigneeMenuTop"
+                          [assigneeMenuLeft]="assigneeMenuLeft"
+                          [isEditingTitle]="editingTitleItemId === item.id"
+                          [editingTitleValue]="editingTitleItemId === item.id ? editingTitleValue : item.title"
+                          (toggleExpanded)="onToggleExpanded($event)"
+                          (toggleSelected)="onToggleSelected($event)"
+                          (addSubtask)="onAddSubtask($event)"
+                          (startTitleEdit)="onStartTitleEdit($event)"
+                          (titleDraftChange)="onTitleDraftChange($event)"
+                          (saveTitleEdit)="onSaveTitleEdit($event)"
+                          (cancelTitleEdit)="onCancelTitleEdit($event)"
+                          (toggleStatusMenu)="onToggleStatusMenu($event)"
+                          (togglePriorityMenu)="onTogglePriorityMenu($event)"
+                          (toggleDateMenu)="onToggleDateMenu($event)"
+                          (toggleAssigneeMenu)="onToggleAssigneeMenu($event)"
+                          (changeStatus)="onChangeStatus($event.itemId, $event.status)"
+                          (changePriority)="onChangePriority($event.itemId, $event.priority)"
+                          (changeAssignee)="onChangeAssignee($event.itemId, $event.assignee)"
+                          (previousMonth)="onPreviousMonth()"
+                          (nextMonth)="onNextMonth()"
+                          (changeDueDate)="onChangeDueDate($event.itemId, $event.isoDate)"
+                          (clearDueDate)="onClearDueDate($event)"
+                        ></tr>
+                      }
+
+                      <tr class="create-row">
+                        <td colspan="7">
+                          <button type="button" class="create-button" (click)="addTaskToStage(stage.id)">
+                            <span>+</span>
+                            Create task
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </section>
+          }
+        </div>
+      } @else {
+        <div class="empty-stage-state">
+          <strong>No tasks found</strong>
+          <span>Try another search term or create a new task.</span>
+        </div>
+      }
     </section>
   </section>
 
