@@ -10,7 +10,6 @@ import { NewProjectDetailsComponent } from './NEW_COMPONENTS/project-details/new
 import { MyProjectsComponent } from './projects/my-projects/my-projects.component';
 import { PersonalCabinetComponent } from './personal-cabinet/personal-cabinet.component';
 import { ContractorRegistryComponent } from './contractor-registry/contractor-registry.component';
-import { DashboardComponent } from './dashboard/dashboard.component';
 import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard.component';
 import { AdminUserManagementComponent } from './admin/admin-user-management/admin-user-management.component';
 import { AdminUserDetailComponent } from './admin/admin-user-management/admin-user-detail/admin-user-detail.component';
@@ -20,7 +19,6 @@ import { AdminProjectManagementComponent } from './admin/admin-project-managemen
 import { AdminProjectDetailComponent } from './admin/admin-project-management/admin-project-detail/admin-project-detail.component';
 import { ProjectDashboardComponent } from './project-dashboard/project-dashboard.component'
 import { ChatComponent } from './chat/chat.component';
-import { DocumentsComponent } from './project-dashboard/document/document.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { ProjectDetailsComponent } from './projects/project-details/project-details.component';
 import { NotificationModalComponent } from './notification-modal/notification-modal.component';

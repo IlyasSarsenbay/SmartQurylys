@@ -72,7 +72,7 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   @Output() toggleAssigneeMenu = new EventEmitter<{ itemId: number; anchorRect: OverlayAnchorRect }>();
   @Output() changeStatus = new EventEmitter<{ itemId: number; status: TodoStatus }>();
   @Output() changePriority = new EventEmitter<{ itemId: number; priority: TodoPriority }>();
-  @Output() changeAssignee = new EventEmitter<{ itemId: number; assignee: string }>();
+  @Output() changeAssignee = new EventEmitter<{ itemId: number; assigneeParticipantId: number | null }>();
   @Output() previousMonth = new EventEmitter<void>();
   @Output() nextMonth = new EventEmitter<void>();
   @Output() changeDueDate = new EventEmitter<{ itemId: number; isoDate: string }>();
@@ -250,10 +250,10 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
     });
   }
 
-  onChangeAssignee(assignee: string): void {
+  onChangeAssignee(assigneeParticipantId: number | null): void {
     this.changeAssignee.emit({
       itemId: this.item.id,
-      assignee
+      assigneeParticipantId
     });
   }
 

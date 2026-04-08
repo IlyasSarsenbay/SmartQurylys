@@ -1,9 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Participant } from '../../core/models/participant';
+import {
+  ProjectTaskBoardPriority,
+  ProjectTaskBoardResponse,
+  ProjectTaskBoardStatus,
+  ProjectTaskBoardTaskResponse,
+  ProjectTaskCommentResponse
+} from '../../core/models/project-task-board';
 import { ParticipantService } from '../../core/participant.service';
+import { ProjectTaskBoardService } from '../../core/project-task-board.service';
 import { TaskListRowComponent } from './task-list-row.component';
 import { TodoComment, TodoItem, TodoPriority, TodoRowItem, TodoStatus } from './task-list.models';
 
@@ -47,6 +56,8 @@ interface VisibleTaskStage extends TaskStage {
   styleUrl: './project-tasks-page.component.css'
 })
 export class ProjectTasksPageComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   searchTerm = '';
   selectedStatus: 'all' | TodoStatus = 'all';
   editingTitleItemId: number | null = null;
@@ -70,121 +81,13 @@ export class ProjectTasksPageComponent implements OnInit {
   assigneeMenuLeft = 0;
   readonly statusOptions: TodoStatus[] = ['To do', 'Idea', 'In progress', 'In review', 'Done', 'Blocked'];
   readonly priorityOptions: TodoPriority[] = ['Low', 'Medium', 'High', 'Critical'];
-  calendarViewDate = new Date(2026, 3, 1);
+  calendarViewDate = new Date();
   readonly weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   projectParticipants: Participant[] = [];
-  readonly commentsByTaskId: Record<number, TodoComment[]> = {
-    2: [
-      {
-        id: 1,
-        author: 'Dias',
-        message: 'We should confirm the supplier handoff before starting this package.',
-        createdAt: 'Today at 09:10'
-      },
-      {
-        id: 2,
-        author: 'Aruzhan',
-        message: 'Agreed. I will sync with procurement and update the due date if needed.',
-        createdAt: 'Today at 09:34'
-      }
-    ],
-    21: [
-      {
-        id: 3,
-        author: 'Madi',
-        message: 'Latest reinforcement drawings uploaded. Please review sheet B-14 first.',
-        createdAt: 'Today at 11:08'
-      }
-    ],
-    22: [
-      {
-        id: 4,
-        author: 'Dana',
-        message: 'Delivery window confirmed for 19 April, morning slot.',
-        createdAt: 'Today at 12:41'
-      }
-    ]
-  };
+  commentsByTaskId: Record<number, TodoComment[]> = {};
+  stages: TaskStage[] = [];
+  isLoading = false;
   private projectId: number | null = null;
-
-  readonly stages: TaskStage[] = [
-    {
-      id: 101,
-      title: 'Planning',
-      expanded: true,
-      sortColumn: 'subject',
-      sortDirection: 'asc',
-      tasks: [
-        {
-          id: 1,
-          type: 'task',
-          title: 'Prepare project charter approval',
-          status: 'To do',
-          dueDate: '15 Apr 2026',
-          priority: 'High',
-          assignee: 'Aruzhan',
-          commentsCount: 0,
-          selected: false
-        }
-      ]
-    },
-    {
-      id: 102,
-      title: 'Foundation',
-      expanded: true,
-      sortColumn: 'subject',
-      sortDirection: 'asc',
-      tasks: [
-        {
-          id: 2,
-          type: 'group',
-          title: 'Foundation work package',
-          status: 'To do',
-          dueDate: '22 Apr 2026',
-          priority: 'Critical',
-          assignee: 'Dias',
-          commentsCount: 3,
-          selected: false,
-          expanded: true,
-          subtasks: [
-            {
-              id: 21,
-              type: 'task',
-              title: 'Review reinforcement drawings',
-              status: 'In progress',
-              dueDate: '18 Apr 2026',
-              priority: 'High',
-              assignee: 'Madi',
-              commentsCount: 2,
-              selected: false
-            },
-            {
-              id: 22,
-              type: 'task',
-              title: 'Confirm concrete delivery schedule',
-              status: 'Done',
-              dueDate: '19 Apr 2026',
-              priority: 'Medium',
-              assignee: 'Dana',
-              commentsCount: 1,
-              selected: false
-            }
-          ]
-        },
-        {
-          id: 3,
-          type: 'task',
-          title: 'Approve safety induction checklist',
-          status: 'Blocked',
-          dueDate: '24 Apr 2026',
-          priority: 'Medium',
-          assignee: '',
-          commentsCount: 0,
-          selected: false
-        }
-      ]
-    }
-  ];
 
   get visibleStages(): VisibleTaskStage[] {
     return this.stages
@@ -290,7 +193,8 @@ export class ProjectTasksPageComponent implements OnInit {
 
   constructor(
     private readonly route: ActivatedRoute,
-    private readonly participantService: ParticipantService
+    private readonly participantService: ParticipantService,
+    private readonly projectTaskBoardService: ProjectTaskBoardService
   ) {}
 
   ngOnInit(): void {
@@ -301,17 +205,20 @@ export class ProjectTasksPageComponent implements OnInit {
     }
 
     this.projectId = projectId;
+    this.loadBoard();
     this.loadProjectParticipants();
 
-    this.participantService.participantsChanged$.subscribe((changedProjectId) => {
-      if (this.projectId === null) {
-        return;
-      }
+    this.participantService.participantsChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((changedProjectId) => {
+        if (this.projectId === null) {
+          return;
+        }
 
-      if (changedProjectId === null || changedProjectId === this.projectId) {
-        this.loadProjectParticipants(true);
-      }
-    });
+        if (changedProjectId === null || changedProjectId === this.projectId) {
+          this.loadProjectParticipants(true);
+        }
+      });
   }
 
   onStatusChange(status: 'all' | TodoStatus): void {
@@ -347,7 +254,6 @@ export class ProjectTasksPageComponent implements OnInit {
     }
 
     const stage = this.stages.find((item) => item.id === stageId);
-
     if (stage) {
       stage.expanded = !stage.expanded;
     }
@@ -359,7 +265,6 @@ export class ProjectTasksPageComponent implements OnInit {
 
   onRenameStage(stageId: number): void {
     const stage = this.stages.find((item) => item.id === stageId);
-
     if (!stage) {
       return;
     }
@@ -369,18 +274,21 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onDeleteStage(stageId: number): void {
-    const stageIndex = this.stages.findIndex((item) => item.id === stageId);
-
-    if (stageIndex === -1) {
+    if (this.projectId === null) {
       return;
     }
 
-    this.stages.splice(stageIndex, 1);
-    this.openStageMenuFor = null;
-    if (this.editingStageId === stageId) {
-      this.editingStageId = null;
-      this.editingStageValue = '';
-    }
+    this.projectTaskBoardService.deleteStage(this.projectId, stageId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.openStageMenuFor = null;
+          this.loadBoard();
+        },
+        error: (error) => {
+          console.error('Failed to delete stage:', error);
+        }
+      });
   }
 
   onStageTitleInput(value: string): void {
@@ -388,19 +296,29 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onSaveStageTitle(stageId: number): void {
-    if (this.editingStageId !== stageId) {
+    if (this.projectId === null || this.editingStageId !== stageId) {
       return;
     }
 
     const nextTitle = this.editingStageValue.trim();
-    const stage = this.stages.find((item) => item.id === stageId);
-
-    if (stage && nextTitle) {
-      stage.title = nextTitle;
+    if (!nextTitle) {
+      this.onCancelStageTitle(stageId);
+      return;
     }
 
     this.editingStageId = null;
     this.editingStageValue = '';
+
+    this.projectTaskBoardService.updateStage(this.projectId, stageId, { name: nextTitle })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loadBoard();
+        },
+        error: (error) => {
+          console.error('Failed to rename stage:', error);
+        }
+      });
   }
 
   onCancelStageTitle(stageId: number): void {
@@ -456,20 +374,28 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onSaveTitleEdit(itemId: number): void {
-    if (this.editingTitleItemId !== itemId) {
+    if (this.projectId === null || this.editingTitleItemId !== itemId) {
       return;
     }
 
     const trimmedValue = this.editingTitleValue.trim();
-
-    if (trimmedValue) {
-      this.updateItemById(this.getAllTasks(), itemId, (item) => {
-        item.title = trimmedValue;
-      });
-    }
-
     this.editingTitleItemId = null;
     this.editingTitleValue = '';
+
+    if (!trimmedValue) {
+      return;
+    }
+
+    this.projectTaskBoardService.updateTask(this.projectId, itemId, { title: trimmedValue })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loadBoard();
+        },
+        error: (error) => {
+          console.error('Failed to rename task:', error);
+        }
+      });
   }
 
   onCancelTitleEdit(itemId: number): void {
@@ -482,33 +408,33 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onAddSubtask(itemId: number): void {
-    const nextId = this.getNextId(this.getAllTasks());
-    const newSubtask: TodoItem = {
-      id: nextId,
-      type: 'task',
-      title: 'New subtask',
-      status: 'To do',
-      dueDate: '',
-      priority: 'Low',
-      assignee: '',
-      commentsCount: 0,
-      selected: false
-    };
+    if (this.projectId === null) {
+      return;
+    }
+
+    const stageId = this.findStageIdForTask(itemId);
+    if (stageId === null) {
+      return;
+    }
 
     this.updateItemById(this.getAllTasks(), itemId, (item) => {
-      if (item.type === 'group') {
-        item.subtasks = [...(item.subtasks ?? []), newSubtask];
-        item.expanded = true;
-        return;
-      }
-
-      item.type = 'group';
-      item.subtasks = [newSubtask];
       item.expanded = true;
     });
 
-    this.editingTitleItemId = nextId;
-    this.editingTitleValue = newSubtask.title;
+    this.projectTaskBoardService.createTask(this.projectId, {
+      stageId,
+      parentTaskId: itemId,
+      title: 'New subtask'
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (task) => {
+          this.loadBoard({ focusTaskId: task.id });
+        },
+        error: (error) => {
+          console.error('Failed to create subtask:', error);
+        }
+      });
   }
 
   onToggleSelectAll(checked: boolean): void {
@@ -522,7 +448,6 @@ export class ProjectTasksPageComponent implements OnInit {
 
   onToggleStageSelectAll(stageId: number, checked: boolean): void {
     const stage = this.visibleStages.find((item) => item.id === stageId);
-
     if (!stage) {
       return;
     }
@@ -553,10 +478,25 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onChangeStatus(itemId: number, status: TodoStatus): void {
-    this.updateItemById(this.getAllTasks(), itemId, (item) => {
-      item.status = status;
-    });
-    this.openStatusMenuFor = null;
+    if (this.projectId === null) {
+      return;
+    }
+
+    this.projectTaskBoardService.updateTask(this.projectId, itemId, {
+      status: this.toApiStatus(status)
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.updateItemById(this.getAllTasks(), itemId, (item) => {
+            item.status = status;
+          });
+          this.openStatusMenuFor = null;
+        },
+        error: (error) => {
+          console.error('Failed to update task status:', error);
+        }
+      });
   }
 
   onTogglePriorityMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
@@ -577,10 +517,25 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onChangePriority(itemId: number, priority: TodoPriority): void {
-    this.updateItemById(this.getAllTasks(), itemId, (item) => {
-      item.priority = priority;
-    });
-    this.openPriorityMenuFor = null;
+    if (this.projectId === null) {
+      return;
+    }
+
+    this.projectTaskBoardService.updateTask(this.projectId, itemId, {
+      priority: this.toApiPriority(priority)
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.updateItemById(this.getAllTasks(), itemId, (item) => {
+            item.priority = priority;
+          });
+          this.openPriorityMenuFor = null;
+        },
+        error: (error) => {
+          console.error('Failed to update task priority:', error);
+        }
+      });
   }
 
   onToggleDateMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
@@ -600,7 +555,7 @@ export class ProjectTasksPageComponent implements OnInit {
     });
 
     const item = this.findItemById(this.getAllTasks(), payload.itemId);
-    this.calendarViewDate = this.parseDueDate(item?.dueDate) ?? new Date(2026, 3, 1);
+    this.calendarViewDate = this.parseDueDate(item?.dueDate) ?? new Date();
     this.calendarViewDate = new Date(this.calendarViewDate.getFullYear(), this.calendarViewDate.getMonth(), 1);
   }
 
@@ -621,17 +576,43 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onChangeDueDate(itemId: number, isoDate: string): void {
-    this.updateItemById(this.getAllTasks(), itemId, (item) => {
-      item.dueDate = this.formatDueDate(isoDate);
-    });
-    this.openDateMenuFor = null;
+    if (this.projectId === null) {
+      return;
+    }
+
+    this.projectTaskBoardService.updateTask(this.projectId, itemId, { dueDate: isoDate })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.updateItemById(this.getAllTasks(), itemId, (item) => {
+            item.dueDate = this.formatDueDate(isoDate);
+          });
+          this.openDateMenuFor = null;
+        },
+        error: (error) => {
+          console.error('Failed to update due date:', error);
+        }
+      });
   }
 
   onClearDueDate(itemId: number): void {
-    this.updateItemById(this.getAllTasks(), itemId, (item) => {
-      item.dueDate = '';
-    });
-    this.openDateMenuFor = null;
+    if (this.projectId === null) {
+      return;
+    }
+
+    this.projectTaskBoardService.updateTask(this.projectId, itemId, { clearDueDate: true })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.updateItemById(this.getAllTasks(), itemId, (item) => {
+            item.dueDate = '';
+          });
+          this.openDateMenuFor = null;
+        },
+        error: (error) => {
+          console.error('Failed to clear due date:', error);
+        }
+      });
   }
 
   onToggleAssigneeMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
@@ -645,24 +626,43 @@ export class ProjectTasksPageComponent implements OnInit {
     }
 
     this.openAssigneeMenuFor = payload.itemId;
-    const menuHeight = this.getAssigneeMenuHeight();
-
-    this.setOverlayPosition(payload.anchorRect, 260, menuHeight, (top, left) => {
+    this.setOverlayPosition(payload.anchorRect, 260, this.getAssigneeMenuHeight(), (top, left) => {
       this.assigneeMenuTop = top;
       this.assigneeMenuLeft = left;
     });
   }
 
-  onChangeAssignee(itemId: number, assignee: string): void {
-    this.updateItemById(this.getAllTasks(), itemId, (item) => {
-      item.assignee = assignee;
-    });
-    this.openAssigneeMenuFor = null;
+  onChangeAssignee(itemId: number, assigneeParticipantId: number | null): void {
+    if (this.projectId === null) {
+      return;
+    }
+
+    this.projectTaskBoardService.updateTask(this.projectId, itemId, assigneeParticipantId === null
+      ? { clearAssignee: true }
+      : { assigneeParticipantId })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          const participant = assigneeParticipantId === null
+            ? null
+            : this.projectParticipants.find((item) => item.id === assigneeParticipantId) ?? null;
+
+          this.updateItemById(this.getAllTasks(), itemId, (item) => {
+            item.assigneeParticipantId = assigneeParticipantId;
+            item.assignee = participant?.fullName ?? '';
+          });
+          this.openAssigneeMenuFor = null;
+        },
+        error: (error) => {
+          console.error('Failed to update assignee:', error);
+        }
+      });
   }
 
   onOpenComments(itemId: number): void {
     this.commentsTaskId = itemId;
     this.commentDraft = '';
+    this.loadComments(itemId);
   }
 
   onCloseComments(): void {
@@ -671,31 +671,34 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onSendComment(): void {
-    if (this.commentsTaskId === null) {
+    if (this.projectId === null || this.commentsTaskId === null) {
       return;
     }
 
     const message = this.commentDraft.trim();
-
     if (!message) {
       return;
     }
 
-    const nextComment: TodoComment = {
-      id: this.getNextCommentId(),
-      author: 'You',
-      message,
-      createdAt: 'Just now'
-    };
+    const taskId = this.commentsTaskId;
+    this.projectTaskBoardService.addComment(this.projectId, taskId, { message })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (comment) => {
+          const mappedComment = this.mapComment(comment);
+          const existingComments = this.commentsByTaskId[taskId] ?? [];
+          this.commentsByTaskId[taskId] = [...existingComments, mappedComment];
 
-    const existingComments = this.commentsByTaskId[this.commentsTaskId] ?? [];
-    this.commentsByTaskId[this.commentsTaskId] = [...existingComments, nextComment];
+          this.updateItemById(this.getAllTasks(), taskId, (item) => {
+            item.commentsCount = existingComments.length + 1;
+          });
 
-    this.updateItemById(this.getAllTasks(), this.commentsTaskId, (item) => {
-      item.commentsCount = this.commentsByTaskId[this.commentsTaskId!].length;
-    });
-
-    this.commentDraft = '';
+          this.commentDraft = '';
+        },
+        error: (error) => {
+          console.error('Failed to add comment:', error);
+        }
+      });
   }
 
   onCommentKeydown(event: KeyboardEvent): void {
@@ -707,26 +710,14 @@ export class ProjectTasksPageComponent implements OnInit {
 
   @HostListener('window:resize')
   onWindowResize(): void {
-    if (this.openDateMenuFor !== null) {
-      this.openDateMenuFor = null;
-    }
-
-    if (this.openStatusMenuFor !== null) {
-      this.openStatusMenuFor = null;
-    }
-
-    if (this.openPriorityMenuFor !== null) {
-      this.openPriorityMenuFor = null;
-    }
-
-    if (this.openAssigneeMenuFor !== null) {
-      this.openAssigneeMenuFor = null;
-    }
+    this.openDateMenuFor = null;
+    this.openStatusMenuFor = null;
+    this.openPriorityMenuFor = null;
+    this.openAssigneeMenuFor = null;
   }
 
   addTask(): void {
     const targetStage = this.stages[this.stages.length - 1];
-
     if (!targetStage) {
       return;
     }
@@ -735,50 +726,65 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   addStage(): void {
-    const nextStageId = this.getNextStageId();
-    const newStage: TaskStage = {
-      id: nextStageId,
-      title: `New stage ${this.stages.length + 1}`,
-      expanded: true,
-      sortColumn: 'subject',
-      sortDirection: 'asc',
-      tasks: []
-    };
-
-    this.stages.push(newStage);
-    this.startStageTitleEdit(nextStageId, newStage.title);
-  }
-
-  addTaskToStage(stageId: number): void {
-    const nextId = this.getNextId(this.getAllTasks());
-    const newTask: TodoItem = {
-      id: nextId,
-      type: 'task',
-      title: 'New task',
-      status: 'To do',
-      dueDate: '',
-      priority: 'Low',
-      assignee: '',
-      commentsCount: 0,
-      selected: false
-    };
-
-    const targetStage = this.stages.find((stage) => stage.id === stageId);
-
-    if (!targetStage) {
+    if (this.projectId === null) {
       return;
     }
 
-    targetStage.tasks.push(newTask);
-    targetStage.expanded = true;
-    this.editingTitleItemId = nextId;
-    this.editingTitleValue = newTask.title;
+    this.projectTaskBoardService.createStage(this.projectId, { name: `New stage ${this.stages.length + 1}` })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (stage) => {
+          this.loadBoard({ focusStageId: stage.id });
+        },
+        error: (error) => {
+          console.error('Failed to create stage:', error);
+        }
+      });
+  }
+
+  addTaskToStage(stageId: number): void {
+    if (this.projectId === null) {
+      return;
+    }
+
+    this.projectTaskBoardService.createTask(this.projectId, {
+      stageId,
+      title: 'New task'
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (task) => {
+          this.loadBoard({ focusTaskId: task.id });
+        },
+        error: (error) => {
+          console.error('Failed to create task:', error);
+        }
+      });
   }
 
   deleteSelected(): void {
-    for (const stage of this.stages) {
-      stage.tasks = this.removeSelectedItems(stage.tasks);
+    if (this.projectId === null) {
+      return;
     }
+
+    const taskIds = this.collectSelectedIds(this.getAllTasks());
+    if (!taskIds.length) {
+      return;
+    }
+
+    this.projectTaskBoardService.bulkDeleteTasks(this.projectId, { taskIds })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          if (this.commentsTaskId !== null && taskIds.includes(this.commentsTaskId)) {
+            this.onCloseComments();
+          }
+          this.loadBoard();
+        },
+        error: (error) => {
+          console.error('Failed to delete selected tasks:', error);
+        }
+      });
   }
 
   @HostListener('document:click', ['$event'])
@@ -811,18 +817,165 @@ export class ProjectTasksPageComponent implements OnInit {
       return;
     }
 
-    this.participantService.getProjectParticipants(this.projectId, forceRefresh).subscribe({
-      next: (participants) => {
-        this.projectParticipants = participants;
-      },
-      error: (error) => {
-        console.error('Failed to load project participants for tasks page:', error);
+    this.participantService.getProjectParticipants(this.projectId, forceRefresh)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (participants) => {
+          this.projectParticipants = participants;
+        },
+        error: (error) => {
+          console.error('Failed to load project participants for tasks page:', error);
+        }
+      });
+  }
+
+  private loadBoard(options?: { focusTaskId?: number; focusStageId?: number }): void {
+    if (this.projectId === null) {
+      return;
+    }
+
+    this.isLoading = true;
+
+    this.projectTaskBoardService.getBoard(this.projectId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (board) => {
+          this.applyBoard(board, options);
+          this.isLoading = false;
+        },
+        error: (error) => {
+          this.isLoading = false;
+          console.error('Failed to load project task board:', error);
+        }
+      });
+  }
+
+  private applyBoard(board: ProjectTaskBoardResponse, options?: { focusTaskId?: number; focusStageId?: number }): void {
+    const previousStageState = new Map(this.stages.map((stage) => [stage.id, stage]));
+    const itemState = this.collectItemState(this.getAllTasks());
+
+    this.stages = board.stages
+      .slice()
+      .sort((left, right) => left.position - right.position || left.id - right.id)
+      .map((stage) => {
+        const previousStage = previousStageState.get(stage.id);
+        return {
+          id: stage.id,
+          title: stage.name,
+          expanded: previousStage?.expanded ?? true,
+          sortColumn: previousStage?.sortColumn ?? 'subject',
+          sortDirection: previousStage?.sortDirection ?? 'asc',
+          tasks: this.mapBoardTasks(stage.tasks, itemState)
+        };
+      });
+
+    if (options?.focusTaskId) {
+      const item = this.findItemById(this.getAllTasks(), options.focusTaskId);
+      if (item) {
+        this.editingTitleItemId = item.id;
+        this.editingTitleValue = item.title;
       }
-    });
+    }
+
+    if (options?.focusStageId) {
+      const stage = this.stages.find((item) => item.id === options.focusStageId);
+      if (stage) {
+        this.startStageTitleEdit(stage.id, stage.title);
+      }
+    }
+
+    if (this.commentsTaskId !== null) {
+      const activeTask = this.findItemById(this.getAllTasks(), this.commentsTaskId);
+      if (!activeTask) {
+        this.onCloseComments();
+      } else {
+        this.loadComments(this.commentsTaskId);
+      }
+    }
+  }
+
+  private loadComments(taskId: number): void {
+    if (this.projectId === null) {
+      return;
+    }
+
+    this.projectTaskBoardService.getComments(this.projectId, taskId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (comments) => {
+          this.commentsByTaskId[taskId] = comments.map((comment) => this.mapComment(comment));
+        },
+        error: (error) => {
+          console.error('Failed to load comments:', error);
+        }
+      });
+  }
+
+  private mapBoardTasks(
+    tasks: ProjectTaskBoardTaskResponse[],
+    itemState: Map<number, { selected: boolean; expanded: boolean }>
+  ): TodoItem[] {
+    return tasks
+      .slice()
+      .sort((left, right) => left.position - right.position || left.id - right.id)
+      .map((task) => {
+        const mappedSubtasks = this.mapBoardTasks(task.subtasks ?? [], itemState);
+        const previousState = itemState.get(task.id);
+
+        return {
+          id: task.id,
+          type: mappedSubtasks.length ? 'group' : 'task',
+          title: task.title,
+          description: task.description ?? '',
+          status: this.fromApiStatus(task.status),
+          dueDate: task.dueDate ? this.formatDueDate(task.dueDate) : '',
+          priority: this.fromApiPriority(task.priority),
+          assignee: task.assignee?.fullName ?? '',
+          assigneeParticipantId: task.assignee?.participantId ?? null,
+          commentsCount: task.commentCount,
+          selected: previousState?.selected ?? false,
+          expanded: previousState?.expanded ?? true,
+          subtasks: mappedSubtasks
+        };
+      });
+  }
+
+  private mapComment(comment: ProjectTaskCommentResponse): TodoComment {
+    return {
+      id: comment.id,
+      author: comment.author.fullName,
+      message: comment.message,
+      createdAt: this.formatCommentTimestamp(comment.createdAt)
+    };
+  }
+
+  private collectItemState(items: TodoItem[], state = new Map<number, { selected: boolean; expanded: boolean }>()): Map<number, { selected: boolean; expanded: boolean }> {
+    for (const item of items) {
+      state.set(item.id, {
+        selected: !!item.selected,
+        expanded: item.expanded ?? true
+      });
+
+      if (item.subtasks?.length) {
+        this.collectItemState(item.subtasks, state);
+      }
+    }
+
+    return state;
   }
 
   private getAllTasks(): TodoItem[] {
     return this.stages.flatMap((stage) => stage.tasks);
+  }
+
+  private findStageIdForTask(taskId: number): number | null {
+    for (const stage of this.stages) {
+      if (this.findItemById(stage.tasks, taskId)) {
+        return stage.id;
+      }
+    }
+
+    return null;
   }
 
   private filterAndSortStageTasks(tasks: TodoItem[]): TodoItem[] {
@@ -1047,8 +1200,11 @@ export class ProjectTasksPageComponent implements OnInit {
     }, 0);
   }
 
-  private getNextStageId(): number {
-    return this.stages.reduce((highestId, stage) => Math.max(highestId, stage.id), 100) + 1;
+  private collectSelectedIds(items: TodoItem[]): number[] {
+    return items.flatMap((item) => [
+      ...(item.selected ? [item.id] : []),
+      ...(item.subtasks?.length ? this.collectSelectedIds(item.subtasks) : [])
+    ]);
   }
 
   private startStageTitleEdit(stageId: number, title: string): void {
@@ -1072,19 +1228,6 @@ export class ProjectTasksPageComponent implements OnInit {
     const optionCount = this.projectParticipants.length + 1;
     const estimatedHeight = optionCount * 44 + 16;
     return Math.min(320, Math.max(72, estimatedHeight));
-  }
-
-  private getNextId(items: TodoItem[]): number {
-    return items.reduce((highestId, item) => {
-      const childMax = item.subtasks?.length ? this.getNextId(item.subtasks) : 0;
-      return Math.max(highestId, item.id, childMax);
-    }, 0) + 1;
-  }
-
-  private getNextCommentId(): number {
-    return Object.values(this.commentsByTaskId)
-      .flat()
-      .reduce((highestId, comment) => Math.max(highestId, comment.id), 0) + 1;
   }
 
   private findItemById(items: TodoItem[], itemId: number): TodoItem | null {
@@ -1120,6 +1263,21 @@ export class ProjectTasksPageComponent implements OnInit {
     }).format(date);
   }
 
+  private formatCommentTimestamp(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  }
+
   private toIsoDate(date: Date): string {
     const year = date.getFullYear();
     const month = `${date.getMonth() + 1}`.padStart(2, '0');
@@ -1146,22 +1304,65 @@ export class ProjectTasksPageComponent implements OnInit {
     apply(top, left);
   }
 
-  private removeSelectedItems(items: TodoItem[]): TodoItem[] {
-    return items.reduce<TodoItem[]>((acc, item) => {
-      if (item.selected) {
-        return acc;
-      }
+  private fromApiStatus(status: ProjectTaskBoardStatus): TodoStatus {
+    switch (status) {
+      case 'TODO':
+        return 'To do';
+      case 'IN_PROGRESS':
+        return 'In progress';
+      case 'DONE':
+        return 'Done';
+      case 'BLOCKED':
+        return 'Blocked';
+      default:
+        return 'To do';
+    }
+  }
 
-      const nextSubtasks = item.subtasks?.length
-        ? this.removeSelectedItems(item.subtasks)
-        : item.subtasks;
+  private toApiStatus(status: TodoStatus): ProjectTaskBoardStatus {
+    switch (status) {
+      case 'To do':
+      case 'Idea':
+      case 'In review':
+        return 'TODO';
+      case 'In progress':
+        return 'IN_PROGRESS';
+      case 'Done':
+        return 'DONE';
+      case 'Blocked':
+        return 'BLOCKED';
+      default:
+        return 'TODO';
+    }
+  }
 
-      acc.push({
-        ...item,
-        subtasks: nextSubtasks
-      });
+  private fromApiPriority(priority: ProjectTaskBoardPriority): TodoPriority {
+    switch (priority) {
+      case 'LOW':
+        return 'Low';
+      case 'MEDIUM':
+        return 'Medium';
+      case 'HIGH':
+        return 'High';
+      case 'CRITICAL':
+        return 'Critical';
+      default:
+        return 'Medium';
+    }
+  }
 
-      return acc;
-    }, []);
+  private toApiPriority(priority: TodoPriority): ProjectTaskBoardPriority {
+    switch (priority) {
+      case 'Low':
+        return 'LOW';
+      case 'Medium':
+        return 'MEDIUM';
+      case 'High':
+        return 'HIGH';
+      case 'Critical':
+        return 'CRITICAL';
+      default:
+        return 'MEDIUM';
+    }
   }
 }

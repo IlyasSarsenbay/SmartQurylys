@@ -15,10 +15,12 @@ export interface TodoItem {
   id: number;
   type: TodoItemType;
   title: string;
+  description?: string;
   status: TodoStatus;
   dueDate?: string;
   priority?: TodoPriority;
   assignee?: string;
+  assigneeParticipantId?: number | null;
   commentsCount: number;
   selected?: boolean;
   expanded?: boolean;

@@ -194,7 +194,7 @@
           type="button"
           class="assignee-option"
           [class.active]="!item.assignee"
-          (click)="onChangeAssignee('')"
+          (click)="onChangeAssignee(null)"
         >
           <span class="assignee-avatar assignee-avatar-empty">?</span>
           <span>Unassigned</span>
@@ -204,8 +204,8 @@
           <button
             type="button"
             class="assignee-option"
-            [class.active]="assignee.fullName === item.assignee"
-            (click)="onChangeAssignee(assignee.fullName)"
+            [class.active]="assignee.id === item.assigneeParticipantId"
+            (click)="onChangeAssignee(assignee.id)"
           >
             <span class="assignee-avatar">{{ getInitials(assignee.fullName) }}</span>
             <span>{{ assignee.fullName }}</span>
