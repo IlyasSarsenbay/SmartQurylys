@@ -1,9 +1,18 @@
 package com.smartqurylys.backend.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-// Сущность для представления участника проекта.
 @Entity
 @Table(name = "participants")
 @Getter
@@ -15,19 +24,21 @@ public class Participant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Уникальный идентификатор участника.
+    private Long id;
 
-    private String role; // Роль участника в проекте.
+    private String role;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user; // Пользователь, связанный с этим участником.
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "project_id")
-    private Project project; // Проект, в котором участвует пользователь.
+    private Project project;
 
-    private boolean canUploadDocuments; // Право на загрузку документов.
+    private boolean isOwner;
 
-    private boolean canSendNotifications; // Право на отправку уведомлений.
+    private boolean canUploadDocuments;
+
+    private boolean canSendNotifications;
 }

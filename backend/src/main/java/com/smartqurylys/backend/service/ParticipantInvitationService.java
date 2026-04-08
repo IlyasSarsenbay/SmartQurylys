@@ -95,6 +95,7 @@ public class ParticipantInvitationService {
                 .project(invitation.getProject())
                 .user(currentUser)
                 .role(invitation.getRole())
+                .isOwner(false)
                 .canUploadDocuments(invitation.isCanUploadDocuments())
                 .canSendNotifications(invitation.isCanSendNotifications())
                 .build();

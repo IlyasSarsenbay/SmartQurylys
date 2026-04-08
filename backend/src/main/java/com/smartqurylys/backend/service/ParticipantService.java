@@ -10,16 +10,13 @@ import com.smartqurylys.backend.repository.ParticipantRepository;
 import com.smartqurylys.backend.repository.ProjectRepository;
 import com.smartqurylys.backend.repository.TaskRepository;
 import com.smartqurylys.backend.repository.UserRepository;
+import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-// Сервис для управления участниками проекта.
 @Service
 @RequiredArgsConstructor
 public class ParticipantService {
@@ -29,8 +26,6 @@ public class ParticipantService {
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
 
-    // Получает список участников для указанного проекта. Доступно только владельцу
-    // проекта.
     public List<ParticipantResponse> getParticipantsByProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
@@ -45,21 +40,10 @@ public class ParticipantService {
         }
 
         return participantRepository.findByProject(project).stream()
-                .map(participant -> ParticipantResponse.builder()
-                        .id(participant.getId())
-                        .fullName(participant.getUser().getFullName())
-                        .iinBin(participant.getUser().getIinBin())
-                        .organization(participant.getUser().getOrganization())
-                        .phone(participant.getUser().getPhone())
-                        .email(participant.getUser().getEmail())
-                        .role(participant.getRole())
-                        .canUploadDocuments(participant.isCanUploadDocuments())
-                        .canSendNotifications(participant.isCanSendNotifications())
-                        .build())
-                .collect(Collectors.toList());
+                .map(ParticipantService::mapToParticipantResponse)
+                .toList();
     }
 
-    // Возвращает список сущностей участников проекта.
     public List<Participant> getParticipantsEntitiesByProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
@@ -67,7 +51,6 @@ public class ParticipantService {
         return participantRepository.findByProject(project);
     }
 
-    // Обновляет информацию об участнике проекта. Доступно только владельцу проекта.
     public ParticipantResponse updateParticipant(Long participantId, UpdateParticipantRequest request) {
         Participant participant = participantRepository.findById(participantId)
                 .orElseThrow(() -> new IllegalArgumentException("Участник не найден"));
@@ -89,21 +72,9 @@ public class ParticipantService {
         }
 
         Participant updatedParticipant = participantRepository.save(participant);
-
-        return ParticipantResponse.builder()
-                .id(updatedParticipant.getId())
-                .fullName(updatedParticipant.getUser().getFullName())
-                .iinBin(participant.getUser().getIinBin())
-                .organization(updatedParticipant.getUser().getOrganization())
-                .phone(updatedParticipant.getUser().getPhone())
-                .email(updatedParticipant.getUser().getEmail())
-                .role(updatedParticipant.getRole())
-                .canUploadDocuments(updatedParticipant.isCanUploadDocuments())
-                .canSendNotifications(updatedParticipant.isCanSendNotifications())
-                .build();
+        return mapToParticipantResponse(updatedParticipant);
     }
 
-    // Удаляет участника из проекта. Доступно только владельцу проекта.
     public void removeParticipant(Long participantId) {
         Participant participant = participantRepository.findById(participantId)
                 .orElseThrow(() -> new IllegalArgumentException("Участник не найден"));
@@ -113,7 +84,10 @@ public class ParticipantService {
         if (!project.getOwner().getId().equals(currentUser.getId())) {
             throw new SecurityException("Доступ запрещён: только владелец проекта может удалять участников");
         }
-        // Удаляем участника из всех задач, где он был ответственным.
+        if (participant.isOwner()) {
+            throw new IllegalArgumentException("Нельзя удалить владельца проекта из участников");
+        }
+
         List<Task> tasks = taskRepository.findByResponsiblePersonsContains(participant);
         for (Task task : tasks) {
             task.getResponsiblePersons().remove(participant);
@@ -123,7 +97,6 @@ public class ParticipantService {
         participantRepository.delete(participant);
     }
 
-    // Получает аутентифицированного пользователя из контекста безопасности.
     private User getAuthenticatedUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email = principal instanceof UserDetails userDetails ? userDetails.getUsername() : principal.toString();
@@ -136,6 +109,7 @@ public class ParticipantService {
         if (participant == null) {
             return null;
         }
+
         return ParticipantResponse.builder()
                 .id(participant.getId())
                 .fullName(participant.getUser().getFullName())
@@ -146,6 +120,7 @@ public class ParticipantService {
                 .role(participant.getRole())
                 .canUploadDocuments(participant.isCanUploadDocuments())
                 .canSendNotifications(participant.isCanSendNotifications())
+                .owner(participant.isOwner())
                 .build();
     }
 

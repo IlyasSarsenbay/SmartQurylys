@@ -35,9 +35,15 @@
                         <tr>
                             <td>
                                 <div class="participant-name-block">
-                                    <span>
-                                        {{ p.fullName }}
-                                    </span>
+                                    <div class="participant-name-row">
+                                        <span>
+                                            {{ p.fullName }}
+                                        </span>
+
+                                        @if(p.owner) {
+                                        <span class="owner-badge">Владелец</span>
+                                        }
+                                    </div>
 
                                     @if(!p.acceptedInvite) {
                                     <div>

@@ -75,6 +75,16 @@ public class ProjectService {
 
         Project saved = projectRepository.save(project);
 
+        Participant ownerParticipant = Participant.builder()
+                .project(saved)
+                .user(owner)
+                .role("Владелец проекта")
+                .isOwner(true)
+                .canUploadDocuments(true)
+                .canSendNotifications(true)
+                .build();
+        participantRepository.save(ownerParticipant);
+
         return mapToResponse(saved);
     }
 

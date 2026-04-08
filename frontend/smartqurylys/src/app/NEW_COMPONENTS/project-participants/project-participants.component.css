@@ -84,9 +84,27 @@
   gap: 2px;
 }
 
+.participant-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .participant-name {
   font-weight: 600;
   color: #000000D9;
+}
+
+.owner-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(47, 111, 237, 0.1);
+  color: #2f6fed;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .invitation-sent {

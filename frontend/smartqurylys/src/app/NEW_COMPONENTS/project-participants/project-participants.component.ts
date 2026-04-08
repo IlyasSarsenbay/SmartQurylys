@@ -20,6 +20,7 @@ interface ParticipantItem {
   canUploadDocuments: boolean;
   canSendNotifications: boolean;
   acceptedInvite: boolean;
+  owner: boolean;
 }
 
 @Component({
@@ -60,7 +61,7 @@ export class ProjectParticipantsComponent implements OnInit {
         }
       });
 
-    this.loadParticipants();
+    this.loadParticipants(true);
 
     this.participantService.participantsChanged$.subscribe((changedProjectId) => {
       if (this.projectId === null) {
@@ -151,7 +152,8 @@ export class ProjectParticipantsComponent implements OnInit {
       email: response.email,
       canUploadDocuments: response.canUploadDocuments,
       canSendNotifications: response.canSendNotifications,
-      acceptedInvite: acceptedInvite
+      acceptedInvite: acceptedInvite,
+      owner: response.owner
     };
   }
 
@@ -178,7 +180,8 @@ export class ProjectParticipantsComponent implements OnInit {
       email: participant.email,
       canUploadDocuments: participant.canUploadDocuments,
       canSendNotifications: participant.canSendNotifications,
-      acceptedInvite
+      acceptedInvite,
+      owner: participant.owner
     };
   }
 

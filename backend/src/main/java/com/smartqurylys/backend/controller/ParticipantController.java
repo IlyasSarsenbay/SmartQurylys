@@ -47,6 +47,7 @@ public class ParticipantController {
                         .email(user.getEmail())
                         .canUploadDocuments(invitation.isCanUploadDocuments())
                         .canSendNotifications(invitation.isCanSendNotifications())
+                        .owner(false)
                         .build();
 
                 result.add(response);

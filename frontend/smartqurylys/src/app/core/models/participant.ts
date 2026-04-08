@@ -8,6 +8,7 @@ export interface ParticipantResponse {
   email: string;
   canUploadDocuments: boolean;
   canSendNotifications: boolean;
+  owner: boolean;
 }
 
 export interface Participant {
@@ -20,6 +21,7 @@ export interface Participant {
   email: string;
   canUploadDocuments: boolean;
   canSendNotifications: boolean;
+  owner: boolean;
 }
 
 export function mapParticipantResponseToParticipant(
@@ -35,6 +37,7 @@ export function mapParticipantResponseToParticipant(
     email: response.email,
     canUploadDocuments: response.canUploadDocuments,
     canSendNotifications: response.canSendNotifications,
+    owner: response.owner,
   };
 }
 

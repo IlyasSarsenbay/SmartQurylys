@@ -62,6 +62,7 @@ public class TaskService {
                 .role(participant.getRole())
                 .canUploadDocuments(participant.isCanUploadDocuments())
                 .canSendNotifications(participant.isCanSendNotifications())
+                .owner(participant.isOwner())
                 .build();
     }
 

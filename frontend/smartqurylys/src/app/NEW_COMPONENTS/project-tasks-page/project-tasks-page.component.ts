@@ -210,7 +210,7 @@ export class ProjectTasksPageComponent implements OnInit {
 
     this.projectId = projectId;
     this.loadBoard();
-    this.loadProjectParticipants();
+    this.loadProjectParticipants(true);
 
     this.participantService.participantsChanged$
       .pipe(takeUntilDestroyed(this.destroyRef))
