@@ -311,6 +311,9 @@ public class ProjectTaskBoardService {
         if (!Objects.equals(parentTask.getStage().getId(), stageId)) {
             throw new IllegalArgumentException("Parent task must belong to the same stage");
         }
+        if (parentTask.getParentTask() != null) {
+            throw new IllegalArgumentException("Only root tasks can have subtasks");
+        }
         return parentTask;
     }
 

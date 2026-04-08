@@ -268,16 +268,24 @@
 }
 
 .stage-card {
+  position: relative;
   border: 1px solid #e5e7eb;
   border-radius: 18px;
   background: #ffffff;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
-  overflow: hidden;
+  overflow: visible;
+}
+
+.stage-card.stage-card-menu-open {
+  z-index: 40;
 }
 
 .stage-card-header {
   border-bottom: 1px solid #e5e7eb;
   background: #f8fafc;
+  border-radius: 18px;
+  position: relative;
+  z-index: 2;
 }
 
 .stage-header-main {

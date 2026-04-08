@@ -118,6 +118,10 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
     return this.getInitials(this.item.assignee ?? '');
   }
 
+  get canAddSubtask(): boolean {
+    return this.item.level === 0;
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     const editingChange = changes['isEditingTitle'];
 

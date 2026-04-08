@@ -40,15 +40,17 @@
       <span class="title-text">{{ item.title }}</span>
     }
 
-    <button
-      type="button"
-      class="add-subtask-button"
-      (mousedown)="onAddSubtaskMouseDown($event)"
-      (click)="onAddSubtask($event)"
-      [attr.aria-label]="'Добавить подзадачу к ' + item.title"
-    >
-      +
-    </button>
+    @if (canAddSubtask) {
+      <button
+        type="button"
+        class="add-subtask-button"
+        (mousedown)="onAddSubtaskMouseDown($event)"
+        (click)="onAddSubtask($event)"
+        [attr.aria-label]="'Добавить подзадачу к ' + item.title"
+      >
+        +
+      </button>
+    }
   </div>
 </td>
 

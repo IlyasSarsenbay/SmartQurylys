@@ -36,7 +36,7 @@
         @if (visibleStages.length) {
           <div class="stage-list">
             @for (stage of visibleStages; track stage.id) {
-              <section class="stage-card">
+              <section class="stage-card" [class.stage-card-menu-open]="openStageMenuFor === stage.id">
                 <header class="stage-card-header">
                   <div class="stage-header-main">
                     <button type="button" class="stage-chevron-button" (click)="onToggleStageExpanded(stage.id)">
