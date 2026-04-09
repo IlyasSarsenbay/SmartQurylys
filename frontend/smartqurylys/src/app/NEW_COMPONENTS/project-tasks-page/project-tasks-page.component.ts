@@ -523,13 +523,15 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onToggleStageSelectAll(stageId: number, checked: boolean): void {
-    const stage = this.visibleStages.find((item) => item.id === stageId);
-    if (!stage) {
+    const visibleStage = this.visibleStages.find((item) => item.id === stageId);
+    const sourceStage = this.stages.find((item) => item.id === stageId);
+
+    if (!visibleStage || !sourceStage) {
       return;
     }
 
-    const visibleIds = new Set(stage.rows.map((item) => item.id));
-    this.updateItems(stage.tasks, (item) => {
+    const visibleIds = new Set(visibleStage.rows.map((item) => item.id));
+    this.updateItems(sourceStage.tasks, (item) => {
       if (visibleIds.has(item.id)) {
         item.selected = checked;
       }

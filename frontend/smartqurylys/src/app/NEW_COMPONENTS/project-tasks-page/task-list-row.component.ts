@@ -36,7 +36,8 @@ interface OverlayAnchorRect {
   host: {
     class: 'task-row',
     '[class.subtask-row]': 'item.level > 0',
-    '[class.selected-row]': 'item.selected'
+    '[class.selected-row]': 'item.selected',
+    '[class.active-row]': 'isActive'
   },
   templateUrl: './task-list-row.component.html',
   styleUrl: './task-list-row.component.css'
@@ -45,6 +46,7 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   @ViewChild('titleInput') titleInput?: ElementRef<HTMLInputElement>;
 
   @Input({ required: true }) item!: TodoRowItem;
+  @Input() isActive = false;
   @Input() isPriorityMenuOpen = false;
   @Input() isDateMenuOpen = false;
   @Input() isAssigneeMenuOpen = false;

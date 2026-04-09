@@ -141,6 +141,7 @@
                           <tr
                             app-task-list-row
                             [item]="item"
+                            [isActive]="commentsTaskId === item.id"
                             [isPriorityMenuOpen]="openPriorityMenuFor === item.id"
                             [isDateMenuOpen]="openDateMenuFor === item.id"
                             [isAssigneeMenuOpen]="openAssigneeMenuFor === item.id"

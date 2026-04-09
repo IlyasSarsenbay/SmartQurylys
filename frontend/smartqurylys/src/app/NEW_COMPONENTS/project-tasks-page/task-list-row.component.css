@@ -20,6 +20,23 @@
   background: #e4eeff;
 }
 
+:host(.active-row) {
+  background: #dfeeff;
+  box-shadow: inset 4px 0 0 #2563eb;
+}
+
+:host(.active-row):hover {
+  background: #d7e9ff;
+}
+
+:host(.active-row.selected-row) {
+  background: #d2e5ff;
+}
+
+:host(.active-row) td {
+  background: transparent;
+}
+
 td {
   padding: 0.85rem 0.75rem;
   color: #111827;
