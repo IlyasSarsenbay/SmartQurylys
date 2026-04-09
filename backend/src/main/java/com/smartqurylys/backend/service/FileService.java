@@ -2,8 +2,12 @@ package com.smartqurylys.backend.service;
 
 import com.smartqurylys.backend.dto.project.FileResponse;
 import com.smartqurylys.backend.entity.File;
+import com.smartqurylys.backend.entity.Project;
 import com.smartqurylys.backend.entity.User;
 import com.smartqurylys.backend.repository.FileRepository;
+import com.smartqurylys.backend.repository.ProjectRepository;
+import com.smartqurylys.backend.shared.enums.ActivityActionType;
+import com.smartqurylys.backend.shared.enums.ActivityEntityType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +24,9 @@ import java.util.*;
 public class FileService {
 
     private final FileRepository fileRepository;
+    private final ProjectRepository projectRepository;
+    private final ActivityLogService activityLogService;
+    private final ProjectRealtimeService projectRealtimeService;
 
     // Корневая директория для хранения загруженных файлов.
     private final Path rootLocation = Paths.get("uploads");
@@ -118,8 +125,22 @@ public class FileService {
     // Удаляет файл из файловой системы и его запись из базы данных.
     public void deleteFile(Long id) throws IOException {
         File file = getFileEntity(id);
+        Project project = projectRepository.findByFileId(id).orElse(null);
+        String fileName = file.getName();
+
         Files.deleteIfExists(Paths.get(file.getFilepath()));
         fileRepository.delete(file);
+
+        if (project != null) {
+            activityLogService.recordActivity(
+                    project.getId(),
+                    ActivityActionType.FILE_DELETED,
+                    ActivityEntityType.FILE,
+                    id,
+                    fileName);
+
+            projectRealtimeService.publish(project.getId(), "FILE_DELETED", id);
+        }
     }
 
     // Преобразует сущность File в DTO FileResponse.

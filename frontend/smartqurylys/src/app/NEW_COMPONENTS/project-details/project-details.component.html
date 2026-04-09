@@ -25,6 +25,46 @@
             <div>
                 <app-project-files-section></app-project-files-section>
             </div>
+
+            <section class="activity-log-section">
+                <div class="activity-log-card">
+                    <div class="activity-log-header">
+                        <h2>Последние действия</h2>
+                    </div>
+
+                    @if (activityLog.length) {
+                    <div class="activity-log-list">
+                        @for (log of activityLog; track log.id) {
+                        <article class="activity-log-item">
+                            <div class="activity-log-marker">
+                                <div class="activity-log-avatar">
+                                    {{ log.actorFullName.slice(0, 1) }}
+                                </div>
+                            </div>
+                            <div class="activity-log-content">
+                                <p class="activity-log-text">
+                                    <strong>{{ log.actorFullName }}</strong>
+                                    <span>{{ getActivityActionText(log.actionType) }}</span>
+                                    @if (log.entityType) {
+                                    <span>{{ getActivityEntityText(log.entityType) }}</span>
+                                    }
+                                    @if (log.entityName) {
+                                    <span class="activity-log-badge">{{ log.entityName }}</span>
+                                    }
+                                    <span class="activity-log-separator">·</span>
+                                    <span class="activity-log-time">{{ log.timestamp | date:'d MMM, HH:mm':'':'ru' }}</span>
+                                </p>
+                            </div>
+                        </article>
+                        }
+                    </div>
+                    } @else {
+                    <div class="activity-log-empty">
+                        История активности пока пуста.
+                    </div>
+                    }
+                </div>
+            </section>
         </div>
 
         <div class="details-sidebar">

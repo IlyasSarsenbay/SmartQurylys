@@ -10,6 +10,8 @@ import com.smartqurylys.backend.repository.ParticipantInvitationRepository;
 import com.smartqurylys.backend.repository.ParticipantRepository;
 import com.smartqurylys.backend.repository.ProjectRepository;
 import com.smartqurylys.backend.repository.UserRepository;
+import com.smartqurylys.backend.shared.enums.ActivityActionType;
+import com.smartqurylys.backend.shared.enums.ActivityEntityType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class ParticipantInvitationService {
     private final ParticipantRepository participantRepository;
     private final NotificationService notificationService;
     private final com.smartqurylys.backend.repository.NotificationRepository notificationRepository;
+    private final ActivityLogService activityLogService;
     private final ProjectRealtimeService projectRealtimeService;
 
     public InvitationResponse sendInvitation(Long projectId, CreateInvitationRequest request, User sender) {
@@ -57,6 +60,13 @@ public class ParticipantInvitationService {
                 .build();
 
         invitationRepository.save(invitation);
+
+        activityLogService.recordActivity(
+                projectId,
+                ActivityActionType.PARTICIPANT_INVITED,
+                ActivityEntityType.PARTICIPANT,
+                invitation.getId(),
+                user.getFullName());
 
         notificationService.createInvitationNotification(invitation);
         projectRealtimeService.publish(projectId, "PARTICIPANT_INVITED", invitation.getId());
@@ -99,6 +109,14 @@ public class ParticipantInvitationService {
 
         Participant savedParticipant = participantRepository.save(participant);
         invitationRepository.delete(invitation);
+
+        activityLogService.recordActivity(
+                invitation.getProject().getId(),
+                ActivityActionType.PARTICIPANT_JOINED,
+                ActivityEntityType.PARTICIPANT,
+                savedParticipant.getId(),
+                currentUser.getFullName());
+
         projectRealtimeService.publish(invitation.getProject().getId(), "PARTICIPANT_JOINED", savedParticipant.getId());
 
         notificationRepository.findByTypeAndRelatedEntityId(

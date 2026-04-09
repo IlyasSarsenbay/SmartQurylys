@@ -10,6 +10,8 @@ import com.smartqurylys.backend.repository.ParticipantRepository;
 import com.smartqurylys.backend.repository.ProjectRepository;
 import com.smartqurylys.backend.repository.TaskRepository;
 import com.smartqurylys.backend.repository.UserRepository;
+import com.smartqurylys.backend.shared.enums.ActivityActionType;
+import com.smartqurylys.backend.shared.enums.ActivityEntityType;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class ParticipantService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
+    private final ActivityLogService activityLogService;
     private final ProjectRealtimeService projectRealtimeService;
 
     public List<ParticipantResponse> getParticipantsByProject(Long projectId) {
@@ -95,6 +98,13 @@ public class ParticipantService {
             task.getResponsiblePersons().remove(participant);
         }
         taskRepository.saveAll(tasks);
+
+        activityLogService.recordActivity(
+                project.getId(),
+                ActivityActionType.PARTICIPANT_REMOVED,
+                ActivityEntityType.PARTICIPANT,
+                participant.getId(),
+                participant.getUser().getFullName());
 
         projectRealtimeService.publish(project.getId(), "PARTICIPANT_REMOVED", participantId);
         participantRepository.delete(participant);

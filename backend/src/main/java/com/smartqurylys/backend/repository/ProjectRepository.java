@@ -16,4 +16,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     // Находит проект по ID, включая его участников, для избежания N+1 запросов.
     @Query("SELECT p FROM Project p LEFT JOIN FETCH p.participants WHERE p.id = :id")
     Optional<Project> findByIdWithParticipants(@Param("id") Long id);
+
+    @Query("SELECT p FROM Project p JOIN p.files f WHERE f.id = :fileId")
+    Optional<Project> findByFileId(@Param("fileId") Long fileId);
 }

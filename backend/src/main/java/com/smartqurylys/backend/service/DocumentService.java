@@ -12,6 +12,8 @@ import com.smartqurylys.backend.repository.FileRepository;
 import com.smartqurylys.backend.repository.ParticipantRepository;
 import com.smartqurylys.backend.repository.ProjectRepository;
 import com.smartqurylys.backend.repository.UserRepository;
+import com.smartqurylys.backend.shared.enums.ActivityActionType;
+import com.smartqurylys.backend.shared.enums.ActivityEntityType;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,8 @@ public class DocumentService {
     private final UserRepository userRepository;
 
     private final FileService fileService;
+    private final ActivityLogService activityLogService;
+    private final ProjectRealtimeService projectRealtimeService;
 
     public List<DocumentShortResponse> getDocumentsByProject(Integer projectId) {
         List<Document> docs = documentRepository.findByProjectId(projectId);
@@ -63,11 +67,37 @@ public class DocumentService {
         document.setFile(savedFile);
         document.setUploadedBy(currentUser);
 
-        return mapToDetailsResponse(documentRepository.save(document));
+        Document savedDocument = documentRepository.save(document);
+
+        activityLogService.recordActivity(
+                savedDocument.getProject().getId(),
+                ActivityActionType.DOCUMENT_ADDED,
+                ActivityEntityType.DOCUMENT,
+                savedDocument.getId().longValue(),
+                savedDocument.getName());
+
+        projectRealtimeService.publish(savedDocument.getProject().getId(), "DOCUMENT_ADDED", savedDocument.getId().longValue());
+
+        return mapToDetailsResponse(savedDocument);
     }
 
     public void delete(Long id) {
-        documentRepository.deleteById(id.intValue());
+        Document document = documentRepository.findById(id.intValue())
+                .orElseThrow(() -> new RuntimeException("Document not found"));
+
+        Long projectId = document.getProject().getId();
+        String documentName = document.getName();
+
+        documentRepository.delete(document);
+
+        activityLogService.recordActivity(
+                projectId,
+                ActivityActionType.DOCUMENT_DELETED,
+                ActivityEntityType.DOCUMENT,
+                id,
+                documentName);
+
+        projectRealtimeService.publish(projectId, "DOCUMENT_DELETED", id);
     }
 
     private void applyRequestToDocument(Document document, DocumentRequest request) {
