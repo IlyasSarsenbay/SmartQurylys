@@ -24,9 +24,12 @@ import { ProjectFilesSectionComponent } from "../project-files-section/project-f
 })
 export class NewProjectDetailsComponent implements OnInit, AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly initialVisibleActivityCount = 10;
+  private readonly activityLoadStep = 20;
 
   project!: Project
   activityLog: ActivityLogResponse[] = [];
+  visibleActivityCount = this.initialVisibleActivityCount;
   private projectId: number | null = null;
 
   @ViewChild('descriptionWrapper')
@@ -127,12 +130,26 @@ export class NewProjectDetailsComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (logs) => {
           this.activityLog = logs;
+          this.visibleActivityCount = this.initialVisibleActivityCount;
         },
         error: (error) => {
           console.error('Failed to load activity log:', error);
           this.activityLog = [];
+          this.visibleActivityCount = this.initialVisibleActivityCount;
         }
       });
+  }
+
+  get visibleActivityLog(): ActivityLogResponse[] {
+    return this.activityLog.slice(0, this.visibleActivityCount);
+  }
+
+  get hasMoreActivityLog(): boolean {
+    return this.visibleActivityCount < this.activityLog.length;
+  }
+
+  loadMoreActivityLog(): void {
+    this.visibleActivityCount += this.activityLoadStep;
   }
 
   getActivityActionText(type: string): string {

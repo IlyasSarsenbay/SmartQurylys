@@ -34,7 +34,7 @@
 
                     @if (activityLog.length) {
                     <div class="activity-log-list">
-                        @for (log of activityLog; track log.id) {
+                        @for (log of visibleActivityLog; track log.id) {
                         <article class="activity-log-item">
                             <div class="activity-log-marker">
                                 <div class="activity-log-avatar">
@@ -58,6 +58,13 @@
                         </article>
                         }
                     </div>
+                    @if (hasMoreActivityLog) {
+                    <div class="activity-log-actions">
+                        <button type="button" class="activity-log-load-more-btn" (click)="loadMoreActivityLog()">
+                            Загрузить еще
+                        </button>
+                    </div>
+                    }
                     } @else {
                     <div class="activity-log-empty">
                         История активности пока пуста.

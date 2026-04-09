@@ -277,12 +277,13 @@ public class ProjectService {
         activityLogService.recordActivity(
                 project.getId(),
                 ActivityActionType.FILE_ADDED,
-                ActivityEntityType.PROJECT,
+                ActivityEntityType.FILE,
                 savedFile.getId(),
                 savedFile.getName());
 
         project.getFiles().add(savedFile);
         projectRepository.save(project);
+        projectRealtimeService.publish(project.getId(), "FILE_ADDED", savedFile.getId());
 
         return savedFile;
     }

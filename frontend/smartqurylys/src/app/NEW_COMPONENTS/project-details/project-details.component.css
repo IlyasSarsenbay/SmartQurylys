@@ -243,3 +243,27 @@ main {
     color: #6b7280;
     font-size: 14px;
 }
+
+.activity-log-actions {
+    margin-top: 18px;
+    padding-left: 48px;
+}
+
+.activity-log-load-more-btn {
+    border: 1px solid #d7dee8;
+    background: #ffffff;
+    color: #516275;
+    border-radius: 10px;
+    padding: 9px 14px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.activity-log-load-more-btn:hover {
+    background: #f8fafc;
+    border-color: #c3d1e0;
+    color: #334155;
+}

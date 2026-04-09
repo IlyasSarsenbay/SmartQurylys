@@ -1,8 +1,10 @@
-import { ChangeDetectorRef, Component, Input, NgZone, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { ProjectService } from '../../core/project.service';
 import { ActivatedRoute } from '@angular/router';
 import { FileResponse } from '../../core/models/file';
-import { map } from 'rxjs';
+import { auditTime, filter, map } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ProjectRealtimeService } from '../../core/project-realtime.service';
 
 interface FileItem {
   id: number;
@@ -21,6 +23,8 @@ interface FileItem {
   styleUrl: './project-files-section.component.css'
 })
 export class ProjectFilesSectionComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   files: FileItem[] = []
   projectId!: number
   openedFileItemMenuId: number | null = null
@@ -28,27 +32,45 @@ export class ProjectFilesSectionComponent implements OnInit {
   constructor(
     private projectService: ProjectService,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private projectRealtimeService: ProjectRealtimeService
   ) {
   }
 
   ngOnInit(): void {
-    const projectId = Number(this.route.snapshot.paramMap.get("id"))
+    const projectId = Number(this.route.parent?.snapshot.paramMap.get('id') ?? this.route.snapshot.paramMap.get("id"))
     this.projectId = projectId
-    this.projectService.getProjectFiles(projectId)
+    this.loadFiles();
+
+    this.projectRealtimeService.events$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        filter((event) => event.projectId === this.projectId && this.isProjectFilesEvent(event.type)),
+        auditTime(200)
+      )
+      .subscribe(() => {
+        this.loadFiles();
+      });
+  }
+
+  private loadFiles(): void {
+    this.projectService.getProjectFiles(this.projectId)
       .pipe(map((responses) => this.mapFileResponsesToFileItems(responses)))
       .subscribe({
         next: (response) => {
           this.files = response
-          console.log('Project files fetched:', response);
         },
         error: (err) => {
           console.error('Files fetch failed:', err);
-        },
-        complete: () => {
-          console.log('Get Files Request completed');
         }
       });
+  }
+
+  private isProjectFilesEvent(eventType: string): boolean {
+    return eventType === 'FILE_ADDED'
+      || eventType === 'FILE_DELETED'
+      || eventType === 'DOCUMENT_ADDED'
+      || eventType === 'DOCUMENT_DELETED';
   }
 
   mapFileResponseToFileItem(fileResponse: FileResponse): FileItem {
