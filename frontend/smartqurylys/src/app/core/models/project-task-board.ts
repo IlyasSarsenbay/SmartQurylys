@@ -1,4 +1,4 @@
-export type ProjectTaskBoardStatus = 'TODO' | 'IN_PROGRESS' | 'DONE' | 'BLOCKED';
+export type ProjectTaskBoardStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'RETURNED' | 'DONE' | 'BLOCKED';
 
 export type ProjectTaskBoardPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 

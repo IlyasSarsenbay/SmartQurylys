@@ -11,7 +11,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { Participant } from '../../core/models/participant';
-import { TodoCompletionStatus, TodoPriority, TodoRowItem, TodoStatus } from './task-list.models';
+import { TodoPriority, TodoRowItem, TodoStatus } from './task-list.models';
 
 interface CalendarDay {
   date: Date;
@@ -43,19 +43,16 @@ interface OverlayAnchorRect {
 })
 export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   @ViewChild('titleInput') titleInput?: ElementRef<HTMLInputElement>;
+
   @Input({ required: true }) item!: TodoRowItem;
-  @Input() isStatusMenuOpen = false;
   @Input() isPriorityMenuOpen = false;
   @Input() isDateMenuOpen = false;
   @Input() isAssigneeMenuOpen = false;
-  @Input() availableStatuses: TodoStatus[] = [];
   @Input() availablePriorities: TodoPriority[] = [];
   @Input() availableAssignees: Participant[] = [];
   @Input() weekdayLabels: string[] = [];
   @Input() calendarMonthLabel = '';
   @Input() calendarWeeks: CalendarDay[][] = [];
-  @Input() statusMenuTop = 0;
-  @Input() statusMenuLeft = 0;
   @Input() priorityMenuTop = 0;
   @Input() priorityMenuLeft = 0;
   @Input() dateMenuTop = 0;
@@ -64,13 +61,12 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   @Input() assigneeMenuLeft = 0;
   @Input() isEditingTitle = false;
   @Input() editingTitleValue = '';
+
   @Output() toggleExpanded = new EventEmitter<number>();
   @Output() toggleSelected = new EventEmitter<number>();
-  @Output() toggleStatusMenu = new EventEmitter<{ itemId: number; anchorRect: OverlayAnchorRect }>();
   @Output() togglePriorityMenu = new EventEmitter<{ itemId: number; anchorRect: OverlayAnchorRect }>();
   @Output() toggleDateMenu = new EventEmitter<{ itemId: number; anchorRect: OverlayAnchorRect }>();
   @Output() toggleAssigneeMenu = new EventEmitter<{ itemId: number; anchorRect: OverlayAnchorRect }>();
-  @Output() changeStatus = new EventEmitter<{ itemId: number; status: TodoStatus }>();
   @Output() changePriority = new EventEmitter<{ itemId: number; priority: TodoPriority }>();
   @Output() changeAssignee = new EventEmitter<{ itemId: number; assigneeParticipantId: number | null }>();
   @Output() previousMonth = new EventEmitter<void>();
@@ -83,12 +79,14 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   @Output() saveTitleEdit = new EventEmitter<number>();
   @Output() cancelTitleEdit = new EventEmitter<number>();
   @Output() openComments = new EventEmitter<number>();
+
   private shouldFocusTitleInput = false;
 
   readonly statusClassMap: Record<TodoStatus, string> = {
     'К выполнению': 'status-todo',
     'В работе': 'status-progress',
     'На проверке': 'status-review',
+    'Возвращено на доработку': 'status-returned',
     'Готово': 'status-done',
     'Заблокировано': 'status-blocked'
   };
@@ -100,13 +98,6 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
     'Критический': 'priority-critical'
   };
 
-  readonly completionClassMap: Record<TodoCompletionStatus, string> = {
-    none: '',
-    pending: 'completion-pending',
-    approved: 'completion-approved',
-    rejected: 'completion-rejected'
-  };
-
   get hasChildren(): boolean {
     return this.item.type === 'group' && !!this.item.subtasks?.length;
   }
@@ -116,9 +107,7 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   }
 
   get priorityClass(): string {
-    return this.item.priority
-      ? this.priorityClassMap[this.item.priority]
-      : 'priority-none';
+    return this.item.priority ? this.priorityClassMap[this.item.priority] : 'priority-none';
   }
 
   get assigneeInitials(): string {
@@ -127,23 +116,6 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
 
   get canAddSubtask(): boolean {
     return this.item.level === 0;
-  }
-
-  get completionLabel(): string {
-    switch (this.item.completionStatus) {
-      case 'pending':
-        return 'На подтверждении';
-      case 'approved':
-        return 'Подтверждено';
-      case 'rejected':
-        return 'Отклонено';
-      default:
-        return '';
-    }
-  }
-
-  get completionClass(): string {
-    return this.completionClassMap[this.item.completionStatus];
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -177,34 +149,6 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
 
   onToggleSelected(): void {
     this.toggleSelected.emit(this.item.id);
-  }
-
-  onToggleStatusMenu(event: MouseEvent): void {
-    const target = event.currentTarget as HTMLElement | null;
-    const rect = target?.getBoundingClientRect();
-
-    if (!rect) {
-      return;
-    }
-
-    this.toggleStatusMenu.emit({
-      itemId: this.item.id,
-      anchorRect: {
-        top: rect.top,
-        left: rect.left,
-        bottom: rect.bottom,
-        right: rect.right,
-        width: rect.width,
-        height: rect.height
-      }
-    });
-  }
-
-  onChangeStatus(status: TodoStatus): void {
-    this.changeStatus.emit({
-      itemId: this.item.id,
-      status
-    });
   }
 
   onTogglePriorityMenu(event: MouseEvent): void {
@@ -347,10 +291,6 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
     }
   }
 
-  trackStatus(_: number, status: TodoStatus): TodoStatus {
-    return status;
-  }
-
   trackPriority(_: number, priority: TodoPriority): TodoPriority {
     return priority;
   }
@@ -384,11 +324,7 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   }
 
   getInitials(fullName: string): string {
-    const parts = fullName
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2);
+    const parts = fullName.trim().split(/\s+/).filter(Boolean).slice(0, 2);
 
     if (!parts.length) {
       return '?';

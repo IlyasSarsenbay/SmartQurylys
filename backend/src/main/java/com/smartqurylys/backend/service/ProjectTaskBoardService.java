@@ -177,6 +177,12 @@ public class ProjectTaskBoardService {
                 task.setCompletionReviewedByUser(currentUser);
                 task.setCompletionReviewedAt(LocalDateTime.now());
                 task.setCompletionReviewReason(null);
+            } else if (request.getStatus() == ProjectTaskBoardStatus.IN_PROGRESS) {
+                if (task.getCompletionStatus() == ProjectTaskBoardCompletionStatus.REJECTED) {
+                    task.setCompletionReviewedByUser(null);
+                    task.setCompletionReviewedAt(null);
+                    task.setCompletionReviewReason(null);
+                }
             } else if (task.getCompletionStatus() == ProjectTaskBoardCompletionStatus.APPROVED) {
                 task.setCompletionStatus(ProjectTaskBoardCompletionStatus.NONE);
                 task.setCompletionRequestedByParticipant(null);
@@ -247,6 +253,7 @@ public class ProjectTaskBoardService {
             throw new IllegalArgumentException("Task is already completed");
         }
 
+        task.setStatus(ProjectTaskBoardStatus.IN_REVIEW);
         task.setCompletionStatus(ProjectTaskBoardCompletionStatus.PENDING);
         task.setCompletionRequestedByParticipant(currentParticipant);
         task.setCompletionRequestedAt(LocalDateTime.now());
@@ -299,7 +306,7 @@ public class ProjectTaskBoardService {
         }
 
         task.setCompletionStatus(ProjectTaskBoardCompletionStatus.REJECTED);
-        task.setStatus(ProjectTaskBoardStatus.IN_PROGRESS);
+        task.setStatus(ProjectTaskBoardStatus.RETURNED);
         task.setCompletionReviewedByUser(currentUser);
         task.setCompletionReviewedAt(LocalDateTime.now());
         task.setCompletionReviewReason(normalizeBlank(reason));

@@ -141,18 +141,14 @@
                           <tr
                             app-task-list-row
                             [item]="item"
-                            [isStatusMenuOpen]="openStatusMenuFor === item.id"
                             [isPriorityMenuOpen]="openPriorityMenuFor === item.id"
                             [isDateMenuOpen]="openDateMenuFor === item.id"
                             [isAssigneeMenuOpen]="openAssigneeMenuFor === item.id"
-                            [availableStatuses]="getAvailableStatuses(item)"
                             [availablePriorities]="priorityOptions"
                             [availableAssignees]="projectParticipants"
                             [weekdayLabels]="weekdayLabels"
                             [calendarMonthLabel]="calendarMonthLabel"
                             [calendarWeeks]="calendarWeeks"
-                            [statusMenuTop]="statusMenuTop"
-                            [statusMenuLeft]="statusMenuLeft"
                             [priorityMenuTop]="priorityMenuTop"
                             [priorityMenuLeft]="priorityMenuLeft"
                             [dateMenuTop]="dateMenuTop"
@@ -168,11 +164,9 @@
                             (titleDraftChange)="onTitleDraftChange($event)"
                             (saveTitleEdit)="onSaveTitleEdit($event)"
                             (cancelTitleEdit)="onCancelTitleEdit($event)"
-                            (toggleStatusMenu)="onToggleStatusMenu($event)"
                             (togglePriorityMenu)="onTogglePriorityMenu($event)"
                             (toggleDateMenu)="onToggleDateMenu($event)"
                             (toggleAssigneeMenu)="onToggleAssigneeMenu($event)"
-                            (changeStatus)="onChangeStatus($event.itemId, $event.status)"
                             (changePriority)="onChangePriority($event.itemId, $event.priority)"
                             (changeAssignee)="onChangeAssignee($event.itemId, $event.assigneeParticipantId)"
                             (previousMonth)="onPreviousMonth()"
@@ -241,6 +235,14 @@
                   <dd>{{ activeCommentsTask.assignee || 'Не назначен' }}</dd>
                 </div>
               </dl>
+
+              @if (canStartActiveTask) {
+                <div class="approval-actions">
+                  <button type="button" class="approval-button request" (click)="onStartActiveTask()">
+                    Начать задачу
+                  </button>
+                </div>
+              }
             </section>
 
             <section class="details-section">

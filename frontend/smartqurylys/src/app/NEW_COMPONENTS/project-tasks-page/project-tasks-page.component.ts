@@ -70,7 +70,6 @@ export class ProjectTasksPageComponent implements OnInit {
   editingTitleValue = '';
   editingStageId: number | null = null;
   editingStageValue = '';
-  openStatusMenuFor: number | null = null;
   openPriorityMenuFor: number | null = null;
   openDateMenuFor: number | null = null;
   openAssigneeMenuFor: number | null = null;
@@ -78,15 +77,13 @@ export class ProjectTasksPageComponent implements OnInit {
   commentsTaskId: number | null = null;
   commentDraft = '';
   completionReviewDraft = '';
-  statusMenuTop = 0;
-  statusMenuLeft = 0;
   priorityMenuTop = 0;
   priorityMenuLeft = 0;
   dateMenuTop = 0;
   dateMenuLeft = 0;
   assigneeMenuTop = 0;
   assigneeMenuLeft = 0;
-  readonly statusOptions: TodoStatus[] = ['К выполнению', 'В работе', 'На проверке', 'Готово', 'Заблокировано'];
+  readonly statusOptions: TodoStatus[] = ['К выполнению', 'В работе', 'На проверке', 'Возвращено на доработку', 'Готово', 'Заблокировано'];
   readonly priorityOptions: TodoPriority[] = ['Низкий', 'Средний', 'Высокий', 'Критический'];
   calendarViewDate = new Date();
   readonly weekdayLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
@@ -202,8 +199,17 @@ export class ProjectTasksPageComponent implements OnInit {
     }
 
     return task.assigneeUserId === this.currentUserId
-      && task.status !== 'Готово'
+      && (task.status === 'В работе' || task.status === 'Возвращено на доработку')
       && task.completionStatus !== 'pending';
+  }
+
+  get canStartActiveTask(): boolean {
+    const task = this.activeCommentsTask;
+    if (!task || this.currentUserId === null) {
+      return false;
+    }
+
+    return task.assigneeUserId === this.currentUserId && task.status === 'К выполнению';
   }
 
   get canReviewActiveTaskCompletion(): boolean {
@@ -530,56 +536,7 @@ export class ProjectTasksPageComponent implements OnInit {
     });
   }
 
-  onToggleStatusMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
-    this.openPriorityMenuFor = null;
-    this.openDateMenuFor = null;
-    this.openAssigneeMenuFor = null;
-
-    if (this.openStatusMenuFor === payload.itemId) {
-      this.openStatusMenuFor = null;
-      return;
-    }
-
-    this.openStatusMenuFor = payload.itemId;
-    this.setOverlayPosition(payload.anchorRect, 220, 280, (top, left) => {
-      this.statusMenuTop = top;
-      this.statusMenuLeft = left;
-    });
-  }
-
-  onChangeStatus(itemId: number, status: TodoStatus): void {
-    if (this.projectId === null) {
-      return;
-    }
-
-    this.projectTaskBoardService.updateTask(this.projectId, itemId, {
-      status: this.toApiStatus(status)
-    })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.updateItemById(this.getAllTasks(), itemId, (item) => {
-            item.status = status;
-          });
-          this.openStatusMenuFor = null;
-        },
-        error: (error) => {
-          console.error('Failed to update task status:', error);
-        }
-      });
-  }
-
-  getAvailableStatuses(item: TodoRowItem): TodoStatus[] {
-    if (this.isCurrentUserProjectOwner) {
-      return this.statusOptions;
-    }
-
-    const restrictedStatuses = this.statusOptions.filter((status) => status !== 'Готово');
-    return item.status === 'Готово' ? this.statusOptions : restrictedStatuses;
-  }
-
   onTogglePriorityMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
-    this.openStatusMenuFor = null;
     this.openDateMenuFor = null;
     this.openAssigneeMenuFor = null;
 
@@ -618,7 +575,6 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onToggleDateMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
-    this.openStatusMenuFor = null;
     this.openPriorityMenuFor = null;
     this.openAssigneeMenuFor = null;
 
@@ -695,7 +651,6 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onToggleAssigneeMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
-    this.openStatusMenuFor = null;
     this.openPriorityMenuFor = null;
     this.openDateMenuFor = null;
 
@@ -766,6 +721,26 @@ export class ProjectTasksPageComponent implements OnInit {
         },
         error: (error) => {
           console.error('Failed to request task completion:', error);
+        }
+      });
+  }
+
+  onStartActiveTask(): void {
+    if (this.projectId === null || this.commentsTaskId === null) {
+      return;
+    }
+
+    const taskId = this.commentsTaskId;
+    this.projectTaskBoardService.updateTask(this.projectId, taskId, {
+      status: 'IN_PROGRESS'
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loadBoard();
+        },
+        error: (error) => {
+          console.error('Failed to start task:', error);
         }
       });
   }
@@ -855,7 +830,6 @@ export class ProjectTasksPageComponent implements OnInit {
   @HostListener('window:resize')
   onWindowResize(): void {
     this.openDateMenuFor = null;
-    this.openStatusMenuFor = null;
     this.openPriorityMenuFor = null;
     this.openAssigneeMenuFor = null;
   }
@@ -934,10 +908,6 @@ export class ProjectTasksPageComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement | null;
-
-    if (!target?.closest('.status-dropdown')) {
-      this.openStatusMenuFor = null;
-    }
 
     if (!target?.closest('.priority-dropdown')) {
       this.openPriorityMenuFor = null;
@@ -1475,6 +1445,10 @@ export class ProjectTasksPageComponent implements OnInit {
         return 'К выполнению';
       case 'IN_PROGRESS':
         return 'В работе';
+      case 'IN_REVIEW':
+        return 'На проверке';
+      case 'RETURNED':
+        return 'Возвращено на доработку';
       case 'DONE':
         return 'Готово';
       case 'BLOCKED':
@@ -1487,10 +1461,13 @@ export class ProjectTasksPageComponent implements OnInit {
   private toApiStatus(status: TodoStatus): ProjectTaskBoardStatus {
     switch (status) {
       case 'К выполнению':
-      case 'На проверке':
         return 'TODO';
       case 'В работе':
         return 'IN_PROGRESS';
+      case 'На проверке':
+        return 'IN_REVIEW';
+      case 'Возвращено на доработку':
+        return 'RETURNED';
       case 'Готово':
         return 'DONE';
       case 'Заблокировано':
