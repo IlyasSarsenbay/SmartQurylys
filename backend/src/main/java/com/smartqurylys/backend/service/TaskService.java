@@ -54,6 +54,7 @@ public class TaskService {
     private ParticipantResponse mapToParticipantResponse(Participant participant) {
         return ParticipantResponse.builder()
                 .id(participant.getId())
+                .userId(participant.getUser().getId())
                 .fullName(participant.getUser().getFullName())
                 .iinBin(participant.getUser().getIinBin())
                 .organization(participant.getUser().getOrganization())

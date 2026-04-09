@@ -145,7 +145,7 @@
                             [isPriorityMenuOpen]="openPriorityMenuFor === item.id"
                             [isDateMenuOpen]="openDateMenuFor === item.id"
                             [isAssigneeMenuOpen]="openAssigneeMenuFor === item.id"
-                            [availableStatuses]="statusOptions"
+                            [availableStatuses]="getAvailableStatuses(item)"
                             [availablePriorities]="priorityOptions"
                             [availableAssignees]="projectParticipants"
                             [weekdayLabels]="weekdayLabels"
@@ -241,6 +241,81 @@
                   <dd>{{ activeCommentsTask.assignee || 'Не назначен' }}</dd>
                 </div>
               </dl>
+            </section>
+
+            <section class="details-section">
+              <div class="details-section-header">
+                <h3>Подтверждение выполнения</h3>
+              </div>
+
+              <div class="approval-summary">
+                @switch (activeCommentsTask.completionStatus) {
+                  @case ('pending') {
+                    <span class="approval-state approval-state-pending">Ожидает подтверждения</span>
+                    <p>
+                      Запрос отправлен {{ activeCommentsTask.completionRequestedBy || 'исполнителем' }}
+                      @if (activeCommentsTask.completionRequestedAt) {
+                        <span> · {{ activeCommentsTask.completionRequestedAt }}</span>
+                      }
+                    </p>
+                  }
+                  @case ('approved') {
+                    <span class="approval-state approval-state-approved">Подтверждено</span>
+                    <p>
+                      @if (activeCommentsTask.completionReviewedBy) {
+                        Подтвердил: {{ activeCommentsTask.completionReviewedBy }}
+                      }
+                      @if (activeCommentsTask.completionReviewedAt) {
+                        <span> · {{ activeCommentsTask.completionReviewedAt }}</span>
+                      }
+                    </p>
+                  }
+                  @case ('rejected') {
+                    <span class="approval-state approval-state-rejected">Отклонено</span>
+                    <p>
+                      @if (activeCommentsTask.completionReviewedBy) {
+                        Отклонил: {{ activeCommentsTask.completionReviewedBy }}
+                      }
+                      @if (activeCommentsTask.completionReviewedAt) {
+                        <span> · {{ activeCommentsTask.completionReviewedAt }}</span>
+                      }
+                    </p>
+                    @if (activeCommentsTask.completionReviewReason) {
+                      <p class="approval-reason">{{ activeCommentsTask.completionReviewReason }}</p>
+                    }
+                  }
+                  @default {
+                    <span class="approval-state">Запроса на подтверждение пока нет</span>
+                  }
+                }
+              </div>
+
+              @if (canRequestActiveTaskCompletion) {
+                <div class="approval-actions">
+                  <button type="button" class="approval-button request" (click)="onRequestTaskCompletion()">
+                    Запросить подтверждение
+                  </button>
+                </div>
+              }
+
+              @if (canReviewActiveTaskCompletion) {
+                <div class="approval-review-form">
+                  <textarea
+                    class="approval-review-textarea"
+                    [(ngModel)]="completionReviewDraft"
+                    rows="3"
+                    placeholder="Комментарий к решению (необязательно)"
+                  ></textarea>
+                  <div class="approval-actions">
+                    <button type="button" class="approval-button reject" (click)="onRejectTaskCompletion()">
+                      Отклонить
+                    </button>
+                    <button type="button" class="approval-button approve" (click)="onApproveTaskCompletion()">
+                      Подтвердить
+                    </button>
+                  </div>
+                </div>
+              }
             </section>
 
             <section class="details-section comments-section">

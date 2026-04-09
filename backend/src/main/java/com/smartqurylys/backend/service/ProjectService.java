@@ -39,6 +39,7 @@ public class ProjectService {
     private final ActivityLogService activityLogService;
     private final com.smartqurylys.backend.repository.ParticipantRepository participantRepository;
     private final com.smartqurylys.backend.repository.ProjectNoteRepository projectNoteRepository;
+    private final ProjectRealtimeService projectRealtimeService;
 
 
     // Создает новый проект. Только организации или администраторы могут создавать
@@ -214,6 +215,7 @@ public class ProjectService {
 
         Project updated = projectRepository.save(project);
         log.info("Updated project " + updated);
+        projectRealtimeService.publish(updated.getId(), "PROJECT_UPDATED", updated.getId());
         return mapToResponse(updated);
     }
 

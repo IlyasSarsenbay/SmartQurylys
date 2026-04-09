@@ -32,7 +32,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // Зарегистрировать конечную точку /ws для первоначального рукопожатия WebSocket.
         // Клиенты подключаются к этому URL для установления постоянного соединения WebSocket.
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("*")
+                .setAllowedOriginPatterns("*")
                 .withSockJS(); // Для браузеров, не поддерживающих WebSocket, используется резервный вариант с SockJS.
     }
 

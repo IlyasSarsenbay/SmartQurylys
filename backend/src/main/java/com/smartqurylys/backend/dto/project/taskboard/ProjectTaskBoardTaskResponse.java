@@ -1,6 +1,7 @@
 package com.smartqurylys.backend.dto.project.taskboard;
 
 import com.smartqurylys.backend.shared.enums.ProjectTaskBoardPriority;
+import com.smartqurylys.backend.shared.enums.ProjectTaskBoardCompletionStatus;
 import com.smartqurylys.backend.shared.enums.ProjectTaskBoardStatus;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +23,12 @@ public class ProjectTaskBoardTaskResponse {
     private LocalDate dueDate;
     private Integer position;
     private ProjectTaskBoardAssigneeResponse assignee;
+    private ProjectTaskBoardCompletionStatus completionStatus;
+    private ProjectTaskBoardAssigneeResponse completionRequestedBy;
+    private LocalDateTime completionRequestedAt;
+    private ProjectTaskBoardUserSummaryResponse completionReviewedBy;
+    private LocalDateTime completionReviewedAt;
+    private String completionReviewReason;
     private ProjectTaskBoardUserSummaryResponse createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

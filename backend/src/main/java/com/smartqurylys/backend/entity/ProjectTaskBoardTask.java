@@ -1,6 +1,7 @@
 package com.smartqurylys.backend.entity;
 
 import com.smartqurylys.backend.shared.enums.ProjectTaskBoardPriority;
+import com.smartqurylys.backend.shared.enums.ProjectTaskBoardCompletionStatus;
 import com.smartqurylys.backend.shared.enums.ProjectTaskBoardStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -59,6 +60,28 @@ public class ProjectTaskBoardTask {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_participant_id")
     private Participant assigneeParticipant;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "completion_status", nullable = false)
+    private ProjectTaskBoardCompletionStatus completionStatus;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "completion_requested_by_participant_id")
+    private Participant completionRequestedByParticipant;
+
+    @Column(name = "completion_requested_at")
+    private LocalDateTime completionRequestedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "completion_reviewed_by_user_id")
+    private User completionReviewedByUser;
+
+    @Column(name = "completion_reviewed_at")
+    private LocalDateTime completionReviewedAt;
+
+    @Column(name = "completion_review_reason", columnDefinition = "text")
+    private String completionReviewReason;
 
     @Column(nullable = false)
     private Integer position;

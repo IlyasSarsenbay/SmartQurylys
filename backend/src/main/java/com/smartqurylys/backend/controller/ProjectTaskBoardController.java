@@ -85,6 +85,40 @@ public class ProjectTaskBoardController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/tasks/{taskId}/request-completion")
+    public ResponseEntity<ProjectTaskBoardTaskResponse> requestCompletion(
+            @PathVariable Long projectId,
+            @PathVariable Long taskId
+    ) {
+        return ResponseEntity.ok(projectTaskBoardService.requestCompletion(projectId, taskId));
+    }
+
+    @PostMapping("/tasks/{taskId}/approve-completion")
+    public ResponseEntity<ProjectTaskBoardTaskResponse> approveCompletion(
+            @PathVariable Long projectId,
+            @PathVariable Long taskId,
+            @RequestBody(required = false) ProjectTaskBoardCompletionActionRequest request
+    ) {
+        return ResponseEntity.ok(projectTaskBoardService.approveCompletion(
+                projectId,
+                taskId,
+                request != null ? request.getReason() : null
+        ));
+    }
+
+    @PostMapping("/tasks/{taskId}/reject-completion")
+    public ResponseEntity<ProjectTaskBoardTaskResponse> rejectCompletion(
+            @PathVariable Long projectId,
+            @PathVariable Long taskId,
+            @RequestBody(required = false) ProjectTaskBoardCompletionActionRequest request
+    ) {
+        return ResponseEntity.ok(projectTaskBoardService.rejectCompletion(
+                projectId,
+                taskId,
+                request != null ? request.getReason() : null
+        ));
+    }
+
     @GetMapping("/tasks/{taskId}/comments")
     public ResponseEntity<List<ProjectTaskCommentResponse>> getComments(
             @PathVariable Long projectId,

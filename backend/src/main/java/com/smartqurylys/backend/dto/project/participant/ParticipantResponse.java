@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ParticipantResponse {
     private Long id;
+    private Long userId;
     private String fullName;
     private String iinBin;
     private String role;

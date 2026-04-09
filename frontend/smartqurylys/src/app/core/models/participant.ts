@@ -1,5 +1,6 @@
 export interface ParticipantResponse {
   id: number;
+  userId: number;
   fullName: string;
   iinBin: string;
   role: string;
@@ -13,6 +14,7 @@ export interface ParticipantResponse {
 
 export interface Participant {
   id: number;
+  userId: number;
   fullName: string;
   iinBin: string;
   role: string;
@@ -29,6 +31,7 @@ export function mapParticipantResponseToParticipant(
 ): Participant {
   return {
     id: response.id,
+    userId: response.userId,
     fullName: response.fullName,
     iinBin: response.iinBin,
     role: response.role,

@@ -39,6 +39,7 @@ public class ParticipantController {
 
                 ParticipantResponse response = ParticipantResponse.builder()
                         .id(user.getId())
+                        .userId(user.getId())
                         .fullName(user.getFullName())
                         .iinBin(user.getIinBin())
                         .role(invitation.getRole())

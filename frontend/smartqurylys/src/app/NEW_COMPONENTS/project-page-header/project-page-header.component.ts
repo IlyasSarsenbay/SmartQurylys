@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { Project } from '../../core/models/project';
 import { ProjectService } from '../../core/project.service';
 import { RouterLink, RouterLinkActive } from '@angular/router';
@@ -6,6 +6,9 @@ import { FormsModule } from '@angular/forms';
 import { TaskService } from '../../core/task.service';
 import { ParticipantService } from '../../core/participant.service';
 import { Participant } from '../../core/models/participant';
+import { ProjectRealtimeService } from '../../core/project-realtime.service';
+import { auditTime, filter } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-project-header',
@@ -15,6 +18,7 @@ import { Participant } from '../../core/models/participant';
   styleUrl: './project-page-header.component.css'
 })
 export class ProjectPageHeader implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   project!: Project
   numberOfCompletedTasks = 0
   numberOfTasks = 0
@@ -25,11 +29,13 @@ export class ProjectPageHeader implements OnInit {
   constructor(
     private projectService: ProjectService,
     private taskService: TaskService,
-    private participantService: ParticipantService
+    private participantService: ParticipantService,
+    private projectRealtimeService: ProjectRealtimeService
   ) { }
 
   ngOnInit(): void {
     this.projectService.activeProject$
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((project) => {
         if (!project) {
           return;
@@ -37,6 +43,30 @@ export class ProjectPageHeader implements OnInit {
 
         this.project = project;
         this.getNumberOfTasks();
+      });
+
+    this.projectRealtimeService.events$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        filter((event) => !!this.project && event.projectId === this.project.id),
+        auditTime(200)
+      )
+      .subscribe((event) => {
+        if (event.type === 'PROJECT_UPDATED') {
+          this.projectService.refreshProject(this.project.id).subscribe();
+        }
+
+        if (event.type.startsWith('TASK_') || event.type.startsWith('STAGE_')) {
+          this.getNumberOfTasks();
+        }
+
+        if (event.type.startsWith('PARTICIPANT_') && this.isAccessDialogOpen) {
+          this.participantService.getProjectParticipants(this.project.id, true)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((participants) => {
+              this.participants = participants;
+            });
+        }
       });
   }
 

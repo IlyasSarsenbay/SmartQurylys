@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { Participant, ParticipantResponse } from '../../core/models/participant';
 import { Project } from '../../core/models/project';
 import { ParticipantService } from '../../core/participant.service';
@@ -6,11 +6,14 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ProjectService } from '../../core/project.service';
 import { ActivatedRoute } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, auditTime, filter } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ProjectRealtimeService } from '../../core/project-realtime.service';
 
 
 interface ParticipantItem {
   id: number;
+  userId: number;
   fullName: string;
   iinBin: string;
   role: string;
@@ -31,6 +34,7 @@ interface ParticipantItem {
   styleUrl: './project-participants.component.css'
 })
 export class ProjectParticipantsComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   project!: Project
   participants: ParticipantItem[] = []
   private projectId: number | null = null;
@@ -42,6 +46,7 @@ export class ProjectParticipantsComponent implements OnInit {
     private projectService: ProjectService,
     private participantService: ParticipantService,
     private route: ActivatedRoute,
+    private projectRealtimeService: ProjectRealtimeService
   ) { }
   inviteForm = {
     iinBin: '',
@@ -55,6 +60,7 @@ export class ProjectParticipantsComponent implements OnInit {
     this.projectId = Number(id);
 
     this.projectService.activeProject$
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((project) => {
         if (project) {
           this.project = project;
@@ -63,7 +69,9 @@ export class ProjectParticipantsComponent implements OnInit {
 
     this.loadParticipants(true);
 
-    this.participantService.participantsChanged$.subscribe((changedProjectId) => {
+    this.participantService.participantsChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((changedProjectId) => {
       if (this.projectId === null) {
         return;
       }
@@ -72,6 +80,17 @@ export class ProjectParticipantsComponent implements OnInit {
         this.loadParticipants(true);
       }
     });
+
+    this.projectRealtimeService.events$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        filter((event) => this.projectId !== null && event.projectId === this.projectId),
+        filter((event) => event.type.startsWith('PARTICIPANT_') || event.type === 'PROJECT_UPDATED'),
+        auditTime(200)
+      )
+      .subscribe(() => {
+        this.loadParticipants(true);
+      });
   }
 
   private loadParticipants(forceRefresh = false): void {
@@ -144,6 +163,7 @@ export class ProjectParticipantsComponent implements OnInit {
   ): ParticipantItem {
     return {
       id: response.id,
+      userId: response.userId,
       fullName: response.fullName,
       iinBin: response.iinBin,
       role: response.role,
@@ -172,6 +192,7 @@ export class ProjectParticipantsComponent implements OnInit {
   ): ParticipantItem {
     return {
       id: participant.id,
+      userId: participant.userId,
       fullName: participant.fullName,
       iinBin: participant.iinBin,
       role: participant.role,

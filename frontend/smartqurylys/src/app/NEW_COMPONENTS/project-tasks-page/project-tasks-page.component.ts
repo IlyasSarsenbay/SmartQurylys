@@ -3,8 +3,11 @@ import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/co
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { auditTime, filter } from 'rxjs';
 import { Participant } from '../../core/models/participant';
+import { Project } from '../../core/models/project';
 import {
+  ProjectTaskBoardCompletionStatus,
   ProjectTaskBoardPriority,
   ProjectTaskBoardResponse,
   ProjectTaskBoardStatus,
@@ -12,9 +15,12 @@ import {
   ProjectTaskCommentResponse
 } from '../../core/models/project-task-board';
 import { ParticipantService } from '../../core/participant.service';
+import { ProjectRealtimeService } from '../../core/project-realtime.service';
+import { ProjectService } from '../../core/project.service';
 import { ProjectTaskBoardService } from '../../core/project-task-board.service';
+import { UserService } from '../../core/user.service';
 import { TaskListRowComponent } from './task-list-row.component';
-import { TodoComment, TodoItem, TodoPriority, TodoRowItem, TodoStatus } from './task-list.models';
+import { TodoComment, TodoCompletionStatus, TodoItem, TodoPriority, TodoRowItem, TodoStatus } from './task-list.models';
 
 interface CalendarDay {
   date: Date;
@@ -71,6 +77,7 @@ export class ProjectTasksPageComponent implements OnInit {
   openStageMenuFor: number | null = null;
   commentsTaskId: number | null = null;
   commentDraft = '';
+  completionReviewDraft = '';
   statusMenuTop = 0;
   statusMenuLeft = 0;
   priorityMenuTop = 0;
@@ -87,6 +94,9 @@ export class ProjectTasksPageComponent implements OnInit {
   commentsByTaskId: Record<number, TodoComment[]> = {};
   stages: TaskStage[] = [];
   isLoading = false;
+  currentUserId: number | null = null;
+  currentUserIinBin: string | null = null;
+  activeProject: Project | null = null;
   private projectId: number | null = null;
 
   get visibleStages(): VisibleTaskStage[] {
@@ -181,6 +191,26 @@ export class ProjectTasksPageComponent implements OnInit {
     return this.commentsByTaskId[this.commentsTaskId] ?? [];
   }
 
+  get isCurrentUserProjectOwner(): boolean {
+    return !!this.activeProject && !!this.currentUserIinBin && this.activeProject.ownerIinBin === this.currentUserIinBin;
+  }
+
+  get canRequestActiveTaskCompletion(): boolean {
+    const task = this.activeCommentsTask;
+    if (!task || this.currentUserId === null) {
+      return false;
+    }
+
+    return task.assigneeUserId === this.currentUserId
+      && task.status !== 'Готово'
+      && task.completionStatus !== 'pending';
+  }
+
+  get canReviewActiveTaskCompletion(): boolean {
+    const task = this.activeCommentsTask;
+    return !!task && this.isCurrentUserProjectOwner && task.completionStatus === 'pending';
+  }
+
   isAllStageRowsSelected(stageId: number): boolean {
     const stage = this.visibleStages.find((item) => item.id === stageId);
     return !!stage && stage.rows.length > 0 && stage.rows.every((item) => !!item.selected);
@@ -198,7 +228,10 @@ export class ProjectTasksPageComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly participantService: ParticipantService,
-    private readonly projectTaskBoardService: ProjectTaskBoardService
+    private readonly projectTaskBoardService: ProjectTaskBoardService,
+    private readonly userService: UserService,
+    private readonly projectService: ProjectService,
+    private readonly projectRealtimeService: ProjectRealtimeService
   ) {}
 
   ngOnInit(): void {
@@ -211,6 +244,23 @@ export class ProjectTasksPageComponent implements OnInit {
     this.projectId = projectId;
     this.loadBoard();
     this.loadProjectParticipants(true);
+    this.userService.getCurrentUser()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (user) => {
+          this.currentUserId = user.id;
+          this.currentUserIinBin = user.iinBin;
+        },
+        error: (error) => {
+          console.error('Failed to load current user for tasks page:', error);
+        }
+      });
+
+    this.projectService.activeProject$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((project) => {
+        this.activeProject = project;
+      });
 
     this.participantService.participantsChanged$
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -220,6 +270,22 @@ export class ProjectTasksPageComponent implements OnInit {
         }
 
         if (changedProjectId === null || changedProjectId === this.projectId) {
+          this.loadProjectParticipants(true);
+        }
+      });
+
+    this.projectRealtimeService.events$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        filter((event) => this.projectId !== null && event.projectId === this.projectId),
+        auditTime(200)
+      )
+      .subscribe((event) => {
+        if (this.isTaskBoardEvent(event.type)) {
+          this.loadBoard();
+        }
+
+        if (this.isParticipantEvent(event.type)) {
           this.loadProjectParticipants(true);
         }
       });
@@ -503,6 +569,15 @@ export class ProjectTasksPageComponent implements OnInit {
       });
   }
 
+  getAvailableStatuses(item: TodoRowItem): TodoStatus[] {
+    if (this.isCurrentUserProjectOwner) {
+      return this.statusOptions;
+    }
+
+    const restrictedStatuses = this.statusOptions.filter((status) => status !== 'Готово');
+    return item.status === 'Готово' ? this.statusOptions : restrictedStatuses;
+  }
+
   onTogglePriorityMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
     this.openStatusMenuFor = null;
     this.openDateMenuFor = null;
@@ -651,10 +726,11 @@ export class ProjectTasksPageComponent implements OnInit {
             ? null
             : this.projectParticipants.find((item) => item.id === assigneeParticipantId) ?? null;
 
-          this.updateItemById(this.getAllTasks(), itemId, (item) => {
-            item.assigneeParticipantId = assigneeParticipantId;
-            item.assignee = participant?.fullName ?? '';
-          });
+            this.updateItemById(this.getAllTasks(), itemId, (item) => {
+              item.assigneeParticipantId = assigneeParticipantId;
+              item.assignee = participant?.fullName ?? '';
+              item.assigneeUserId = participant?.userId ?? null;
+            });
           this.openAssigneeMenuFor = null;
         },
         error: (error) => {
@@ -666,12 +742,76 @@ export class ProjectTasksPageComponent implements OnInit {
   onOpenComments(itemId: number): void {
     this.commentsTaskId = itemId;
     this.commentDraft = '';
+    this.completionReviewDraft = '';
     this.loadComments(itemId);
   }
 
   onCloseComments(): void {
     this.commentsTaskId = null;
     this.commentDraft = '';
+    this.completionReviewDraft = '';
+  }
+
+  onRequestTaskCompletion(): void {
+    if (this.projectId === null || this.commentsTaskId === null) {
+      return;
+    }
+
+    const taskId = this.commentsTaskId;
+    this.projectTaskBoardService.requestCompletion(this.projectId, taskId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loadBoard();
+        },
+        error: (error) => {
+          console.error('Failed to request task completion:', error);
+        }
+      });
+  }
+
+  onApproveTaskCompletion(): void {
+    if (this.projectId === null || this.commentsTaskId === null) {
+      return;
+    }
+
+    const taskId = this.commentsTaskId;
+    const reason = this.completionReviewDraft.trim();
+    this.projectTaskBoardService.approveCompletion(this.projectId, taskId, {
+      reason: reason || undefined
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.completionReviewDraft = '';
+          this.loadBoard();
+        },
+        error: (error) => {
+          console.error('Failed to approve task completion:', error);
+        }
+      });
+  }
+
+  onRejectTaskCompletion(): void {
+    if (this.projectId === null || this.commentsTaskId === null) {
+      return;
+    }
+
+    const taskId = this.commentsTaskId;
+    const reason = this.completionReviewDraft.trim();
+    this.projectTaskBoardService.rejectCompletion(this.projectId, taskId, {
+      reason: reason || undefined
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.completionReviewDraft = '';
+          this.loadBoard();
+        },
+        error: (error) => {
+          console.error('Failed to reject task completion:', error);
+        }
+      });
   }
 
   onSendComment(): void {
@@ -936,6 +1076,17 @@ export class ProjectTasksPageComponent implements OnInit {
           priority: this.fromApiPriority(task.priority),
           assignee: task.assignee?.fullName ?? '',
           assigneeParticipantId: task.assignee?.participantId ?? null,
+          assigneeUserId: task.assignee?.userId ?? null,
+          completionStatus: this.fromApiCompletionStatus(task.completionStatus),
+          completionRequestedBy: task.completionRequestedBy?.fullName ?? '',
+          completionRequestedAt: task.completionRequestedAt
+            ? this.formatCommentTimestamp(task.completionRequestedAt)
+            : '',
+          completionReviewedBy: task.completionReviewedBy?.fullName ?? '',
+          completionReviewedAt: task.completionReviewedAt
+            ? this.formatCommentTimestamp(task.completionReviewedAt)
+            : '',
+          completionReviewReason: task.completionReviewReason ?? '',
           commentsCount: task.commentCount,
           selected: previousState?.selected ?? false,
           expanded: previousState?.expanded ?? true,
@@ -1136,6 +1287,16 @@ export class ProjectTasksPageComponent implements OnInit {
 
   private hasActiveStageFilters(): boolean {
     return !!this.searchTerm.trim() || this.selectedStatus !== 'all';
+  }
+
+  private isTaskBoardEvent(eventType: string): boolean {
+    return eventType.startsWith('TASK_')
+      || eventType.startsWith('TASKS_')
+      || eventType.startsWith('STAGE_');
+  }
+
+  private isParticipantEvent(eventType: string): boolean {
+    return eventType.startsWith('PARTICIPANT_');
   }
 
   private flattenItems(items: TodoItem[], level = 0, parentId?: number): TodoRowItem[] {
@@ -1351,6 +1512,19 @@ export class ProjectTasksPageComponent implements OnInit {
         return 'Критический';
       default:
         return 'Средний';
+    }
+  }
+
+  private fromApiCompletionStatus(status: ProjectTaskBoardCompletionStatus): TodoCompletionStatus {
+    switch (status) {
+      case 'PENDING':
+        return 'pending';
+      case 'APPROVED':
+        return 'approved';
+      case 'REJECTED':
+        return 'rejected';
+      default:
+        return 'none';
     }
   }
 

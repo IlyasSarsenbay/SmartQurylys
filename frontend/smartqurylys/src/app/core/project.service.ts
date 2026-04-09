@@ -149,6 +149,19 @@ export class ProjectService {
       );
   }
 
+  refreshProject(projectId: number): Observable<Project> {
+    return this.http.get<ProjectResponse>(`${this.apiUrl}/${projectId}`, { headers: this.getAuthHeaders() })
+      .pipe(
+        map(mapProjectResponseToProject),
+        tap((project) => {
+          this.setCachedProject(project);
+          if (this.activeProjectSubject.value?.id === projectId) {
+            this.activeProjectSubject.next(project);
+          }
+        })
+      );
+  }
+
   getActiveProjectSnapshot(): Project | null {
     return this.activeProjectSubject.value;
   }

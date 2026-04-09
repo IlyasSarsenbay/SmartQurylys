@@ -25,6 +25,7 @@ public class ParticipantService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
+    private final ProjectRealtimeService projectRealtimeService;
 
     public List<ParticipantResponse> getParticipantsByProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
@@ -72,6 +73,7 @@ public class ParticipantService {
         }
 
         Participant updatedParticipant = participantRepository.save(participant);
+        projectRealtimeService.publish(project.getId(), "PARTICIPANT_UPDATED", updatedParticipant.getId());
         return mapToParticipantResponse(updatedParticipant);
     }
 
@@ -94,6 +96,7 @@ public class ParticipantService {
         }
         taskRepository.saveAll(tasks);
 
+        projectRealtimeService.publish(project.getId(), "PARTICIPANT_REMOVED", participantId);
         participantRepository.delete(participant);
     }
 
@@ -112,6 +115,7 @@ public class ParticipantService {
 
         return ParticipantResponse.builder()
                 .id(participant.getId())
+                .userId(participant.getUser().getId())
                 .fullName(participant.getUser().getFullName())
                 .iinBin(participant.getUser().getIinBin())
                 .organization(participant.getUser().getOrganization())

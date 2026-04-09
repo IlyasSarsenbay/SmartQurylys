@@ -11,7 +11,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { Participant } from '../../core/models/participant';
-import { TodoPriority, TodoRowItem, TodoStatus } from './task-list.models';
+import { TodoCompletionStatus, TodoPriority, TodoRowItem, TodoStatus } from './task-list.models';
 
 interface CalendarDay {
   date: Date;
@@ -100,6 +100,13 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
     'Критический': 'priority-critical'
   };
 
+  readonly completionClassMap: Record<TodoCompletionStatus, string> = {
+    none: '',
+    pending: 'completion-pending',
+    approved: 'completion-approved',
+    rejected: 'completion-rejected'
+  };
+
   get hasChildren(): boolean {
     return this.item.type === 'group' && !!this.item.subtasks?.length;
   }
@@ -120,6 +127,23 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
 
   get canAddSubtask(): boolean {
     return this.item.level === 0;
+  }
+
+  get completionLabel(): string {
+    switch (this.item.completionStatus) {
+      case 'pending':
+        return 'На подтверждении';
+      case 'approved':
+        return 'Подтверждено';
+      case 'rejected':
+        return 'Отклонено';
+      default:
+        return '';
+    }
+  }
+
+  get completionClass(): string {
+    return this.completionClassMap[this.item.completionStatus];
   }
 
   ngOnChanges(changes: SimpleChanges): void {

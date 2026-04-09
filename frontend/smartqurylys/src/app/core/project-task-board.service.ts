@@ -6,6 +6,7 @@ import {
   BulkDeleteProjectTaskBoardTasksRequest,
   CreateProjectTaskBoardStageRequest,
   CreateProjectTaskBoardTaskRequest,
+  ProjectTaskBoardCompletionActionRequest,
   CreateProjectTaskCommentRequest,
   ProjectTaskBoardResponse,
   ProjectTaskBoardStageResponse,
@@ -71,6 +72,35 @@ export class ProjectTaskBoardService {
 
   bulkDeleteTasks(projectId: number, request: BulkDeleteProjectTaskBoardTasksRequest): Observable<void> {
     return this.http.post<void>(`${environment.apiUrl}/projects/${projectId}/task-board/tasks/bulk-delete`, request);
+  }
+
+  requestCompletion(projectId: number, taskId: number): Observable<ProjectTaskBoardTaskResponse> {
+    return this.http.post<ProjectTaskBoardTaskResponse>(
+      `${environment.apiUrl}/projects/${projectId}/task-board/tasks/${taskId}/request-completion`,
+      {}
+    );
+  }
+
+  approveCompletion(
+    projectId: number,
+    taskId: number,
+    request: ProjectTaskBoardCompletionActionRequest
+  ): Observable<ProjectTaskBoardTaskResponse> {
+    return this.http.post<ProjectTaskBoardTaskResponse>(
+      `${environment.apiUrl}/projects/${projectId}/task-board/tasks/${taskId}/approve-completion`,
+      request
+    );
+  }
+
+  rejectCompletion(
+    projectId: number,
+    taskId: number,
+    request: ProjectTaskBoardCompletionActionRequest
+  ): Observable<ProjectTaskBoardTaskResponse> {
+    return this.http.post<ProjectTaskBoardTaskResponse>(
+      `${environment.apiUrl}/projects/${projectId}/task-board/tasks/${taskId}/reject-completion`,
+      request
+    );
   }
 
   getComments(projectId: number, taskId: number): Observable<ProjectTaskCommentResponse[]> {

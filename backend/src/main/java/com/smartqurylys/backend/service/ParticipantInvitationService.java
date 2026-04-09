@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-// Сервис для управления приглашениями участников в проекты.
 @Service
 @RequiredArgsConstructor
 public class ParticipantInvitationService {
@@ -28,8 +27,8 @@ public class ParticipantInvitationService {
     private final ParticipantRepository participantRepository;
     private final NotificationService notificationService;
     private final com.smartqurylys.backend.repository.NotificationRepository notificationRepository;
+    private final ProjectRealtimeService projectRealtimeService;
 
-    // Отправляет приглашение пользователю в проект.
     public InvitationResponse sendInvitation(Long projectId, CreateInvitationRequest request, User sender) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
@@ -38,8 +37,6 @@ public class ParticipantInvitationService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Пользователь с таким ИИН/БИН не найден"));
 
-        // Проверяем, не был ли пользователь уже приглашен или не является ли он уже
-        // участником.
         if (invitationRepository.findByProjectAndUser(project, user).isPresent()) {
             throw new IllegalArgumentException("Пользователь уже приглашен в проект");
         }
@@ -56,12 +53,13 @@ public class ParticipantInvitationService {
                 .canSendNotifications(request.isCanSendNotifications())
                 .accepted(false)
                 .createdAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusDays(3)) // Приглашение действует 3 дня.
+                .expiresAt(LocalDateTime.now().plusDays(3))
                 .build();
 
         invitationRepository.save(invitation);
 
         notificationService.createInvitationNotification(invitation);
+        projectRealtimeService.publish(projectId, "PARTICIPANT_INVITED", invitation.getId());
 
         return InvitationResponse.builder()
                 .id(invitation.getId())
@@ -75,7 +73,6 @@ public class ParticipantInvitationService {
                 .build();
     }
 
-    // Принимает приглашение в проект.
     @Transactional
     public void acceptInvitation(Long invitationId, User currentUser) {
         ParticipantInvitation invitation = invitationRepository.findByIdAndUser(invitationId, currentUser)
@@ -100,25 +97,25 @@ public class ParticipantInvitationService {
                 .canSendNotifications(invitation.isCanSendNotifications())
                 .build();
 
-        participantRepository.save(participant); // Создаем нового участника проекта.
-        invitationRepository.delete(invitation); // Удаляем приглашение после принятия.
+        Participant savedParticipant = participantRepository.save(participant);
+        invitationRepository.delete(invitation);
+        projectRealtimeService.publish(invitation.getProject().getId(), "PARTICIPANT_JOINED", savedParticipant.getId());
 
-        // Удаляем связанное уведомление
         notificationRepository.findByTypeAndRelatedEntityId(
                 com.smartqurylys.backend.entity.NotificationType.INVITATION, invitationId)
                 .ifPresent(notificationRepository::delete);
     }
 
-    // Отклоняет приглашение в проект.
     @Transactional
     public void declineInvitation(Long invitationId, User currentUser) {
         ParticipantInvitation invitation = invitationRepository.findByIdAndUser(invitationId, currentUser)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Приглашение не найдено или недоступно"));
 
-        invitationRepository.delete(invitation); // Удаляем приглашение.
+        Long projectId = invitation.getProject().getId();
+        invitationRepository.delete(invitation);
+        projectRealtimeService.publish(projectId, "PARTICIPANT_INVITATION_DECLINED", invitationId);
 
-        // Удаляем связанное уведомление
         notificationRepository.findByTypeAndRelatedEntityId(
                 com.smartqurylys.backend.entity.NotificationType.INVITATION, invitationId)
                 .ifPresent(notificationRepository::delete);
@@ -126,8 +123,7 @@ public class ParticipantInvitationService {
 
     @Transactional
     public List<ParticipantInvitation> getInvitationsByProject(Long projectId) {
-        List<ParticipantInvitation> invitations = invitationRepository.findAllByProjectId(projectId)
+        return invitationRepository.findAllByProjectId(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Приглашения в проекте не найдены"));
-        return invitations;
     }
 }

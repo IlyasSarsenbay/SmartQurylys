@@ -65,6 +65,10 @@
       <span class="status-pill status-trigger-pill" [ngClass]="statusClass">{{ item.status }}</span>
     </button>
 
+    @if (completionLabel) {
+      <span class="completion-pill" [ngClass]="completionClass">{{ completionLabel }}</span>
+    }
+
     @if (isStatusMenuOpen) {
       <div class="status-menu" [style.top.px]="statusMenuTop" [style.left.px]="statusMenuLeft">
         @for (status of availableStatuses; track trackStatus($index, status)) {
@@ -91,13 +95,8 @@
       (click)="onToggleDateMenu($event)"
     >
       <span class="date-badge" [class.empty]="!item.dueDate">
-        @if (item.dueDate) {
-          <span class="calendar-icon"></span>
-          {{ item.dueDate }}
-        } @else {
-          <span class="calendar-icon"></span>
-          Нет даты
-        }
+        <span class="calendar-icon"></span>
+        {{ item.dueDate || 'Нет даты' }}
       </span>
     </button>
 
@@ -159,10 +158,7 @@
             [class.active]="priority === item.priority"
             (click)="onChangePriority(priority)"
           >
-            <span
-              class="priority-pill"
-              [ngClass]="priority ? priorityClassMap[priority] : 'priority-none'"
-            >
+            <span class="priority-pill" [ngClass]="priorityClassMap[priority]">
               {{ priority }}
             </span>
           </button>

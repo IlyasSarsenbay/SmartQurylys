@@ -552,3 +552,36 @@ td {
     min-width: 180px;
   }
 }
+
+.status-dropdown {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.completion-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.completion-pending {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.completion-approved {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.completion-rejected {
+  color: #b91c1c;
+  background: #fee2e2;
+}

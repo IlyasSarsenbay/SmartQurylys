@@ -7,17 +7,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
-// Репозиторий для работы с сущностями Participant.
 public interface ParticipantRepository extends JpaRepository<Participant, Long> {
-    // Находит всех участников для заданного проекта.
     List<Participant> findByProject(Project project);
 
-    // Находит всех участников для заданного пользователя.
     List<Participant> findByUser(User user);
 
-    // Проверяет существование участника в проекте по проекту и пользователю.
     boolean existsByProjectAndUser(Project project, User user);
+
+    Optional<Participant> findByProjectAndUser(Project project, User user);
 
     @Query("""
                 select p

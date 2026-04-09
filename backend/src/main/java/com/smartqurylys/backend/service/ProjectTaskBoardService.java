@@ -2,6 +2,7 @@ package com.smartqurylys.backend.service;
 
 import com.smartqurylys.backend.dto.project.taskboard.*;
 import com.smartqurylys.backend.entity.*;
+import com.smartqurylys.backend.shared.enums.ProjectTaskBoardCompletionStatus;
 import com.smartqurylys.backend.repository.*;
 import com.smartqurylys.backend.shared.enums.ProjectTaskBoardPriority;
 import com.smartqurylys.backend.shared.enums.ProjectTaskBoardStatus;
@@ -27,6 +28,7 @@ public class ProjectTaskBoardService {
     private final ProjectTaskBoardStageRepository stageRepository;
     private final ProjectTaskBoardTaskRepository taskRepository;
     private final ProjectTaskCommentRepository commentRepository;
+    private final ProjectRealtimeService projectRealtimeService;
 
     @Transactional(readOnly = true)
     public ProjectTaskBoardResponse getBoard(Long projectId) {
@@ -54,7 +56,9 @@ public class ProjectTaskBoardService {
                 .updatedAt(now)
                 .build();
 
-        return mapStageResponse(stageRepository.save(stage), List.of(), Map.of());
+        ProjectTaskBoardStage savedStage = stageRepository.save(stage);
+        projectRealtimeService.publish(projectId, "STAGE_CREATED", savedStage.getId());
+        return mapStageResponse(savedStage, List.of(), Map.of());
     }
 
     @Transactional
@@ -75,6 +79,7 @@ public class ProjectTaskBoardService {
         stage.setUpdatedAt(LocalDateTime.now());
 
         ProjectTaskBoardStage savedStage = stageRepository.save(stage);
+        projectRealtimeService.publish(projectId, "STAGE_UPDATED", savedStage.getId());
         List<ProjectTaskBoardTask> stageTasks = taskRepository.findBoardTasksByProjectId(projectId).stream()
                 .filter(task -> Objects.equals(task.getStage().getId(), savedStage.getId()))
                 .toList();
@@ -85,7 +90,9 @@ public class ProjectTaskBoardService {
     @Transactional
     public void deleteStage(Long projectId, Long stageId) {
         requireProjectAccess(projectId);
-        stageRepository.delete(getStageOrThrow(projectId, stageId));
+        ProjectTaskBoardStage stage = getStageOrThrow(projectId, stageId);
+        stageRepository.delete(stage);
+        projectRealtimeService.publish(projectId, "STAGE_DELETED", stageId);
     }
 
     @Transactional
@@ -105,13 +112,21 @@ public class ProjectTaskBoardService {
                 .priority(ProjectTaskBoardPriority.MEDIUM)
                 .dueDate(null)
                 .assigneeParticipant(null)
+                .completionStatus(ProjectTaskBoardCompletionStatus.NONE)
+                .completionRequestedByParticipant(null)
+                .completionRequestedAt(null)
+                .completionReviewedByUser(null)
+                .completionReviewedAt(null)
+                .completionReviewReason(null)
                 .position(resolveNextTaskPosition(stage.getId(), parentTask))
                 .createdBy(getAuthenticatedUser())
                 .createdAt(now)
                 .updatedAt(now)
                 .build();
 
-        return mapTaskResponse(taskRepository.save(task), Map.of(), Collections.emptyMap());
+        ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        projectRealtimeService.publish(projectId, "TASK_CREATED", savedTask.getId());
+        return mapTaskResponse(savedTask, Map.of(), Collections.emptyMap());
     }
 
     @Transactional
@@ -148,7 +163,28 @@ public class ProjectTaskBoardService {
             task.setDescription(normalizeBlank(request.getDescription()));
         }
         if (request.getStatus() != null) {
+            User currentUser = getAuthenticatedUser();
+            boolean isOwnerOrAdmin = isProjectOwnerOrAdmin(task.getProject(), currentUser);
+
+            if (request.getStatus() == ProjectTaskBoardStatus.DONE && !isOwnerOrAdmin) {
+                throw new AccessDeniedException("Only the project owner can mark a task as done directly");
+            }
+
             task.setStatus(request.getStatus());
+
+            if (request.getStatus() == ProjectTaskBoardStatus.DONE) {
+                task.setCompletionStatus(ProjectTaskBoardCompletionStatus.APPROVED);
+                task.setCompletionReviewedByUser(currentUser);
+                task.setCompletionReviewedAt(LocalDateTime.now());
+                task.setCompletionReviewReason(null);
+            } else if (task.getCompletionStatus() == ProjectTaskBoardCompletionStatus.APPROVED) {
+                task.setCompletionStatus(ProjectTaskBoardCompletionStatus.NONE);
+                task.setCompletionRequestedByParticipant(null);
+                task.setCompletionRequestedAt(null);
+                task.setCompletionReviewedByUser(null);
+                task.setCompletionReviewedAt(null);
+                task.setCompletionReviewReason(null);
+            }
         }
         if (request.getPriority() != null) {
             task.setPriority(request.getPriority());
@@ -169,13 +205,17 @@ public class ProjectTaskBoardService {
 
         task.setUpdatedAt(LocalDateTime.now());
 
-        return mapTaskResponse(taskRepository.save(task), loadCommentCounts(projectId), Collections.emptyMap());
+        ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        projectRealtimeService.publish(projectId, "TASK_UPDATED", savedTask.getId());
+        return mapTaskResponse(savedTask, loadCommentCounts(projectId), Collections.emptyMap());
     }
 
     @Transactional
     public void deleteTask(Long projectId, Long taskId) {
         requireProjectAccess(projectId);
-        taskRepository.delete(getTaskOrThrow(projectId, taskId));
+        ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
+        taskRepository.delete(task);
+        projectRealtimeService.publish(projectId, "TASK_DELETED", taskId);
     }
 
     @Transactional
@@ -186,6 +226,88 @@ public class ProjectTaskBoardService {
             throw new EntityNotFoundException("One or more board tasks were not found");
         }
         taskRepository.deleteAll(tasks);
+        projectRealtimeService.publish(projectId, "TASKS_BULK_DELETED", null);
+    }
+
+    @Transactional
+    public ProjectTaskBoardTaskResponse requestCompletion(Long projectId, Long taskId) {
+        Project project = requireProjectAccess(projectId);
+        ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
+        User currentUser = getAuthenticatedUser();
+        Participant currentParticipant = requireCurrentProjectParticipant(project, currentUser);
+
+        if (task.getAssigneeParticipant() == null || !Objects.equals(task.getAssigneeParticipant().getId(), currentParticipant.getId())) {
+            throw new AccessDeniedException("Only the assigned participant can request task completion");
+        }
+        if (task.getCompletionStatus() == ProjectTaskBoardCompletionStatus.PENDING) {
+            throw new IllegalArgumentException("Task completion is already pending review");
+        }
+        if (task.getCompletionStatus() == ProjectTaskBoardCompletionStatus.APPROVED
+                || task.getStatus() == ProjectTaskBoardStatus.DONE) {
+            throw new IllegalArgumentException("Task is already completed");
+        }
+
+        task.setCompletionStatus(ProjectTaskBoardCompletionStatus.PENDING);
+        task.setCompletionRequestedByParticipant(currentParticipant);
+        task.setCompletionRequestedAt(LocalDateTime.now());
+        task.setCompletionReviewedByUser(null);
+        task.setCompletionReviewedAt(null);
+        task.setCompletionReviewReason(null);
+        task.setUpdatedAt(LocalDateTime.now());
+
+        ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        projectRealtimeService.publish(projectId, "TASK_COMPLETION_REQUESTED", savedTask.getId());
+        return mapTaskResponse(savedTask, loadCommentCounts(projectId), Collections.emptyMap());
+    }
+
+    @Transactional
+    public ProjectTaskBoardTaskResponse approveCompletion(Long projectId, Long taskId, String reason) {
+        Project project = requireProjectAccess(projectId);
+        ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
+        User currentUser = getAuthenticatedUser();
+
+        if (!isProjectOwnerOrAdmin(project, currentUser)) {
+            throw new AccessDeniedException("Only the project owner can approve task completion");
+        }
+        if (task.getCompletionStatus() != ProjectTaskBoardCompletionStatus.PENDING) {
+            throw new IllegalArgumentException("Task completion request is not pending");
+        }
+
+        task.setCompletionStatus(ProjectTaskBoardCompletionStatus.APPROVED);
+        task.setStatus(ProjectTaskBoardStatus.DONE);
+        task.setCompletionReviewedByUser(currentUser);
+        task.setCompletionReviewedAt(LocalDateTime.now());
+        task.setCompletionReviewReason(normalizeBlank(reason));
+        task.setUpdatedAt(LocalDateTime.now());
+
+        ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        projectRealtimeService.publish(projectId, "TASK_COMPLETION_APPROVED", savedTask.getId());
+        return mapTaskResponse(savedTask, loadCommentCounts(projectId), Collections.emptyMap());
+    }
+
+    @Transactional
+    public ProjectTaskBoardTaskResponse rejectCompletion(Long projectId, Long taskId, String reason) {
+        Project project = requireProjectAccess(projectId);
+        ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
+        User currentUser = getAuthenticatedUser();
+
+        if (!isProjectOwnerOrAdmin(project, currentUser)) {
+            throw new AccessDeniedException("Only the project owner can reject task completion");
+        }
+        if (task.getCompletionStatus() != ProjectTaskBoardCompletionStatus.PENDING) {
+            throw new IllegalArgumentException("Task completion request is not pending");
+        }
+
+        task.setCompletionStatus(ProjectTaskBoardCompletionStatus.REJECTED);
+        task.setStatus(ProjectTaskBoardStatus.IN_PROGRESS);
+        task.setCompletionReviewedByUser(currentUser);
+        task.setCompletionReviewedAt(LocalDateTime.now());
+        task.setCompletionReviewReason(normalizeBlank(reason));
+        task.setUpdatedAt(LocalDateTime.now());
+
+        ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        projectRealtimeService.publish(projectId, "TASK_COMPLETION_REJECTED", savedTask.getId());
+        return mapTaskResponse(savedTask, loadCommentCounts(projectId), Collections.emptyMap());
     }
 
     @Transactional(readOnly = true)
@@ -215,7 +337,9 @@ public class ProjectTaskBoardService {
                 .updatedAt(now)
                 .build();
 
-        return mapCommentResponse(commentRepository.save(comment));
+        ProjectTaskComment savedComment = commentRepository.save(comment);
+        projectRealtimeService.publish(projectId, "TASK_COMMENT_ADDED", taskId);
+        return mapCommentResponse(savedComment);
     }
 
     private List<ProjectTaskBoardStageResponse> buildStageResponses(
@@ -276,6 +400,12 @@ public class ProjectTaskBoardService {
                 .dueDate(task.getDueDate())
                 .position(task.getPosition())
                 .assignee(mapAssignee(task.getAssigneeParticipant()))
+                .completionStatus(task.getCompletionStatus())
+                .completionRequestedBy(mapAssignee(task.getCompletionRequestedByParticipant()))
+                .completionRequestedAt(task.getCompletionRequestedAt())
+                .completionReviewedBy(mapUserSummary(task.getCompletionReviewedByUser()))
+                .completionReviewedAt(task.getCompletionReviewedAt())
+                .completionReviewReason(task.getCompletionReviewReason())
                 .createdBy(mapUserSummary(task.getCreatedBy()))
                 .createdAt(task.getCreatedAt())
                 .updatedAt(task.getUpdatedAt())
@@ -300,6 +430,11 @@ public class ProjectTaskBoardService {
     private ProjectTaskBoardTask getTaskOrThrow(Long projectId, Long taskId) {
         return taskRepository.findByIdAndProjectId(taskId, projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Board task not found"));
+    }
+
+    private Participant requireCurrentProjectParticipant(Project project, User currentUser) {
+        return participantRepository.findByProjectAndUser(project, currentUser)
+                .orElseThrow(() -> new AccessDeniedException("Current user is not a participant of this project"));
     }
 
     private ProjectTaskBoardTask resolveParentTask(Long projectId, Long parentTaskId, Long stageId) {
@@ -368,6 +503,11 @@ public class ProjectTaskBoardService {
 
     private String normalizeBlank(String value) {
         return value == null || value.trim().isEmpty() ? null : value.trim();
+    }
+
+    private boolean isProjectOwnerOrAdmin(Project project, User currentUser) {
+        return Objects.equals(project.getOwner().getId(), currentUser.getId())
+                || "ADMIN".equals(currentUser.getRole());
     }
 
     private Project requireProjectAccess(Long projectId) {

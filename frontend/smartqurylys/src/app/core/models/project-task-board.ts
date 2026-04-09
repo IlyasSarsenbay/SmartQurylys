@@ -2,6 +2,8 @@ export type ProjectTaskBoardStatus = 'TODO' | 'IN_PROGRESS' | 'DONE' | 'BLOCKED'
 
 export type ProjectTaskBoardPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
+export type ProjectTaskBoardCompletionStatus = 'NONE' | 'PENDING' | 'APPROVED' | 'REJECTED';
+
 export interface ProjectTaskBoardUserSummaryResponse {
   id: number;
   fullName: string;
@@ -34,6 +36,12 @@ export interface ProjectTaskBoardTaskResponse {
   dueDate: string | null;
   position: number;
   assignee: ProjectTaskBoardAssigneeResponse | null;
+  completionStatus: ProjectTaskBoardCompletionStatus;
+  completionRequestedBy: ProjectTaskBoardAssigneeResponse | null;
+  completionRequestedAt: string | null;
+  completionReviewedBy: ProjectTaskBoardUserSummaryResponse | null;
+  completionReviewedAt: string | null;
+  completionReviewReason: string | null;
   createdBy: ProjectTaskBoardUserSummaryResponse | null;
   createdAt: string;
   updatedAt: string;
@@ -86,6 +94,10 @@ export interface UpdateProjectTaskBoardTaskRequest {
 
 export interface CreateProjectTaskCommentRequest {
   message: string;
+}
+
+export interface ProjectTaskBoardCompletionActionRequest {
+  reason?: string;
 }
 
 export interface BulkDeleteProjectTaskBoardTasksRequest {
