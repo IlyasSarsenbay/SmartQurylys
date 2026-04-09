@@ -47,6 +47,7 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
 
   @Input({ required: true }) item!: TodoRowItem;
   @Input() isActive = false;
+  @Input() canManageTask = false;
   @Input() isPriorityMenuOpen = false;
   @Input() isDateMenuOpen = false;
   @Input() isAssigneeMenuOpen = false;
@@ -154,6 +155,10 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   }
 
   onTogglePriorityMenu(event: MouseEvent): void {
+    if (!this.canManageTask) {
+      return;
+    }
+
     const target = event.currentTarget as HTMLElement | null;
     const rect = target?.getBoundingClientRect();
 
@@ -182,6 +187,10 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   }
 
   onToggleDateMenu(event: MouseEvent): void {
+    if (!this.canManageTask) {
+      return;
+    }
+
     const target = event.currentTarget as HTMLElement | null;
     const rect = target?.getBoundingClientRect();
 
@@ -203,6 +212,10 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   }
 
   onToggleAssigneeMenu(event: MouseEvent): void {
+    if (!this.canManageTask) {
+      return;
+    }
+
     const target = event.currentTarget as HTMLElement | null;
     const rect = target?.getBoundingClientRect();
 
@@ -255,6 +268,10 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   }
 
   onAddSubtask(event: MouseEvent): void {
+    if (!this.canManageTask) {
+      return;
+    }
+
     event.stopPropagation();
     this.addSubtask.emit(this.item.id);
   }
@@ -264,6 +281,10 @@ export class TaskListRowComponent implements OnChanges, AfterViewChecked {
   }
 
   onStartTitleEdit(event: MouseEvent): void {
+    if (!this.canManageTask) {
+      return;
+    }
+
     event.stopPropagation();
     this.shouldFocusTitleInput = true;
     this.startTitleEdit.emit(this.item.id);

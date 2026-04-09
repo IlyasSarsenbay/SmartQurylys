@@ -61,6 +61,9 @@ public class DocumentService {
         applyRequestToDocument(document, request);
 
         User currentUser = getAuthenticatedUser();
+        if (!isProjectOwnerOrAdmin(document.getProject(), currentUser)) {
+            throw new IllegalArgumentException("Only the project owner can upload documents");
+        }
 
         File savedFile = fileService.prepareFile(file, currentUser);
         document.setFilePath(savedFile.getFilepath());
@@ -84,6 +87,11 @@ public class DocumentService {
     public void delete(Long id) {
         Document document = documentRepository.findById(id.intValue())
                 .orElseThrow(() -> new RuntimeException("Document not found"));
+        User currentUser = getAuthenticatedUser();
+
+        if (!isProjectOwnerOrAdmin(document.getProject(), currentUser)) {
+            throw new IllegalArgumentException("Only the project owner can delete documents");
+        }
 
         Long projectId = document.getProject().getId();
         String documentName = document.getName();
@@ -170,6 +178,10 @@ public class DocumentService {
         } else {
             return principal.toString();
         }
+    }
+
+    private boolean isProjectOwnerOrAdmin(Project project, User currentUser) {
+        return project.getOwner().getId().equals(currentUser.getId()) || "ADMIN".equals(currentUser.getRole());
     }
 
 }

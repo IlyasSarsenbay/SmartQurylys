@@ -81,6 +81,13 @@ export class ProjectTaskBoardService {
     );
   }
 
+  startTask(projectId: number, taskId: number): Observable<ProjectTaskBoardTaskResponse> {
+    return this.http.post<ProjectTaskBoardTaskResponse>(
+      `${environment.apiUrl}/projects/${projectId}/task-board/tasks/${taskId}/start`,
+      {}
+    );
+  }
+
   approveCompletion(
     projectId: number,
     taskId: number,

@@ -40,7 +40,7 @@
       <span class="title-text">{{ item.title }}</span>
     }
 
-    @if (canAddSubtask) {
+    @if (canManageTask && canAddSubtask) {
       <button
         type="button"
         class="add-subtask-button"
@@ -64,6 +64,7 @@
       type="button"
       class="date-trigger"
       [class.open]="isDateMenuOpen"
+      [disabled]="!canManageTask"
       (click)="onToggleDateMenu($event)"
     >
       <span class="date-badge" [class.empty]="!item.dueDate">
@@ -114,6 +115,7 @@
       type="button"
       class="priority-trigger"
       [class.open]="isPriorityMenuOpen"
+      [disabled]="!canManageTask"
       (click)="onTogglePriorityMenu($event)"
     >
       <span class="priority-pill priority-trigger-pill" [ngClass]="priorityClass">
@@ -146,6 +148,7 @@
       type="button"
       class="assignee-trigger"
       [class.open]="isAssigneeMenuOpen"
+      [disabled]="!canManageTask"
       (click)="onToggleAssigneeMenu($event)"
     >
       <div class="assignee-wrap" [class.empty]="!item.assignee">

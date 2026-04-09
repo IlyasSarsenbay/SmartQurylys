@@ -93,6 +93,14 @@ public class ProjectTaskBoardController {
         return ResponseEntity.ok(projectTaskBoardService.requestCompletion(projectId, taskId));
     }
 
+    @PostMapping("/tasks/{taskId}/start")
+    public ResponseEntity<ProjectTaskBoardTaskResponse> startTask(
+            @PathVariable Long projectId,
+            @PathVariable Long taskId
+    ) {
+        return ResponseEntity.ok(projectTaskBoardService.startTask(projectId, taskId));
+    }
+
     @PostMapping("/tasks/{taskId}/approve-completion")
     public ResponseEntity<ProjectTaskBoardTaskResponse> approveCompletion(
             @PathVariable Long projectId,

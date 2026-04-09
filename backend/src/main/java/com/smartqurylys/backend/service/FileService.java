@@ -6,9 +6,13 @@ import com.smartqurylys.backend.entity.Project;
 import com.smartqurylys.backend.entity.User;
 import com.smartqurylys.backend.repository.FileRepository;
 import com.smartqurylys.backend.repository.ProjectRepository;
+import com.smartqurylys.backend.repository.UserRepository;
 import com.smartqurylys.backend.shared.enums.ActivityActionType;
 import com.smartqurylys.backend.shared.enums.ActivityEntityType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,6 +29,7 @@ public class FileService {
 
     private final FileRepository fileRepository;
     private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
     private final ActivityLogService activityLogService;
     private final ProjectRealtimeService projectRealtimeService;
 
@@ -128,6 +133,13 @@ public class FileService {
         Project project = projectRepository.findByFileId(id).orElse(null);
         String fileName = file.getName();
 
+        if (project != null) {
+            User currentUser = getAuthenticatedUser();
+            if (!isProjectOwnerOrAdmin(project, currentUser)) {
+                throw new AccessDeniedException("Only the project owner can delete project files");
+            }
+        }
+
         Files.deleteIfExists(Paths.get(file.getFilepath()));
         fileRepository.delete(file);
 
@@ -185,5 +197,19 @@ public class FileService {
             }
         }
         return "";
+    }
+
+    private User getAuthenticatedUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email = principal instanceof UserDetails userDetails
+                ? userDetails.getUsername()
+                : principal.toString();
+
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Authenticated user not found"));
+    }
+
+    private boolean isProjectOwnerOrAdmin(Project project, User currentUser) {
+        return project.getOwner().getId().equals(currentUser.getId()) || "ADMIN".equals(currentUser.getRole());
     }
 }

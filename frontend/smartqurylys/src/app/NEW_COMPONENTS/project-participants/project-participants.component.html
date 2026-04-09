@@ -3,12 +3,13 @@
         <div class="page-header">
             <div>
                 <h2>Доступ к проекту «{{ project.name }}»</h2>
-                <!-- <p class="subtitle"></p> -->
             </div>
 
+            @if (canInviteParticipants) {
             <button class="invite-btn" (click)="isInviteModalOpen = true">
                 Пригласить участника
             </button>
+            }
         </div>
 
         <div class="participants-card">
@@ -71,7 +72,7 @@
                                 </div>
                             </td>
                             <td>
-                                <button class="icon-btn">⋯</button>
+                                <button class="icon-btn">...</button>
                             </td>
                         </tr>
                         }
@@ -85,20 +86,23 @@
                     <div class="empty-text">
                         Пригласите других пользователей в ваш проект
                     </div>
+                    @if (canInviteParticipants) {
                     <button class="invite-btn" (click)="isInviteModalOpen = true">
                         Пригласить
                     </button>
+                    }
                 </div>
             </ng-template>
         </div>
 
 
-        <div class="modal-backdrop" *ngIf="isInviteModalOpen">
+        @if (canInviteParticipants && isInviteModalOpen) {
+        <div class="modal-backdrop">
 
             <div class="modal">
                 <div class="modal-header">
                     <h3>Добавить участника</h3>
-                    <button class="close-btn" (click)="closeInviteModal()">×</button>
+                    <button class="close-btn" (click)="closeInviteModal()">X</button>
                 </div>
 
                 <div class="modal-body">
@@ -133,5 +137,6 @@
                 </div>
             </div>
         </div>
+        }
     </div>
 </main>

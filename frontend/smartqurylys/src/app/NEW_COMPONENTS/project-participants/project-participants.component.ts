@@ -9,6 +9,7 @@ import { ActivatedRoute } from '@angular/router';
 import { forkJoin, auditTime, filter } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProjectRealtimeService } from '../../core/project-realtime.service';
+import { UserService } from '../../core/user.service';
 
 
 interface ParticipantItem {
@@ -38,6 +39,7 @@ export class ProjectParticipantsComponent implements OnInit {
   project!: Project
   participants: ParticipantItem[] = []
   private projectId: number | null = null;
+  currentUserIinBin: string | null = null;
 
   isInviteModalOpen = false;
   searchTerm = '';
@@ -46,7 +48,8 @@ export class ProjectParticipantsComponent implements OnInit {
     private projectService: ProjectService,
     private participantService: ParticipantService,
     private route: ActivatedRoute,
-    private projectRealtimeService: ProjectRealtimeService
+    private projectRealtimeService: ProjectRealtimeService,
+    private userService: UserService
   ) { }
   inviteForm = {
     iinBin: '',
@@ -91,6 +94,21 @@ export class ProjectParticipantsComponent implements OnInit {
       .subscribe(() => {
         this.loadParticipants(true);
       });
+
+    this.userService.getCurrentUser()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (user) => {
+          this.currentUserIinBin = user.iinBin;
+        },
+        error: (error) => {
+          console.error('Failed to load current user for participants page:', error);
+        }
+      });
+  }
+
+  get canInviteParticipants(): boolean {
+    return !!this.project && !!this.currentUserIinBin && this.project.ownerIinBin === this.currentUserIinBin;
   }
 
   private loadParticipants(forceRefresh = false): void {
@@ -137,6 +155,10 @@ export class ProjectParticipantsComponent implements OnInit {
   }
 
   inviteParticipant(): void {
+    if (!this.canInviteParticipants) {
+      return;
+    }
+
     this.projectService.inviteParticipant(this.project.id, {
       iinBin: this.inviteForm.iinBin,
       role: this.inviteForm.role,

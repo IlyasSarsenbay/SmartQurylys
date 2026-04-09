@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -69,6 +70,7 @@ public class ProjectController {
     @PutMapping("/{id}")
     public ResponseEntity<ProjectResponse> updateProject(@PathVariable Long id,
             @Valid @RequestBody UpdateProjectRequest request) {
+        assertCurrentUserIsProjectOwner(id);
         log.info("PUT /projects/id:" + id + "\n" + request);
         return ResponseEntity.ok(projectService.updateProject(id, request));
     }
@@ -85,6 +87,7 @@ public class ProjectController {
     public ResponseEntity<InvitationResponse> invite(
             @PathVariable Long id,
             @Valid @RequestBody CreateInvitationRequest request) {
+        assertCurrentUserIsProjectOwner(id);
         com.smartqurylys.backend.entity.User sender = userService.getCurrentUserEntity();
         return ResponseEntity.ok(invitationService.sendInvitation(id, request, sender));
     }
@@ -94,6 +97,7 @@ public class ProjectController {
     public ResponseEntity<FileResponse> uploadProjectFile(
             @PathVariable Long projectId,
             @RequestParam("file") MultipartFile file) throws IOException {
+        assertCurrentUserIsProjectOwner(projectId);
         File savedFile = projectService.addFileToProject(projectId, file);
         return ResponseEntity.ok(FileService.mapToFileResponse(savedFile));
     }
@@ -130,5 +134,17 @@ public class ProjectController {
     public ResponseEntity<Void> deleteNote(@PathVariable Long noteId) {
         projectService.deleteProjectNote(noteId);
         return ResponseEntity.ok().build();
+    }
+
+    private void assertCurrentUserIsProjectOwner(Long projectId) {
+        com.smartqurylys.backend.entity.User currentUser = userService.getCurrentUserEntity();
+        if ("ADMIN".equals(currentUser.getRole())) {
+            return;
+        }
+
+        ProjectResponse project = projectService.getProjectById(projectId);
+        if (!currentUser.getIinBin().equals(project.getOwnerIinBin())) {
+            throw new AccessDeniedException("Only the project owner can perform this action");
+        }
     }
 }

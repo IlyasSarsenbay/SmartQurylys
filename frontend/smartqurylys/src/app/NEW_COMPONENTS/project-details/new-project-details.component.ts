@@ -11,6 +11,7 @@ import { ActivityLogResponse } from '../../core/models/activity-log';
 import { Project } from '../../core/models/project';
 import { ProjectRealtimeService } from '../../core/project-realtime.service';
 import { ProjectService } from '../../core/project.service';
+import { UserService } from '../../core/user.service';
 import { RichEditorComponent } from "../rich-editor/rich-editor.component";
 import { ProjectDescCardComponent } from "../project-desc-card/project-desc-card.component";
 import { ProjectFilesSectionComponent } from "../project-files-section/project-files-section.component";
@@ -30,6 +31,7 @@ export class NewProjectDetailsComponent implements OnInit, AfterViewInit {
   project!: Project
   activityLog: ActivityLogResponse[] = [];
   visibleActivityCount = this.initialVisibleActivityCount;
+  currentUserIinBin: string | null = null;
   private projectId: number | null = null;
 
   @ViewChild('descriptionWrapper')
@@ -46,7 +48,8 @@ export class NewProjectDetailsComponent implements OnInit, AfterViewInit {
     private readonly http: HttpClient,
     private readonly route: ActivatedRoute,
     private readonly projectService: ProjectService,
-    private readonly projectRealtimeService: ProjectRealtimeService
+    private readonly projectRealtimeService: ProjectRealtimeService,
+    private readonly userService: UserService
   ) { }
 
   ngOnInit(): void {
@@ -76,6 +79,17 @@ export class NewProjectDetailsComponent implements OnInit, AfterViewInit {
       .subscribe(() => {
         this.fetchActivityLog();
       });
+
+    this.userService.getCurrentUser()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (user) => {
+          this.currentUserIinBin = user.iinBin;
+        },
+        error: (error) => {
+          console.error('Failed to load current user in project details:', error);
+        }
+      });
   }
 
   ngAfterViewInit(): void {
@@ -84,6 +98,10 @@ export class NewProjectDetailsComponent implements OnInit, AfterViewInit {
 
 
   updateProjectDescription(descriptionHTML: string) {
+    if (!this.canManageProject) {
+      return;
+    }
+
     this.project.description = descriptionHTML
     this.projectService.updateProject(this.project)
       .subscribe(value => {
@@ -92,7 +110,15 @@ export class NewProjectDetailsComponent implements OnInit, AfterViewInit {
   }
 
   toggleEditor() {
+    if (!this.canManageProject) {
+      return;
+    }
+
     this.isEditorEnabled = !this.isEditorEnabled
+  }
+
+  get canManageProject(): boolean {
+    return !!this.project && !!this.currentUserIinBin && this.project.ownerIinBin === this.currentUserIinBin;
   }
 
   toggleDescription(): void {

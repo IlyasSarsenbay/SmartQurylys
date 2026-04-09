@@ -6,6 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { DocumentRequest, DocumentShortResponse, DocumentStatus } from '../../core/models/document';
 import { DocumentStatusLabels } from '../../core/models/document';
 import { ProjectService } from '../../core/project.service';
+import { UserService } from '../../core/user.service';
 
 type DocumentType = 'PDF' | 'DOCX' | 'XLSX' | 'IMAGE' | 'OTHER';
 
@@ -31,11 +32,13 @@ export class ProjectDocumentsComponent implements OnInit {
   selectedStatus = 'ALL';
   projectId!: number
   documents!: ProjectDocument[]
+  currentUserIinBin: string | null = null;
   statusLabels = DocumentStatusLabels
 
   constructor(
     private documentService: DocumentService,
     private projectService: ProjectService,
+    private userService: UserService,
     private route: ActivatedRoute
   ) {
   }
@@ -47,6 +50,20 @@ export class ProjectDocumentsComponent implements OnInit {
       .subscribe((dtos: DocumentShortResponse[]) => {
         this.documents = dtos.map(dto => this.mapToProjectDocument(dto));
       });
+
+    this.userService.getCurrentUser().subscribe({
+      next: (user) => {
+        this.currentUserIinBin = user.iinBin;
+      },
+      error: (error) => {
+        console.error('Failed to load current user for documents tab:', error);
+      }
+    });
+  }
+
+  get canManageDocuments(): boolean {
+    const project = this.projectService.getActiveProjectSnapshot();
+    return !!project && !!this.currentUserIinBin && project.ownerIinBin === this.currentUserIinBin;
   }
 
   get filteredDocuments(): ProjectDocument[] {
@@ -67,6 +84,8 @@ export class ProjectDocumentsComponent implements OnInit {
   }
 
   onFilesSelected(event: Event): void {
+    if (!this.canManageDocuments) return;
+
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
 
@@ -200,6 +219,10 @@ export class ProjectDocumentsComponent implements OnInit {
   }
 
   onDelete(docId: number): void {
+    if (!this.canManageDocuments) {
+      return;
+    }
+
     this.documentService.deleteDocument(docId)
     .subscribe({
         next: () => {

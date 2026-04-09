@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { ProjectService } from '../../core/project.service';
 import { ActivatedRoute } from '@angular/router';
 import { FileResponse } from '../../core/models/file';
@@ -25,6 +25,7 @@ interface FileItem {
 export class ProjectFilesSectionComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
+  @Input() canManageFiles = false;
   files: FileItem[] = []
   projectId!: number
   openedFileItemMenuId: number | null = null
@@ -91,6 +92,10 @@ export class ProjectFilesSectionComponent implements OnInit {
   }
 
   onFilesSelected(event: Event): void {
+    if (!this.canManageFiles) {
+      return;
+    }
+
     const input = event.target as HTMLInputElement;
     if (!input.files) return;
 
@@ -167,6 +172,10 @@ export class ProjectFilesSectionComponent implements OnInit {
   }
 
   removeFile(fileToRemove: FileItem): void {
+    if (!this.canManageFiles) {
+      return;
+    }
+
     this.projectService.deleteProjectFile(fileToRemove.id)
       .subscribe({
         next: () => {

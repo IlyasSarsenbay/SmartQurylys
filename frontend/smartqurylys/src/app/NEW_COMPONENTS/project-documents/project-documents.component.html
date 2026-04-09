@@ -6,33 +6,6 @@
             </div>
         </div>
 
-        <!-- <div class="documents-stats">
-            <div class="stat-card">
-                <span class="stat-label">Всего договоров</span>
-                <strong>{{ 0 }}</strong>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Ждет рассмотрения</span>
-                <strong>{{ 0 }}</strong>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Рассматривается</span>
-                <strong>{{ 0 }}</strong>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Ждет подписания</span>
-                <strong>{{ 0 }}</strong>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Активно</span>
-                <strong>{{ 0 }}</strong>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">В архиве</span>
-                <strong>{{ 0 }}</strong>
-            </div>
-        </div> -->
-
         <div class="documents-toolbar">
             <input type="text" class="search-input" placeholder="Поиск по имени, категории, загрузчику..."
                 [(ngModel)]="searchTerm" />
@@ -55,10 +28,12 @@
                 <option value="ARCHIVED">Archived</option>
             </select>
 
+            @if (canManageDocuments) {
             <label class="upload-btn">
                 <input type="file" multiple hidden (change)="onFilesSelected($event)" />
                 Upload documents
             </label>
+            }
         </div>
 
         <div class="documents-table-wrapper" *ngIf="filteredDocuments.length > 0; else emptyState">
@@ -102,7 +77,9 @@
                             <div class="action-buttons">
                                 <button class="action-btn" (click)="onPreview(doc)">Preview</button>
                                 <button class="action-btn" (click)="onDownload(doc)">Скачать</button>
+                                @if (canManageDocuments) {
                                 <button class="action-btn danger" (click)="onDelete(doc.id)">Удалить</button>
+                                }
                             </div>
                         </td>
                     </tr>
@@ -112,9 +89,9 @@
 
         <ng-template #emptyState>
             <div class="empty-state">
-                <div class="empty-icon">🗂️</div>
+                <div class="empty-icon">DOC</div>
                 <h3>Документы не найдены</h3>
-                <p>Попробуйте изменить фильтры или загурзить документ</p>
+                <p>Попробуйте изменить фильтры или загрузить документ</p>
             </div>
         </ng-template>
 

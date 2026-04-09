@@ -46,6 +46,7 @@ public class ProjectTaskBoardService {
     @Transactional
     public ProjectTaskBoardStageResponse createStage(Long projectId, CreateProjectTaskBoardStageRequest request) {
         Project project = requireProjectAccess(projectId);
+        requireProjectOwnerOrAdmin(project);
         LocalDateTime now = LocalDateTime.now();
 
         ProjectTaskBoardStage stage = ProjectTaskBoardStage.builder()
@@ -67,7 +68,8 @@ public class ProjectTaskBoardService {
             Long stageId,
             UpdateProjectTaskBoardStageRequest request
     ) {
-        requireProjectAccess(projectId);
+        Project project = requireProjectAccess(projectId);
+        requireProjectOwnerOrAdmin(project);
         ProjectTaskBoardStage stage = getStageOrThrow(projectId, stageId);
 
         if (request.getName() != null && !request.getName().trim().isEmpty()) {
@@ -89,7 +91,8 @@ public class ProjectTaskBoardService {
 
     @Transactional
     public void deleteStage(Long projectId, Long stageId) {
-        requireProjectAccess(projectId);
+        Project project = requireProjectAccess(projectId);
+        requireProjectOwnerOrAdmin(project);
         ProjectTaskBoardStage stage = getStageOrThrow(projectId, stageId);
         stageRepository.delete(stage);
         projectRealtimeService.publish(projectId, "STAGE_DELETED", stageId);
@@ -98,6 +101,7 @@ public class ProjectTaskBoardService {
     @Transactional
     public ProjectTaskBoardTaskResponse createTask(Long projectId, CreateProjectTaskBoardTaskRequest request) {
         Project project = requireProjectAccess(projectId);
+        requireProjectOwnerOrAdmin(project);
         ProjectTaskBoardStage stage = getStageOrThrow(projectId, request.getStageId());
         ProjectTaskBoardTask parentTask = resolveParentTask(projectId, request.getParentTaskId(), stage.getId());
         LocalDateTime now = LocalDateTime.now();
@@ -135,7 +139,8 @@ public class ProjectTaskBoardService {
             Long taskId,
             UpdateProjectTaskBoardTaskRequest request
     ) {
-        requireProjectAccess(projectId);
+        Project project = requireProjectAccess(projectId);
+        requireProjectOwnerOrAdmin(project);
         ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
 
         if (request.getStageId() != null && !Objects.equals(request.getStageId(), task.getStage().getId())) {
@@ -164,11 +169,6 @@ public class ProjectTaskBoardService {
         }
         if (request.getStatus() != null) {
             User currentUser = getAuthenticatedUser();
-            boolean isOwnerOrAdmin = isProjectOwnerOrAdmin(task.getProject(), currentUser);
-
-            if (request.getStatus() == ProjectTaskBoardStatus.DONE && !isOwnerOrAdmin) {
-                throw new AccessDeniedException("Only the project owner can mark a task as done directly");
-            }
 
             task.setStatus(request.getStatus());
 
@@ -218,7 +218,8 @@ public class ProjectTaskBoardService {
 
     @Transactional
     public void deleteTask(Long projectId, Long taskId) {
-        requireProjectAccess(projectId);
+        Project project = requireProjectAccess(projectId);
+        requireProjectOwnerOrAdmin(project);
         ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
         taskRepository.delete(task);
         projectRealtimeService.publish(projectId, "TASK_DELETED", taskId);
@@ -226,13 +227,36 @@ public class ProjectTaskBoardService {
 
     @Transactional
     public void bulkDeleteTasks(Long projectId, BulkDeleteProjectTaskBoardTasksRequest request) {
-        requireProjectAccess(projectId);
+        Project project = requireProjectAccess(projectId);
+        requireProjectOwnerOrAdmin(project);
         List<ProjectTaskBoardTask> tasks = taskRepository.findByIdInAndProjectId(request.getTaskIds(), projectId);
         if (tasks.size() != request.getTaskIds().size()) {
             throw new EntityNotFoundException("One or more board tasks were not found");
         }
         taskRepository.deleteAll(tasks);
         projectRealtimeService.publish(projectId, "TASKS_BULK_DELETED", null);
+    }
+
+    @Transactional
+    public ProjectTaskBoardTaskResponse startTask(Long projectId, Long taskId) {
+        Project project = requireProjectAccess(projectId);
+        ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
+        User currentUser = getAuthenticatedUser();
+        Participant currentParticipant = requireCurrentProjectParticipant(project, currentUser);
+
+        if (task.getAssigneeParticipant() == null || !Objects.equals(task.getAssigneeParticipant().getId(), currentParticipant.getId())) {
+            throw new AccessDeniedException("Only the assigned participant can start this task");
+        }
+        if (task.getStatus() != ProjectTaskBoardStatus.TODO) {
+            throw new IllegalArgumentException("Only tasks that are ready to do can be started");
+        }
+
+        task.setStatus(ProjectTaskBoardStatus.IN_PROGRESS);
+        task.setUpdatedAt(LocalDateTime.now());
+
+        ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        projectRealtimeService.publish(projectId, "TASK_STARTED", savedTask.getId());
+        return mapTaskResponse(savedTask, loadCommentCounts(projectId), Collections.emptyMap());
     }
 
     @Transactional
@@ -515,6 +539,13 @@ public class ProjectTaskBoardService {
     private boolean isProjectOwnerOrAdmin(Project project, User currentUser) {
         return Objects.equals(project.getOwner().getId(), currentUser.getId())
                 || "ADMIN".equals(currentUser.getRole());
+    }
+
+    private void requireProjectOwnerOrAdmin(Project project) {
+        User currentUser = getAuthenticatedUser();
+        if (!isProjectOwnerOrAdmin(project, currentUser)) {
+            throw new AccessDeniedException("Only the project owner can modify board task data");
+        }
     }
 
     private Project requireProjectAccess(Long projectId) {

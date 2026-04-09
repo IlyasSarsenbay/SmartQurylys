@@ -26,7 +26,9 @@
           </div>
 
           <div class="toolbar-right">
-            <button type="button" class="ghost-button" (click)="addStage()">Создать этап</button>
+            @if (isCurrentUserProjectOwner) {
+              <button type="button" class="ghost-button" (click)="addStage()">Создать этап</button>
+            }
             <button type="button" class="icon-button" aria-label="Ещё действия">
               <span></span>
             </button>
@@ -63,27 +65,29 @@
                       }
                     </div>
 
-                    <div class="stage-actions">
-                      <button
-                        type="button"
-                        class="stage-more-button"
-                        (click)="onToggleStageMenu(stage.id); $event.stopPropagation()"
-                        aria-label="Действия этапа"
-                      >
-                        <span></span>
-                      </button>
+                    @if (isCurrentUserProjectOwner) {
+                      <div class="stage-actions">
+                        <button
+                          type="button"
+                          class="stage-more-button"
+                          (click)="onToggleStageMenu(stage.id); $event.stopPropagation()"
+                          aria-label="Действия этапа"
+                        >
+                          <span></span>
+                        </button>
 
-                      @if (openStageMenuFor === stage.id) {
-                        <div class="stage-menu">
-                          <button type="button" class="stage-menu-option" (click)="onRenameStage(stage.id)">
-                            Переименовать
-                          </button>
-                          <button type="button" class="stage-menu-option delete" (click)="onDeleteStage(stage.id)">
-                            Удалить
-                          </button>
-                        </div>
-                      }
-                    </div>
+                        @if (openStageMenuFor === stage.id) {
+                          <div class="stage-menu">
+                            <button type="button" class="stage-menu-option" (click)="onRenameStage(stage.id)">
+                              Переименовать
+                            </button>
+                            <button type="button" class="stage-menu-option delete" (click)="onDeleteStage(stage.id)">
+                              Удалить
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    }
                   </div>
                 </header>
 
@@ -142,6 +146,7 @@
                             app-task-list-row
                             [item]="item"
                             [isActive]="commentsTaskId === item.id"
+                            [canManageTask]="isCurrentUserProjectOwner"
                             [isPriorityMenuOpen]="openPriorityMenuFor === item.id"
                             [isDateMenuOpen]="openDateMenuFor === item.id"
                             [isAssigneeMenuOpen]="openAssigneeMenuFor === item.id"
@@ -178,14 +183,16 @@
                           ></tr>
                         }
 
-                        <tr class="create-row">
-                          <td colspan="7">
-                            <button type="button" class="create-button" (click)="addTaskToStage(stage.id)">
-                              <span>+</span>
-                              Создать задачу
-                            </button>
-                          </td>
-                        </tr>
+                        @if (isCurrentUserProjectOwner) {
+                          <tr class="create-row">
+                            <td colspan="7">
+                              <button type="button" class="create-button" (click)="addTaskToStage(stage.id)">
+                                <span>+</span>
+                                Создать задачу
+                              </button>
+                            </td>
+                          </tr>
+                        }
                       </tbody>
                     </table>
                   </div>
@@ -209,7 +216,7 @@
               <h2>{{ activeCommentsTask.title }}</h2>
             </div>
             <button type="button" class="details-panel-close" (click)="onCloseComments()" aria-label="Закрыть панель">
-              ×
+              X
             </button>
           </header>
 
@@ -371,7 +378,7 @@
     </div>
   </section>
 
-  @if (selectedCount > 0) {
+  @if (isCurrentUserProjectOwner && selectedCount > 0) {
     <div class="selection-bar">
       <span class="selection-count">Выбрано: {{ selectedCount }}</span>
       <button type="button" class="selection-delete" (click)="deleteSelected()">Удалить</button>

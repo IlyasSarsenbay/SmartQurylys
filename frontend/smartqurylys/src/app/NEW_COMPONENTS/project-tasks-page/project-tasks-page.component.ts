@@ -336,10 +336,18 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onToggleStageMenu(stageId: number): void {
+    if (!this.isCurrentUserProjectOwner) {
+      return;
+    }
+
     this.openStageMenuFor = this.openStageMenuFor === stageId ? null : stageId;
   }
 
   onRenameStage(stageId: number): void {
+    if (!this.isCurrentUserProjectOwner) {
+      return;
+    }
+
     const stage = this.stages.find((item) => item.id === stageId);
     if (!stage) {
       return;
@@ -350,7 +358,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onDeleteStage(stageId: number): void {
-    if (this.projectId === null) {
+    if (!this.isCurrentUserProjectOwner || this.projectId === null) {
       return;
     }
 
@@ -372,7 +380,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onSaveStageTitle(stageId: number): void {
-    if (this.projectId === null || this.editingStageId !== stageId) {
+    if (!this.isCurrentUserProjectOwner || this.projectId === null || this.editingStageId !== stageId) {
       return;
     }
 
@@ -432,6 +440,10 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onStartTitleEdit(itemId: number): void {
+    if (!this.isCurrentUserProjectOwner) {
+      return;
+    }
+
     const item = this.findItemById(this.getAllTasks(), itemId);
     if (!item) {
       return;
@@ -450,7 +462,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onSaveTitleEdit(itemId: number): void {
-    if (this.projectId === null || this.editingTitleItemId !== itemId) {
+    if (!this.isCurrentUserProjectOwner || this.projectId === null || this.editingTitleItemId !== itemId) {
       return;
     }
 
@@ -484,7 +496,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onAddSubtask(itemId: number): void {
-    if (this.projectId === null) {
+    if (!this.isCurrentUserProjectOwner || this.projectId === null) {
       return;
     }
 
@@ -539,6 +551,10 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onTogglePriorityMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
+    if (!this.isCurrentUserProjectOwner) {
+      return;
+    }
+
     this.openDateMenuFor = null;
     this.openAssigneeMenuFor = null;
 
@@ -555,7 +571,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onChangePriority(itemId: number, priority: TodoPriority): void {
-    if (this.projectId === null) {
+    if (!this.isCurrentUserProjectOwner || this.projectId === null) {
       return;
     }
 
@@ -577,6 +593,10 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onToggleDateMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
+    if (!this.isCurrentUserProjectOwner) {
+      return;
+    }
+
     this.openPriorityMenuFor = null;
     this.openAssigneeMenuFor = null;
 
@@ -613,7 +633,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onChangeDueDate(itemId: number, isoDate: string): void {
-    if (this.projectId === null) {
+    if (!this.isCurrentUserProjectOwner || this.projectId === null) {
       return;
     }
 
@@ -633,7 +653,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onClearDueDate(itemId: number): void {
-    if (this.projectId === null) {
+    if (!this.isCurrentUserProjectOwner || this.projectId === null) {
       return;
     }
 
@@ -653,6 +673,10 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onToggleAssigneeMenu(payload: { itemId: number; anchorRect: OverlayAnchorRect }): void {
+    if (!this.isCurrentUserProjectOwner) {
+      return;
+    }
+
     this.openPriorityMenuFor = null;
     this.openDateMenuFor = null;
 
@@ -669,7 +693,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   onChangeAssignee(itemId: number, assigneeParticipantId: number | null): void {
-    if (this.projectId === null) {
+    if (!this.isCurrentUserProjectOwner || this.projectId === null) {
       return;
     }
 
@@ -733,9 +757,7 @@ export class ProjectTasksPageComponent implements OnInit {
     }
 
     const taskId = this.commentsTaskId;
-    this.projectTaskBoardService.updateTask(this.projectId, taskId, {
-      status: 'IN_PROGRESS'
-    })
+    this.projectTaskBoardService.startTask(this.projectId, taskId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
@@ -837,6 +859,10 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   addTask(): void {
+    if (!this.isCurrentUserProjectOwner) {
+      return;
+    }
+
     const targetStage = this.stages[this.stages.length - 1];
     if (!targetStage) {
       return;
@@ -846,7 +872,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   addStage(): void {
-    if (this.projectId === null) {
+    if (!this.isCurrentUserProjectOwner || this.projectId === null) {
       return;
     }
 
@@ -863,7 +889,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   addTaskToStage(stageId: number): void {
-    if (this.projectId === null) {
+    if (!this.isCurrentUserProjectOwner || this.projectId === null) {
       return;
     }
 
@@ -883,7 +909,7 @@ export class ProjectTasksPageComponent implements OnInit {
   }
 
   deleteSelected(): void {
-    if (this.projectId === null) {
+    if (!this.isCurrentUserProjectOwner || this.projectId === null) {
       return;
     }
 
