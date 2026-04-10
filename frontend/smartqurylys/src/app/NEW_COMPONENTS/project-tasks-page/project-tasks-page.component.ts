@@ -1143,15 +1143,16 @@ export class ProjectTasksPageComponent implements OnInit {
   private filterItem(item: TodoItem): TodoItem | null {
     const matchesSearch = this.matchesSearch(item);
     const matchesStatus = this.selectedStatus === 'all' || item.status === this.selectedStatus;
+    const hasSearchQuery = !!this.searchTerm.trim();
     const filteredSubtasks = item.subtasks
       ?.map((subtask) => this.filterItem(subtask))
       .filter((subtask): subtask is TodoItem => subtask !== null);
 
     if (item.type === 'group') {
-      if (matchesSearch || matchesStatus || (filteredSubtasks?.length ?? 0) > 0) {
+      if ((hasSearchQuery && matchesSearch) || matchesStatus || (filteredSubtasks?.length ?? 0) > 0) {
         return {
           ...item,
-          subtasks: filteredSubtasks ?? item.subtasks
+          subtasks: filteredSubtasks ?? []
         };
       }
 

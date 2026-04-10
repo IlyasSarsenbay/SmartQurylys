@@ -19,6 +19,9 @@
               <button type="button" class="filter-pill" [class.active]="selectedStatus === 'В работе'" (click)="onStatusChange('В работе')">
                 В работе
               </button>
+              <button type="button" class="filter-pill" [class.active]="selectedStatus === 'На проверке'" (click)="onStatusChange('На проверке')">
+                На проверке
+              </button>
               <button type="button" class="filter-pill" [class.active]="selectedStatus === 'Готово'" (click)="onStatusChange('Готово')">
                 Готово
               </button>
