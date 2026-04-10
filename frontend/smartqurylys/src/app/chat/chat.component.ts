@@ -215,13 +215,10 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.mentionedUserIds
     ).subscribe({
       next: (msg) => {
-        this.messages.push(msg);
         this.newMessageContent = '';
         this.mentionedUserIds = [];
         this.selectedFile = null;
         this.currentMessageType = 'TEXT';
-        this.updateActionRegistry();
-        setTimeout(() => this.scrollToBottom(), 100);
         // Note: Backend ChatMessageService already creates mention notifications
       },
       error: (err) => console.error('Error sending message:', err)
@@ -236,9 +233,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.selectedConversation.id
     ).subscribe({
       next: (msg) => {
-        this.messages.push(msg);
-        this.updateActionRegistry();
-        setTimeout(() => this.scrollToBottom(), 100);
       },
       error: (err) => console.error('Error sending acknowledgment:', err)
     });
@@ -259,9 +253,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       { status: status }
     ).subscribe({
       next: (msg) => {
-        this.messages.push(msg);
-        this.updateActionRegistry();
-        setTimeout(() => this.scrollToBottom(), 100);
       },
       error: (err) => console.error('Error sending coordination response:', err)
     });
