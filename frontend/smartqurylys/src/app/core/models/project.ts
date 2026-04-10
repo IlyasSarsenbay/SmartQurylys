@@ -29,8 +29,7 @@ export function mapProjectResponsesToProjects(
 }
 
 export const PROJECT_STATUS_RU: Record<string, string> = {
-  DRAFT: 'Новый',
-  WAITING: 'Ожидание',
+  DRAFT: 'Черновик',
   ACTIVE: 'В работе',
   ON_PAUSE: 'На паузе',
   COMPLETED: 'Завершён',
@@ -70,3 +69,4 @@ export interface Project {
   timeRemaining?: { days?: number; hours?: number; isExpired: boolean; expiredDate?: string; };
   favorite: boolean;
 }
+

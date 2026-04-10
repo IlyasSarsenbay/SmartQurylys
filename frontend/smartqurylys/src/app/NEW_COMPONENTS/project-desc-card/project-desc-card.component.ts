@@ -29,7 +29,6 @@ export class ProjectDescCardComponent implements OnInit {
   readonly PROJECT_STATUS_RU = PROJECT_STATUS_RU;
   readonly statusOptions: ProjectStatus[] = [
     ProjectStatus.DRAFT,
-    ProjectStatus.WAITING,
     ProjectStatus.ACTIVE,
     ProjectStatus.ON_PAUSE,
     ProjectStatus.COMPLETED,

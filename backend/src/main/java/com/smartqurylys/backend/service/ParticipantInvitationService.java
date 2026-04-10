@@ -12,6 +12,7 @@ import com.smartqurylys.backend.repository.ProjectRepository;
 import com.smartqurylys.backend.repository.UserRepository;
 import com.smartqurylys.backend.shared.enums.ActivityActionType;
 import com.smartqurylys.backend.shared.enums.ActivityEntityType;
+import com.smartqurylys.backend.shared.enums.ProjectStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,13 @@ public class ParticipantInvitationService {
     public InvitationResponse sendInvitation(Long projectId, CreateInvitationRequest request, User sender) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
+
+        if (project.getStatus() == ProjectStatus.DRAFT || project.getStatus() == ProjectStatus.WAITING) {
+            throw new IllegalArgumentException("Invitations are unavailable while the project is in draft");
+        }
+        if (project.getStatus() == ProjectStatus.COMPLETED || project.getStatus() == ProjectStatus.CANCELLED) {
+            throw new IllegalArgumentException("Invitations are unavailable for completed or cancelled projects");
+        }
 
         User user = userRepository.findByIinBin(request.getIinBin())
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -166,3 +174,4 @@ public class ParticipantInvitationService {
                 .orElseThrow(() -> new IllegalArgumentException("Приглашения в проекте не найдены"));
     }
 }
+

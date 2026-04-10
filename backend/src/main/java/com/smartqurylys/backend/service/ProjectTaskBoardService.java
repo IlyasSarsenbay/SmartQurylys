@@ -47,6 +47,7 @@ public class ProjectTaskBoardService {
     @Transactional
     public ProjectTaskBoardStageResponse createStage(Long projectId, CreateProjectTaskBoardStageRequest request) {
         Project project = requireProjectAccess(projectId);
+        requireProjectWritable(project);
         requireProjectOwnerOrAdmin(project);
         LocalDateTime now = LocalDateTime.now();
 
@@ -70,6 +71,7 @@ public class ProjectTaskBoardService {
             UpdateProjectTaskBoardStageRequest request
     ) {
         Project project = requireProjectAccess(projectId);
+        requireProjectWritable(project);
         requireProjectOwnerOrAdmin(project);
         ProjectTaskBoardStage stage = getStageOrThrow(projectId, stageId);
 
@@ -93,6 +95,7 @@ public class ProjectTaskBoardService {
     @Transactional
     public void deleteStage(Long projectId, Long stageId) {
         Project project = requireProjectAccess(projectId);
+        requireProjectWritable(project);
         requireProjectOwnerOrAdmin(project);
         ProjectTaskBoardStage stage = getStageOrThrow(projectId, stageId);
         stageRepository.delete(stage);
@@ -102,6 +105,7 @@ public class ProjectTaskBoardService {
     @Transactional
     public ProjectTaskBoardTaskResponse createTask(Long projectId, CreateProjectTaskBoardTaskRequest request) {
         Project project = requireProjectAccess(projectId);
+        requireProjectWritable(project);
         requireProjectOwnerOrAdmin(project);
         ProjectTaskBoardStage stage = getStageOrThrow(projectId, request.getStageId());
         ProjectTaskBoardTask parentTask = resolveParentTask(projectId, request.getParentTaskId(), stage.getId());
@@ -141,6 +145,7 @@ public class ProjectTaskBoardService {
             UpdateProjectTaskBoardTaskRequest request
     ) {
         Project project = requireProjectAccess(projectId);
+        requireProjectWritable(project);
         requireProjectOwnerOrAdmin(project);
         ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
 
@@ -220,6 +225,7 @@ public class ProjectTaskBoardService {
     @Transactional
     public void deleteTask(Long projectId, Long taskId) {
         Project project = requireProjectAccess(projectId);
+        requireProjectWritable(project);
         requireProjectOwnerOrAdmin(project);
         ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
         taskRepository.delete(task);
@@ -229,6 +235,7 @@ public class ProjectTaskBoardService {
     @Transactional
     public void bulkDeleteTasks(Long projectId, BulkDeleteProjectTaskBoardTasksRequest request) {
         Project project = requireProjectAccess(projectId);
+        requireProjectWritable(project);
         requireProjectOwnerOrAdmin(project);
         List<ProjectTaskBoardTask> tasks = taskRepository.findByIdInAndProjectId(request.getTaskIds(), projectId);
         if (tasks.size() != request.getTaskIds().size()) {
@@ -241,6 +248,7 @@ public class ProjectTaskBoardService {
     @Transactional
     public ProjectTaskBoardTaskResponse startTask(Long projectId, Long taskId) {
         Project project = requireProjectAccess(projectId);
+        requireProjectWritable(project);
         ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
         User currentUser = getAuthenticatedUser();
         Participant currentParticipant = requireCurrentProjectParticipant(project, currentUser);
@@ -263,6 +271,7 @@ public class ProjectTaskBoardService {
     @Transactional
     public ProjectTaskBoardTaskResponse requestCompletion(Long projectId, Long taskId) {
         Project project = requireProjectAccess(projectId);
+        requireProjectWritable(project);
         ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
         User currentUser = getAuthenticatedUser();
         Participant currentParticipant = requireCurrentProjectParticipant(project, currentUser);
@@ -304,6 +313,7 @@ public class ProjectTaskBoardService {
     @Transactional
     public ProjectTaskBoardTaskResponse approveCompletion(Long projectId, Long taskId, String reason) {
         Project project = requireProjectAccess(projectId);
+        requireProjectWritable(project);
         ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
         User currentUser = getAuthenticatedUser();
 
@@ -340,6 +350,7 @@ public class ProjectTaskBoardService {
     @Transactional
     public ProjectTaskBoardTaskResponse rejectCompletion(Long projectId, Long taskId, String reason) {
         Project project = requireProjectAccess(projectId);
+        requireProjectWritable(project);
         ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
         User currentUser = getAuthenticatedUser();
 
@@ -396,7 +407,8 @@ public class ProjectTaskBoardService {
             Long taskId,
             CreateProjectTaskCommentRequest request
     ) {
-        requireProjectAccess(projectId);
+        Project project = requireProjectAccess(projectId);
+        requireProjectWritable(project);
         ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
         LocalDateTime now = LocalDateTime.now();
 
@@ -601,7 +613,21 @@ public class ProjectTaskBoardService {
             throw new AccessDeniedException("You do not have access to this project board");
         }
 
+        if ((project.getStatus() == com.smartqurylys.backend.shared.enums.ProjectStatus.DRAFT
+                || project.getStatus() == com.smartqurylys.backend.shared.enums.ProjectStatus.WAITING)
+                && !isOwner && !isAdmin) {
+            throw new AccessDeniedException("You do not have access to this draft project board");
+        }
+
         return project;
+    }
+
+    private void requireProjectWritable(Project project) {
+        if (project.getStatus() == com.smartqurylys.backend.shared.enums.ProjectStatus.ON_PAUSE
+                || project.getStatus() == com.smartqurylys.backend.shared.enums.ProjectStatus.COMPLETED
+                || project.getStatus() == com.smartqurylys.backend.shared.enums.ProjectStatus.CANCELLED) {
+            throw new AccessDeniedException("Project board is read-only in the current status");
+        }
     }
 
     private User getAuthenticatedUser() {

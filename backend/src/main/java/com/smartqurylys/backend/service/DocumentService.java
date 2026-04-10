@@ -14,6 +14,7 @@ import com.smartqurylys.backend.repository.ProjectRepository;
 import com.smartqurylys.backend.repository.UserRepository;
 import com.smartqurylys.backend.shared.enums.ActivityActionType;
 import com.smartqurylys.backend.shared.enums.ActivityEntityType;
+import com.smartqurylys.backend.shared.enums.ProjectStatus;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,14 @@ public class DocumentService {
     private final ProjectRealtimeService projectRealtimeService;
 
     public List<DocumentShortResponse> getDocumentsByProject(Integer projectId) {
+        Project project = projectRepository.findById(projectId.longValue())
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        User currentUser = getAuthenticatedUser();
+        if (!canAccessProject(project, currentUser)) {
+            throw new IllegalArgumentException("You do not have access to this project");
+        }
+
         List<Document> docs = documentRepository.findByProjectId(projectId);
         return docs.stream()
                 .map(DocumentService::mapToDocumentShortResponse)
@@ -50,6 +59,11 @@ public class DocumentService {
     public DocumentDetailsResponse getById(Integer id) {
         Document document = documentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Document not found"));
+
+        User currentUser = getAuthenticatedUser();
+        if (!canAccessProject(document.getProject(), currentUser)) {
+            throw new IllegalArgumentException("You do not have access to this project");
+        }
 
         return mapToDetailsResponse(document);
     }
@@ -64,6 +78,7 @@ public class DocumentService {
         if (!isProjectOwnerOrAdmin(document.getProject(), currentUser)) {
             throw new IllegalArgumentException("Only the project owner can upload documents");
         }
+        requireProjectWritable(document.getProject());
 
         File savedFile = fileService.prepareFile(file, currentUser);
         document.setFilePath(savedFile.getFilepath());
@@ -92,6 +107,7 @@ public class DocumentService {
         if (!isProjectOwnerOrAdmin(document.getProject(), currentUser)) {
             throw new IllegalArgumentException("Only the project owner can delete documents");
         }
+        requireProjectWritable(document.getProject());
 
         Long projectId = document.getProject().getId();
         String documentName = document.getName();
@@ -182,6 +198,27 @@ public class DocumentService {
 
     private boolean isProjectOwnerOrAdmin(Project project, User currentUser) {
         return project.getOwner().getId().equals(currentUser.getId()) || "ADMIN".equals(currentUser.getRole());
+    }
+
+    private boolean canAccessProject(Project project, User currentUser) {
+        boolean isOwner = project.getOwner().getId().equals(currentUser.getId());
+        boolean isAdmin = "ADMIN".equals(currentUser.getRole());
+        boolean isParticipant = participantRepository.existsByProjectAndUser(project, currentUser);
+
+        if ((project.getStatus() == ProjectStatus.DRAFT || project.getStatus() == ProjectStatus.WAITING)
+                && !isOwner && !isAdmin) {
+            return false;
+        }
+
+        return isOwner || isAdmin || isParticipant;
+    }
+
+    private void requireProjectWritable(Project project) {
+        if (project.getStatus() == ProjectStatus.ON_PAUSE
+                || project.getStatus() == ProjectStatus.COMPLETED
+                || project.getStatus() == ProjectStatus.CANCELLED) {
+            throw new IllegalArgumentException("Project is read-only in the current status");
+        }
     }
 
 }

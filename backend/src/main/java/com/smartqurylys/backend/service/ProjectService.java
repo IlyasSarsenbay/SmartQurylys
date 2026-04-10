@@ -46,10 +46,6 @@ public class ProjectService {
     // проекты.
     public ProjectResponse createProject(CreateProjectRequest request) {
         User owner = getAuthenticatedUser();
-
-
-
-
         City city = cityRepository.findById(request.getCityId())
                 .orElseThrow(() -> new IllegalArgumentException("Город не найден"));
 
@@ -115,7 +111,7 @@ public class ProjectService {
                     if (p.getOwner().getId().equals(currentUser.getId()))
                         return true;
                     // Участники не видят черновики
-                    return p.getStatus() != ProjectStatus.DRAFT;
+                    return !isOwnerOnlyStatus(p.getStatus());
                 })
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -152,6 +148,9 @@ public class ProjectService {
             throw new AccessDeniedException("Доступ запрещен: У вас нет прав для просмотра этого проекта.");
         }
 
+        if (isOwnerOnlyStatus(project.getStatus()) && !isAdmin && !isOwner) {
+            throw new AccessDeniedException("Draft projects are visible only to the owner");
+        }
         System.out.println("Доступ разрешен для пользователя " + currentUser.getId() + " к проекту " + id);
         return mapToResponse(project);
     }
@@ -192,6 +191,10 @@ public class ProjectService {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Проект не найден"));
 
+        ProjectStatus nextStatus = normalizeProjectStatus(request.getStatus());
+        if (isReadOnlyStatus(project.getStatus()) && !isStatusOnlyUpdate(project, request)) {
+            throw new AccessDeniedException("Project is read-only in the current status");
+        }
         City city = cityRepository.findById(request.getCityId())
                 .orElseThrow(() -> new IllegalArgumentException("Город не найден"));
 
@@ -201,7 +204,7 @@ public class ProjectService {
         project.setStartDate(request.getStartDate());
         project.setEndDate(request.getEndDate());
         project.setType(request.getType());
-        project.setStatus(request.getStatus());
+        project.setStatus(nextStatus);
         project.setCity(city);
 
         // Записываем активность об обновлении проекта.
@@ -310,6 +313,10 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Проект не найден с ID: " + projectId));
 
+        if (isReadOnlyStatus(project.getStatus())) {
+            throw new AccessDeniedException("Project is read-only in the current status");
+        }
+
         // Проверяем доступ
         boolean isParticipant = project.getParticipants().stream()
                 .anyMatch(p -> p.getUser().getId().equals(currentUser.getId()));
@@ -357,6 +364,9 @@ public class ProjectService {
                 .orElseThrow(() -> new RuntimeException("Заметка не найдена с ID: " + noteId));
 
         Project project = note.getProject();
+        if (isReadOnlyStatus(project.getStatus())) {
+            throw new AccessDeniedException("Project is read-only in the current status");
+        }
         boolean isOwner = project.getOwner().getId().equals(currentUser.getId());
         boolean isAuthor = note.getAuthor().getId().equals(currentUser.getId());
 
@@ -389,5 +399,31 @@ public class ProjectService {
                 .role(user.getRole())
                 .build();
     }
+
+    private boolean isOwnerOnlyStatus(ProjectStatus status) {
+        return status == ProjectStatus.DRAFT || status == ProjectStatus.WAITING;
+    }
+
+    private boolean isReadOnlyStatus(ProjectStatus status) {
+        return status == ProjectStatus.ON_PAUSE
+                || status == ProjectStatus.COMPLETED
+                || status == ProjectStatus.CANCELLED;
+    }
+
+    private ProjectStatus normalizeProjectStatus(ProjectStatus status) {
+        return status == ProjectStatus.WAITING ? ProjectStatus.DRAFT : status;
+    }
+
+    private boolean isStatusOnlyUpdate(Project project, UpdateProjectRequest request) {
+        ProjectStatus requestedStatus = normalizeProjectStatus(request.getStatus());
+        return requestedStatus != null
+                && java.util.Objects.equals(request.getName(), project.getName())
+                && java.util.Objects.equals(request.getDescription(), project.getDescription())
+                && java.util.Objects.equals(request.getStartDate(), project.getStartDate())
+                && java.util.Objects.equals(request.getEndDate(), project.getEndDate())
+                && java.util.Objects.equals(request.getType(), project.getType())
+                && java.util.Objects.equals(request.getCityId(), project.getCity().getId());
+    }
 }
+
 

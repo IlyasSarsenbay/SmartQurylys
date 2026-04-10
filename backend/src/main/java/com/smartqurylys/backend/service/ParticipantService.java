@@ -12,6 +12,7 @@ import com.smartqurylys.backend.repository.TaskRepository;
 import com.smartqurylys.backend.repository.UserRepository;
 import com.smartqurylys.backend.shared.enums.ActivityActionType;
 import com.smartqurylys.backend.shared.enums.ActivityEntityType;
+import com.smartqurylys.backend.shared.enums.ProjectStatus;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,10 @@ public class ParticipantService {
             throw new SecurityException("Доступ запрещён: вы не являетесь участником проекта");
         }
 
+        if (isOwnerOnlyStatus(project.getStatus()) && !isOwner && !isAdmin) {
+            throw new SecurityException("Черновик проекта доступен только владельцу");
+        }
+
         return participantRepository.findByProject(project).stream()
                 .map(ParticipantService::mapToParticipantResponse)
                 .toList();
@@ -64,6 +69,7 @@ public class ParticipantService {
         if (!project.getOwner().getId().equals(currentUser.getId())) {
             throw new SecurityException("Доступ запрещён: только владелец проекта может обновлять участников");
         }
+        requireParticipantManagementAllowed(project);
 
         if (request.getRole() != null && !request.getRole().trim().isEmpty()) {
             participant.setRole(request.getRole().trim());
@@ -89,6 +95,8 @@ public class ParticipantService {
         if (!project.getOwner().getId().equals(currentUser.getId())) {
             throw new SecurityException("Доступ запрещён: только владелец проекта может удалять участников");
         }
+        requireParticipantManagementAllowed(project);
+
         if (participant.isOwner()) {
             throw new IllegalArgumentException("Нельзя удалить владельца проекта из участников");
         }
@@ -147,5 +155,17 @@ public class ParticipantService {
                 .filter(Objects::nonNull)
                 .map(ParticipantService::mapToParticipantResponse)
                 .toList();
+    }
+
+    private boolean isOwnerOnlyStatus(ProjectStatus status) {
+        return status == ProjectStatus.DRAFT || status == ProjectStatus.WAITING;
+    }
+
+    private void requireParticipantManagementAllowed(Project project) {
+        if (project.getStatus() == ProjectStatus.ON_PAUSE
+                || project.getStatus() == ProjectStatus.COMPLETED
+                || project.getStatus() == ProjectStatus.CANCELLED) {
+            throw new SecurityException("Participant management is unavailable in the current project status");
+        }
     }
 }

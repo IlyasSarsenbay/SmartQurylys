@@ -9,9 +9,8 @@
                         class="status-button"
                         (click)="toggleStatusMenu($any($event.currentTarget).getBoundingClientRect())"
                         [ngClass]="{
-                            'status-draft': project.status === 'DRAFT',
+                            'status-draft': project.status === 'DRAFT' || project.status === 'WAITING',
                             'status-active': project.status === 'ACTIVE',
-                            'status-waiting': project.status === 'WAITING',
                             'status-pause': project.status === 'ON_PAUSE',
                             'status-completed': project.status === 'COMPLETED',
                             'status-cancelled': project.status === 'CANCELLED'
@@ -24,9 +23,8 @@
                 <span
                     class="status-button"
                     [ngClass]="{
-                        'status-draft': project.status === 'DRAFT',
+                        'status-draft': project.status === 'DRAFT' || project.status === 'WAITING',
                         'status-active': project.status === 'ACTIVE',
-                        'status-waiting': project.status === 'WAITING',
                         'status-pause': project.status === 'ON_PAUSE',
                         'status-completed': project.status === 'COMPLETED',
                         'status-cancelled': project.status === 'CANCELLED'

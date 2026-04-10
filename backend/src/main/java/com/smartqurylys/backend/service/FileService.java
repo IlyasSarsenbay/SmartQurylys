@@ -9,6 +9,7 @@ import com.smartqurylys.backend.repository.ProjectRepository;
 import com.smartqurylys.backend.repository.UserRepository;
 import com.smartqurylys.backend.shared.enums.ActivityActionType;
 import com.smartqurylys.backend.shared.enums.ActivityEntityType;
+import com.smartqurylys.backend.shared.enums.ProjectStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -138,6 +139,7 @@ public class FileService {
             if (!isProjectOwnerOrAdmin(project, currentUser)) {
                 throw new AccessDeniedException("Only the project owner can delete project files");
             }
+            requireProjectWritable(project);
         }
 
         Files.deleteIfExists(Paths.get(file.getFilepath()));
@@ -211,5 +213,13 @@ public class FileService {
 
     private boolean isProjectOwnerOrAdmin(Project project, User currentUser) {
         return project.getOwner().getId().equals(currentUser.getId()) || "ADMIN".equals(currentUser.getRole());
+    }
+
+    private void requireProjectWritable(Project project) {
+        if (project.getStatus() == ProjectStatus.ON_PAUSE
+                || project.getStatus() == ProjectStatus.COMPLETED
+                || project.getStatus() == ProjectStatus.CANCELLED) {
+            throw new AccessDeniedException("Project is read-only in the current status");
+        }
     }
 }
