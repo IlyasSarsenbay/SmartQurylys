@@ -1,87 +1,82 @@
-<div class="landing-container">
-  <!-- Header для лендинговой страницы (отличается от глобальной шапки) -->
-  <header class="app-header">
-    <div class="logo-section">
-      <span class="logo-sq">SQ</span>
-      <span class="logo-smartqurylys">SMARTQURYLYS</span>
+<div class="home-page">
+  <header class="home-header">
+    <div class="brand">
+      <img class="brand-logo" src="assets/SQ_Logo_Transparent.png" alt="SmartQurylys" />
+      <div class="brand-text">
+        <strong>SmartQurylys</strong>
+        <span>Цифровая среда для управления строительными проектами</span>
+      </div>
     </div>
-    <div class="header-right-nav">
-      <a routerLink="/instruction" class="nav-link">Инструкция</a>
-    </div>
+
+    <nav class="home-nav">
+      <a routerLink="/login" class="ghost-link">Войти</a>
+      <a routerLink="/register" class="primary-link">Регистрация</a>
+    </nav>
   </header>
 
-  <!-- Тонкая серая линия под глобальной шапкой -->
-  <div class="header-bottom-line"></div>
+  <section class="hero-section">
+    <div class="hero-copy">
+      <span class="eyebrow">Управление проектами без хаоса</span>
+      <h1>Контролируйте задачи, документы, участников и согласования в одном месте</h1>
+      <p>
+        SmartQurylys помогает вести строительный проект от первых документов до завершения работ:
+        отслеживайте этапы, обсуждайте задачи, храните файлы и получайте обновления в реальном времени.
+      </p>
 
-  <div class="highlight-section">
-    <div class="main-content">
-      <h1>
-        Система для эффективного управления
-        <span class="blue-text">всеми этапами</span> строительного проекта
-      </h1>
+      <div class="hero-actions">
+        <a routerLink="/register" class="primary-link large">Начать работу</a>
+        <a routerLink="/login" class="secondary-link large">У меня уже есть аккаунт</a>
+      </div>
+    </div>
 
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M12 1v6m0 6v6m5.2-14.2l-4.2 4.2m0 6l4.2 4.2M23 12h-6m-6 0H1m14.2 5.2l-4.2-4.2m0-6l-4.2-4.2" />
-            </svg>
+    <div class="hero-card">
+      <div class="hero-metric">
+        <span class="metric-label">Этапы проекта</span>
+        <strong>Планирование, задачи, документы, участники</strong>
+      </div>
+
+      <div class="hero-list">
+        <div class="hero-list-item">
+          <span class="bullet blue"></span>
+          <div>
+            <strong>Задачи и этапы</strong>
+            <p>Гибкая структура этапов, задач и подзадач с согласованием выполнения.</p>
           </div>
-          <p>Автоматизация</p>
         </div>
-        <div class="feature">
-          <div class="feature-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
+
+        <div class="hero-list-item">
+          <span class="bullet green"></span>
+          <div>
+            <strong>Документы и файлы</strong>
+            <p>Храните рабочую документацию и следите за изменениями без ручных обновлений страницы.</p>
           </div>
-          <p>Планирование</p>
         </div>
-        <div class="feature">
-          <div class="feature-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <path d="M9 11l3 3L22 4" />
-              <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
-            </svg>
+
+        <div class="hero-list-item">
+          <span class="bullet amber"></span>
+          <div>
+            <strong>Командная работа</strong>
+            <p>Назначайте исполнителей, приглашайте участников и обсуждайте проект в чатах.</p>
           </div>
-          <p>Контроль</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <line x1="12" y1="20" x2="12" y2="10" />
-              <line x1="18" y1="20" x2="18" y2="4" />
-              <line x1="6" y1="20" x2="6" y2="16" />
-            </svg>
-          </div>
-          <p>Эффективность</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M12 1v6m0 6v6" />
-              <circle cx="12" cy="12" r="10" />
-              <path d="M16.24 7.76l-2.12 2.12m-4.24 4.24l-2.12 2.12" />
-            </svg>
-          </div>
-          <p>Координация</p>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="auth-buttons">
-    <button routerLink="/login">Войти</button>
-    <button routerLink="/register" class="register">Регистрация</button>
-  </div>
+  <section class="features-section">
+    <article class="feature-card">
+      <h2>Прозрачный прогресс</h2>
+      <p>Статусы задач, подтверждение выполнения и история активности дают полную картину проекта.</p>
+    </article>
+
+    <article class="feature-card">
+      <h2>Быстрая коммуникация</h2>
+      <p>Комментарии, уведомления и чаты помогают команде согласовывать действия без лишних звонков.</p>
+    </article>
+
+    <article class="feature-card">
+      <h2>Единое пространство</h2>
+      <p>Проектные данные, участники и документы находятся в одной системе и обновляются синхронно.</p>
+    </article>
+  </section>
 </div>

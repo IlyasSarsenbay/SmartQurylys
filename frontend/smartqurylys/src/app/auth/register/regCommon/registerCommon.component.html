@@ -1,31 +1,52 @@
-<!-- ===== ХЕДЕР СТРАНИЦЫ ===== -->
-<header class="app-header">
-  <div class="logo-section">
-    <span class="logo-sq">SQ</span>
-    <span class="logo-smartqurylys">SMARTQURYLYS</span>
-  </div>
-</header>
+<div class="register-page">
+  <header class="register-header">
+    <a routerLink="/" class="brand-link">
+      <img class="brand-logo" src="assets/SQ_Logo_Transparent.png" alt="SmartQurylys" />
+      <div class="brand-copy">
+        <strong>SmartQurylys</strong>
+        <span>Регистрация в системе</span>
+      </div>
+    </a>
 
-<!-- ===== КОНТЕЙНЕР ДЭШБОРДА С КАРТОЧКАМИ ВЫБОРА ===== -->
-<div class="dashboard-container">
-  
-  <!-- Карточка для юридических лиц -->
-  <div class="dashboard-card" routerLink="/registerOrg">
-    <img 
-      src="https://static.tildacdn.com/tild3365-6136-4931-b038-613666303838/architect_17234330.png" 
-      alt="Регистрация юридического лица" 
-      class="card-icon"
-    >
-    <span class="card-title">ЮРИДИЧЕСКОЕ ЛИЦО</span>
-  </div>
+    <a routerLink="/login" class="login-link">Уже есть аккаунт?</a>
+  </header>
 
-  <!-- Карточка для физических лиц -->
-  <div class="dashboard-card" routerLink="/registerUser">
-    <img 
-      src="https://cdn2.iconfinder.com/data/icons/real-estate-1-0-1/1024/building_construction-512.png" 
-      alt="Регистрация физического лица" 
-      class="card-icon"
-    >
-    <span class="card-title">ФИЗИЧЕСКОЕ ЛИЦО</span>
-  </div>
+  <section class="register-hero">
+    <div class="register-copy">
+      <span class="eyebrow">Начало работы</span>
+      <h1>Выберите формат регистрации</h1>
+      <p>
+        Создайте аккаунт под вашу роль в системе. Для компаний доступна регистрация организации,
+        для отдельных специалистов — личный профиль пользователя.
+      </p>
+    </div>
+
+    <div class="register-cards">
+      <a class="register-card" routerLink="/registerOrg">
+        <div class="card-visual">
+          <img
+            src="https://static.tildacdn.com/tild3365-6136-4931-b038-613666303838/architect_17234330.png"
+            alt="Юридическое лицо" />
+        </div>
+        <div class="card-content">
+          <strong>Юридическое лицо</strong>
+          <p>Для компаний, подрядчиков и организаций, которые будут вести проекты и приглашать сотрудников.</p>
+          <span class="card-link">Перейти к регистрации</span>
+        </div>
+      </a>
+
+      <a class="register-card" routerLink="/registerUser">
+        <div class="card-visual">
+          <img
+            src="https://cdn2.iconfinder.com/data/icons/real-estate-1-0-1/1024/building_construction-512.png"
+            alt="Физическое лицо" />
+        </div>
+        <div class="card-content">
+          <strong>Физическое лицо</strong>
+          <p>Для специалистов, которым нужен личный аккаунт для участия в проектах и командной работе.</p>
+          <span class="card-link">Перейти к регистрации</span>
+        </div>
+      </a>
+    </div>
+  </section>
 </div>
