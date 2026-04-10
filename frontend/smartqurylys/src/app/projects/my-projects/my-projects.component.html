@@ -8,7 +8,7 @@
   </div>
 
   <div *ngIf="(projects$ | async)?.length === 0 && !errorMessage" class="info-message">
-    <p>У вас пока нет проектов. <a routerLink="/create-project" class="action-link">Создайте свой первый проект!</a></p>
+    <p>У вас пока нет проектов. <a routerLink="/projects/create" class="action-link">Создайте свой первый проект!</a></p>
   </div>
 
   <div class="project-list">
@@ -24,3 +24,4 @@
     </div>
   </div>
 </div>
+

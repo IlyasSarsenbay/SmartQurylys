@@ -47,9 +47,8 @@ public class ProjectService {
     public ProjectResponse createProject(CreateProjectRequest request) {
         User owner = getAuthenticatedUser();
 
-        if (!(owner instanceof Organisation) && !"ADMIN".equals(owner.getRole())) {
-            throw new AccessDeniedException("Только организации или администраторы могут создавать проекты.");
-        }
+
+
 
         City city = cityRepository.findById(request.getCityId())
                 .orElseThrow(() -> new IllegalArgumentException("Город не найден"));
@@ -391,3 +390,4 @@ public class ProjectService {
                 .build();
     }
 }
+

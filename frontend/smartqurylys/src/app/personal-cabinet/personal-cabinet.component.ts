@@ -405,7 +405,7 @@ export class PersonalCabinetComponent implements OnInit {
   }
 
   addNewProject(): void {
-    this.router.navigate(['/create-project']);
+    this.router.navigate(['/projects/create']);
   }
 
   logout(): void {
