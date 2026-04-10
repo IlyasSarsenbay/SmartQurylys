@@ -3,7 +3,6 @@ import { Project } from '../../core/models/project';
 import { ProjectService } from '../../core/project.service';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TaskService } from '../../core/task.service';
 import { ParticipantService } from '../../core/participant.service';
 import { Participant } from '../../core/models/participant';
 import { ProjectRealtimeService } from '../../core/project-realtime.service';
@@ -20,15 +19,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 export class ProjectPageHeader implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   project!: Project
-  numberOfCompletedTasks = 0
-  numberOfTasks = 0
   isAccessDialogOpen = false;
 
   participants: Participant[] = []
 
   constructor(
     private projectService: ProjectService,
-    private taskService: TaskService,
     private participantService: ParticipantService,
     private projectRealtimeService: ProjectRealtimeService
   ) { }
@@ -42,7 +38,6 @@ export class ProjectPageHeader implements OnInit {
         }
 
         this.project = project;
-        this.getNumberOfTasks();
       });
 
     this.projectRealtimeService.events$
@@ -54,10 +49,6 @@ export class ProjectPageHeader implements OnInit {
       .subscribe((event) => {
         if (event.type === 'PROJECT_UPDATED') {
           this.projectService.refreshProject(this.project.id).subscribe();
-        }
-
-        if (event.type.startsWith('TASK_') || event.type.startsWith('STAGE_')) {
-          this.getNumberOfTasks();
         }
 
         if (event.type.startsWith('PARTICIPANT_') && this.isAccessDialogOpen) {
@@ -91,18 +82,6 @@ export class ProjectPageHeader implements OnInit {
           }
         })
     }
-  }
-
-  private getNumberOfTasks() {
-    this.taskService.getProjectNumberOfTasks(this.project.id)
-      .subscribe(value => {
-        this.numberOfTasks = value.valueOf()
-        console.log(value)
-      })
-  }
-
-  private getNumberOfCompltedTasks() {
-
   }
 
   openDialog(): void {
