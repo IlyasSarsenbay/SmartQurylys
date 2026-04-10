@@ -6,6 +6,7 @@ public enum NotificationType {
     PROJECT_UPDATE,        // Обновление проекта.
     FILE_UPLOAD,           // Загрузка файла.
     TASK_ASSIGNMENT,       // Назначение задачи.
+    TASK_REVIEW_REQUESTED, // Запрос на подтверждение выполнения задачи.
     MENTION,               // Упоминание в чате.
     STAGE_REACTIVATION,    // Возврат этапа в активное состояние.
     LICENSE_APPROVED,      // Лицензия одобрена.

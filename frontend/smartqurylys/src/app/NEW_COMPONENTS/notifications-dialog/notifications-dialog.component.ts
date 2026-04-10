@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { Notification, NotificationService } from '../../core/notification.service';
 import { ParticipantService } from '../../core/participant.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-notifications-dialog',
@@ -11,11 +12,12 @@ import { ParticipantService } from '../../core/participant.service';
   templateUrl: './notifications-dialog.component.html',
   styleUrl: './notifications-dialog.component.css'
 })
-export class NotificationsDialogComponent implements OnInit {
+export class NotificationsDialogComponent implements OnInit, OnDestroy {
   @Output() closeDialog = new EventEmitter<void>();
 
   notifications: Notification[] = [];
   loading = false;
+  private notificationsSubscription?: Subscription;
 
   constructor(
     private readonly notificationService: NotificationService,
@@ -24,7 +26,16 @@ export class NotificationsDialogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.notificationsSubscription = this.notificationService.notifications$
+      .subscribe((notifications) => {
+        this.notifications = notifications;
+      });
+
     this.loadNotifications();
+  }
+
+  ngOnDestroy(): void {
+    this.notificationsSubscription?.unsubscribe();
   }
 
   close(): void {
@@ -33,9 +44,8 @@ export class NotificationsDialogComponent implements OnInit {
 
   loadNotifications(): void {
     this.loading = true;
-    this.notificationService.getNotifications().subscribe({
-      next: (notifications) => {
-        this.notifications = notifications;
+    this.notificationService.refreshNotifications().subscribe({
+      next: () => {
         this.loading = false;
       },
       error: (error) => {
@@ -69,9 +79,7 @@ export class NotificationsDialogComponent implements OnInit {
 
   deleteNotification(notificationId: number): void {
     this.notificationService.deleteNotification(notificationId).subscribe({
-      next: () => {
-        this.notifications = this.notifications.filter((notification) => notification.id !== notificationId);
-      },
+      next: () => {},
       error: (error) => {
         console.error('Failed to delete notification:', error);
       }

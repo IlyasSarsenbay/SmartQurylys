@@ -20,6 +20,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserService userService;
+    private final NotificationRealtimeService notificationRealtimeService;
 
 
     // Создаёт уведомление о приглашении участника в проект.
@@ -43,7 +44,7 @@ public class NotificationService {
                 .relatedEntityId(invitation.getId())
                 .build();
 
-        notificationRepository.save(notification);
+        saveAndPublish(notification);
     }
 
     // Получает список уведомлений текущего пользователя.
@@ -58,6 +59,7 @@ public class NotificationService {
     @org.springframework.transaction.annotation.Transactional
     public void markAllAsRead(User user) {
         notificationRepository.markAllAsReadForRecipient(user);
+        notificationRealtimeService.publish(user.getId(), "READ_ALL", null);
     }
 
     // Удаляет уведомление по идентификатору.
@@ -65,7 +67,9 @@ public class NotificationService {
     public void deleteNotification(Long notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new IllegalArgumentException("Notification not found"));
+        Long recipientId = notification.getRecipient().getId();
         notificationRepository.delete(notification);
+        notificationRealtimeService.publish(recipientId, "DELETED", notificationId);
     }
 
     // Преобразует сущность Notification в DTO NotificationResponse.
@@ -97,7 +101,33 @@ public class NotificationService {
                 .relatedEntityId(conversation.getId())
                 .build();
 
-        notificationRepository.save(notification);
+        saveAndPublish(notification);
+    }
+
+    public void createTaskReviewRequestedNotification(
+            User recipient,
+            User sender,
+            com.smartqurylys.backend.entity.Project project,
+            Long taskId,
+            String taskName
+    ) {
+        String message = String.format("%s отправил задачу «%s» по проекту «%s» на подтверждение выполнения",
+                sender.getFullName(),
+                taskName,
+                project.getName());
+
+        Notification notification = Notification.builder()
+                .recipient(recipient)
+                .sender(sender)
+                .project(project)
+                .message(message)
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .type(NotificationType.TASK_REVIEW_REQUESTED)
+                .relatedEntityId(taskId)
+                .build();
+
+        saveAndPublish(notification);
     }
 
     // Создаёт уведомление о возврате этапа в активное состояние.
@@ -113,7 +143,7 @@ public class NotificationService {
                 .relatedEntityId(stageId)
                 .build();
 
-        notificationRepository.save(notification);
+        saveAndPublish(notification);
     }
 
     // Создаёт уведомление о результате рассмотрения лицензии администратором.
@@ -142,7 +172,7 @@ public class NotificationService {
                 .relatedEntityId(licenseId)
                 .build();
 
-        notificationRepository.save(notification);
+        saveAndPublish(notification);
     }
 
     // Создаёт уведомление о результате рассмотрения документа представителя администратором.
@@ -171,7 +201,7 @@ public class NotificationService {
                 .relatedEntityId(documentId)
                 .build();
 
-        notificationRepository.save(notification);
+        saveAndPublish(notification);
     }
 
     // Создаёт уведомление о результате рассмотрения выполнения задачи (принята, отклонена, возвращена).
@@ -188,9 +218,16 @@ public class NotificationService {
         }
         String message;
         if (reason != null && !reason.trim().isEmpty()) {
-            message = String.format("Задача «%s» %s. Причина: %s", taskName, action, reason.trim());
+            message = String.format("Задача «%s» по проекту «%s» %s. Причина: %s",
+                    taskName,
+                    project.getName(),
+                    action,
+                    reason.trim());
         } else {
-            message = String.format("Задача «%s» %s.", taskName, action);
+            message = String.format("Задача «%s» по проекту «%s» %s.",
+                    taskName,
+                    project.getName(),
+                    action);
         }
         Notification notification = Notification.builder()
                 .recipient(recipient)
@@ -203,6 +240,15 @@ public class NotificationService {
                 .relatedEntityId(taskId)
                 .build();
 
-        notificationRepository.save(notification);
+        saveAndPublish(notification);
+    }
+
+    private void saveAndPublish(Notification notification) {
+        Notification savedNotification = notificationRepository.save(notification);
+        notificationRealtimeService.publish(
+                savedNotification.getRecipient().getId(),
+                "CREATED",
+                savedNotification.getId()
+        );
     }
 }

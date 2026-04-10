@@ -1,7 +1,8 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationService } from '../core/notification.service';
 import { ParticipantService } from '../core/participant.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-notification-modal',
@@ -10,12 +11,13 @@ import { ParticipantService } from '../core/participant.service';
   templateUrl: './notification-modal.component.html',
   styleUrls: ['./notification-modal.component.css']
 })
-export class NotificationModalComponent implements OnInit {
+export class NotificationModalComponent implements OnInit, OnDestroy {
   @Input() notifications: any[] = [];
   @Output() closeModal = new EventEmitter<void>();
   @Output() acceptInvitation = new EventEmitter<number>();
   @Output() declineInvitation = new EventEmitter<number>();
   @Output() notificationClick = new EventEmitter<any>();
+  private notificationsSubscription?: Subscription;
 
   constructor(
     private notificationService: NotificationService,
@@ -23,10 +25,20 @@ export class NotificationModalComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.notificationService.getNotifications()
-      .subscribe(value => {
-        this.notifications = value
-      })
+    this.notificationsSubscription = this.notificationService.notifications$
+      .subscribe((notifications) => {
+        this.notifications = notifications;
+      });
+
+    this.notificationService.refreshNotifications().subscribe({
+      error: (error) => {
+        console.error('Failed to load notifications:', error);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.notificationsSubscription?.unsubscribe();
   }
 
   close() {
@@ -39,6 +51,7 @@ export class NotificationModalComponent implements OnInit {
       .subscribe({
         next: () => {
           console.log('Successfuly accepted invitation');
+          this.notificationService.refreshNotifications().subscribe();
         },
         error: (err) => {
           console.log('Accept Invitation Request failed', err.status);

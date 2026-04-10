@@ -29,6 +29,7 @@ public class ProjectTaskBoardService {
     private final ProjectTaskBoardTaskRepository taskRepository;
     private final ProjectTaskCommentRepository commentRepository;
     private final ProjectRealtimeService projectRealtimeService;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public ProjectTaskBoardResponse getBoard(Long projectId) {
@@ -287,6 +288,15 @@ public class ProjectTaskBoardService {
         task.setUpdatedAt(LocalDateTime.now());
 
         ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        if (!Objects.equals(project.getOwner().getId(), currentUser.getId())) {
+            notificationService.createTaskReviewRequestedNotification(
+                    project.getOwner(),
+                    currentUser,
+                    project,
+                    savedTask.getId(),
+                    savedTask.getTitle()
+            );
+        }
         projectRealtimeService.publish(projectId, "TASK_COMPLETION_REQUESTED", savedTask.getId());
         return mapTaskResponse(savedTask, loadCommentCounts(projectId), Collections.emptyMap());
     }
@@ -312,6 +322,17 @@ public class ProjectTaskBoardService {
         task.setUpdatedAt(LocalDateTime.now());
 
         ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        if (savedTask.getAssigneeParticipant() != null) {
+            notificationService.createTaskExecutionNotification(
+                    savedTask.getAssigneeParticipant().getUser(),
+                    currentUser,
+                    project,
+                    savedTask.getId(),
+                    savedTask.getTitle(),
+                    NotificationType.TASK_ACCEPTED,
+                    reason
+            );
+        }
         projectRealtimeService.publish(projectId, "TASK_COMPLETION_APPROVED", savedTask.getId());
         return mapTaskResponse(savedTask, loadCommentCounts(projectId), Collections.emptyMap());
     }
@@ -337,6 +358,17 @@ public class ProjectTaskBoardService {
         task.setUpdatedAt(LocalDateTime.now());
 
         ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        if (savedTask.getAssigneeParticipant() != null) {
+            notificationService.createTaskExecutionNotification(
+                    savedTask.getAssigneeParticipant().getUser(),
+                    currentUser,
+                    project,
+                    savedTask.getId(),
+                    savedTask.getTitle(),
+                    NotificationType.TASK_DECLINED,
+                    reason
+            );
+        }
         projectRealtimeService.publish(projectId, "TASK_COMPLETION_REJECTED", savedTask.getId());
         return mapTaskResponse(savedTask, loadCommentCounts(projectId), Collections.emptyMap());
     }
