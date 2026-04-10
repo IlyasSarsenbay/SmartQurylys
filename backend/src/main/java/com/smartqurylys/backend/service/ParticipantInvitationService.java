@@ -84,6 +84,27 @@ public class ParticipantInvitationService {
     }
 
     @Transactional
+    public void cancelInvitation(Long invitationId, User currentUser) {
+        ParticipantInvitation invitation = invitationRepository.findById(invitationId)
+                .orElseThrow(() -> new IllegalArgumentException("Приглашение не найдено"));
+
+        Project project = invitation.getProject();
+        boolean isOwner = project.getOwner().getId().equals(currentUser.getId());
+        boolean isAdmin = "ADMIN".equals(currentUser.getRole());
+
+        if (!isOwner && !isAdmin) {
+            throw new SecurityException("Доступ запрещён: только владелец проекта может отменять приглашения");
+        }
+
+        invitationRepository.delete(invitation);
+        projectRealtimeService.publish(project.getId(), "PARTICIPANT_INVITATION_CANCELED", invitationId);
+
+        notificationRepository.findByTypeAndRelatedEntityId(
+                com.smartqurylys.backend.entity.NotificationType.INVITATION, invitationId)
+                .ifPresent(notificationRepository::delete);
+    }
+
+    @Transactional
     public void acceptInvitation(Long invitationId, User currentUser) {
         ParticipantInvitation invitation = invitationRepository.findByIdAndUser(invitationId, currentUser)
                 .orElseThrow(() -> new IllegalArgumentException(

@@ -31,4 +31,11 @@ public class ParticipantInvitationController {
         invitationService.declineInvitation(invitationId, user);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{invitationId}")
+    public ResponseEntity<Void> cancel(@PathVariable Long invitationId) {
+        User user = userService.getCurrentUserEntity();
+        invitationService.cancelInvitation(invitationId, user);
+        return ResponseEntity.noContent().build();
+    }
 }

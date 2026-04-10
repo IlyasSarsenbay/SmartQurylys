@@ -38,7 +38,7 @@ public class ParticipantController {
                 User user = invitation.getUser();
 
                 ParticipantResponse response = ParticipantResponse.builder()
-                        .id(user.getId())
+                        .id(invitation.getId())
                         .userId(user.getId())
                         .fullName(user.getFullName())
                         .iinBin(user.getIinBin())

@@ -43,6 +43,8 @@ export class ProjectParticipantsComponent implements OnInit {
 
   isInviteModalOpen = false;
   searchTerm = '';
+  openParticipantMenuId: number | null = null;
+  participantMenuPosition: { top: number; left: number } | null = null;
 
   constructor(
     private projectService: ProjectService,
@@ -152,6 +154,79 @@ export class ProjectParticipantsComponent implements OnInit {
   closeInviteModal(): void {
     this.isInviteModalOpen = false;
     this.resetInviteForm();
+  }
+
+  toggleParticipantMenu(participantId: number, event: MouseEvent): void {
+    if (this.openParticipantMenuId === participantId) {
+      this.closeParticipantMenu();
+      return;
+    }
+
+    const trigger = event.currentTarget as HTMLElement | null;
+    if (!trigger) {
+      return;
+    }
+
+    const rect = trigger.getBoundingClientRect();
+    const menuWidth = 190;
+    const menuHeight = 96;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const margin = 12;
+
+    let left = rect.right - menuWidth;
+    if (left < margin) {
+      left = margin;
+    } else if (left + menuWidth > viewportWidth - margin) {
+      left = viewportWidth - margin - menuWidth;
+    }
+
+    let top = rect.bottom + 6;
+    if (top + menuHeight > viewportHeight - margin) {
+      top = Math.max(margin, rect.top - menuHeight - 6);
+    }
+
+    this.openParticipantMenuId = participantId;
+    this.participantMenuPosition = { top, left };
+  }
+
+  closeParticipantMenu(): void {
+    this.openParticipantMenuId = null;
+    this.participantMenuPosition = null;
+  }
+
+  removeParticipant(item: ParticipantItem): void {
+    if (!this.canInviteParticipants || item.owner) {
+      return;
+    }
+
+    this.closeParticipantMenu();
+
+    this.participantService.removeParticipant(item.id).subscribe({
+      next: () => {
+        this.loadParticipants(true);
+      },
+      error: (error) => {
+        console.error('Failed to remove participant:', error);
+      }
+    });
+  }
+
+  cancelInvitation(item: ParticipantItem): void {
+    if (!this.canInviteParticipants) {
+      return;
+    }
+
+    this.closeParticipantMenu();
+
+    this.participantService.cancelInvitation(item.id).subscribe({
+      next: () => {
+        this.loadParticipants(true);
+      },
+      error: (error) => {
+        console.error('Failed to cancel invitation:', error);
+      }
+    });
   }
 
   inviteParticipant(): void {

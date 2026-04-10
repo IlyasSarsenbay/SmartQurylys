@@ -76,4 +76,10 @@ export class ParticipantService {
       tap(() => this.invalidateProjectParticipants())
     );
   }
+
+  cancelInvitation(invitationId: number): Observable<void> {
+    return this.http.delete<void>(`${this.invitationApiUrl}/${invitationId}`).pipe(
+      tap(() => this.invalidateProjectParticipants())
+    );
+  }
 }

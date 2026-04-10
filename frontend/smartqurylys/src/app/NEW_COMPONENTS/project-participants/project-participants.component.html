@@ -72,13 +72,38 @@
                                 </div>
                             </td>
                             <td>
-                                <button class="icon-btn">...</button>
+                                @if (canInviteParticipants && !p.owner) {
+                                <div class="participant-menu">
+                                    <button class="icon-btn" (click)="toggleParticipantMenu(p.id, $event)">...</button>
+                                </div>
+                                }
                             </td>
                         </tr>
                         }
                     </tbody>
                 </table>
             </div>
+
+            @if (openParticipantMenuId !== null && participantMenuPosition) {
+            <div class="participant-menu-backdrop" (click)="closeParticipantMenu()"></div>
+            <div class="participant-dropdown-menu overlay-menu"
+                [style.top.px]="participantMenuPosition.top"
+                [style.left.px]="participantMenuPosition.left">
+                @for (p of filteredParticipants; track p.id) {
+                @if (openParticipantMenuId === p.id) {
+                @if (p.acceptedInvite) {
+                <button class="participant-menu-item danger" (click)="removeParticipant(p)">
+                    Удалить участника
+                </button>
+                } @else {
+                <button class="participant-menu-item danger" (click)="cancelInvitation(p)">
+                    Отменить приглашение
+                </button>
+                }
+                }
+                }
+            </div>
+            }
 
             <ng-template #emptyState>
                 <div class="empty-state">
