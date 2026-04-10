@@ -282,6 +282,9 @@
                         <span> · {{ activeCommentsTask.completionReviewedAt }}</span>
                       }
                     </p>
+                    @if (activeCommentsTask.completionReviewReason) {
+                      <p class="approval-reason">{{ activeCommentsTask.completionReviewReason }}</p>
+                    }
                   }
                   @case ('rejected') {
                     <span class="approval-state approval-state-rejected">Отклонено</span>
@@ -325,6 +328,22 @@
                     </button>
                     <button type="button" class="approval-button approve" (click)="onApproveTaskCompletion()">
                       Подтвердить
+                    </button>
+                  </div>
+                </div>
+              }
+
+              @if (canReturnApprovedTaskToWork) {
+                <div class="approval-review-form">
+                  <textarea
+                    class="approval-review-textarea"
+                    [(ngModel)]="completionReviewDraft"
+                    rows="3"
+                    placeholder="Комментарий к возврату в работу (необязательно)"
+                  ></textarea>
+                  <div class="approval-actions">
+                    <button type="button" class="approval-button reject" (click)="onRejectTaskCompletion()">
+                      Вернуть в работу
                     </button>
                   </div>
                 </div>
@@ -388,3 +407,4 @@
     </div>
   }
 </main>
+

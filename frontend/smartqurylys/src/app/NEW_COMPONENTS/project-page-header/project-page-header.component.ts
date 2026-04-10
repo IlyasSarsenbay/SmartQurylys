@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { ParticipantService } from '../../core/participant.service';
 import { Participant } from '../../core/models/participant';
 import { ProjectRealtimeService } from '../../core/project-realtime.service';
+import { UserService } from '../../core/user.service';
 import { auditTime, filter } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -20,13 +21,15 @@ export class ProjectPageHeader implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   project!: Project
   isAccessDialogOpen = false;
+  currentUserIinBin: string | null = null;
 
   participants: Participant[] = []
 
   constructor(
     private projectService: ProjectService,
     private participantService: ParticipantService,
-    private projectRealtimeService: ProjectRealtimeService
+    private projectRealtimeService: ProjectRealtimeService,
+    private userService: UserService
   ) { }
 
   ngOnInit(): void {
@@ -38,6 +41,17 @@ export class ProjectPageHeader implements OnInit {
         }
 
         this.project = project;
+      });
+
+    this.userService.getCurrentUser()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (user) => {
+          this.currentUserIinBin = user.iinBin;
+        },
+        error: (error) => {
+          console.error('Failed to load current user for project header:', error);
+        }
       });
 
     this.projectRealtimeService.events$
@@ -65,8 +79,15 @@ export class ProjectPageHeader implements OnInit {
     project.favorite = !project.favorite
   }
 
+  get canEditProjectTitle(): boolean {
+    return !!this.project && !!this.currentUserIinBin && this.project.ownerIinBin === this.currentUserIinBin;
+  }
 
   onTitleBlur(event: FocusEvent) {
+    if (!this.canEditProjectTitle) {
+      return;
+    }
+
     const value = (event.target as HTMLElement).innerText;
 
     if (value !== this.project.name) {

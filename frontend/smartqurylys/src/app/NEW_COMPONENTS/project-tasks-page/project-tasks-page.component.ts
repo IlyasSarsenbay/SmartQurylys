@@ -217,6 +217,11 @@ export class ProjectTasksPageComponent implements OnInit {
     return !!task && this.isCurrentUserProjectOwner && task.completionStatus === 'pending';
   }
 
+  get canReturnApprovedTaskToWork(): boolean {
+    const task = this.activeCommentsTask;
+    return !!task && this.isCurrentUserProjectOwner && task.completionStatus === 'approved';
+  }
+
   isAllStageRowsSelected(stageId: number): boolean {
     const stage = this.visibleStages.find((item) => item.id === stageId);
     return !!stage && stage.rows.length > 0 && stage.rows.every((item) => !!item.selected);

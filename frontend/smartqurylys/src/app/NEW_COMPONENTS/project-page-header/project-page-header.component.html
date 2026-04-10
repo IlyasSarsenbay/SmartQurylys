@@ -29,7 +29,12 @@
     <header>
         <section class="header-top">
             <div class="text-input">
-                <div class="project-title-2" contenteditable="true" spellcheck="false" (blur)="onTitleBlur($event)">
+                <div
+                    class="project-title-2"
+                    [class.project-title-2-readonly]="!canEditProjectTitle"
+                    [attr.contenteditable]="canEditProjectTitle ? 'true' : null"
+                    spellcheck="false"
+                    (blur)="onTitleBlur($event)">
                     {{ project.name }}
                 </div>
             </div>

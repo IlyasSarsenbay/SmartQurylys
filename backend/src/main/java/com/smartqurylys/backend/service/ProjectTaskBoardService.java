@@ -346,9 +346,17 @@ public class ProjectTaskBoardService {
         if (!isProjectOwnerOrAdmin(project, currentUser)) {
             throw new AccessDeniedException("Only the project owner can reject task completion");
         }
-        if (task.getCompletionStatus() != ProjectTaskBoardCompletionStatus.PENDING) {
-            throw new IllegalArgumentException("Task completion request is not pending");
+        if (task.getCompletionStatus() != ProjectTaskBoardCompletionStatus.PENDING
+                && task.getCompletionStatus() != ProjectTaskBoardCompletionStatus.APPROVED) {
+            throw new IllegalArgumentException("Task completion cannot be rejected in the current state");
         }
+
+        NotificationType notificationType = task.getCompletionStatus() == ProjectTaskBoardCompletionStatus.APPROVED
+                ? NotificationType.TASK_RETURNED
+                : NotificationType.TASK_DECLINED;
+        String realtimeEventType = task.getCompletionStatus() == ProjectTaskBoardCompletionStatus.APPROVED
+                ? "TASK_RETURNED_TO_WORK"
+                : "TASK_COMPLETION_REJECTED";
 
         task.setCompletionStatus(ProjectTaskBoardCompletionStatus.REJECTED);
         task.setStatus(ProjectTaskBoardStatus.RETURNED);
@@ -365,11 +373,11 @@ public class ProjectTaskBoardService {
                     project,
                     savedTask.getId(),
                     savedTask.getTitle(),
-                    NotificationType.TASK_DECLINED,
+                    notificationType,
                     reason
             );
         }
-        projectRealtimeService.publish(projectId, "TASK_COMPLETION_REJECTED", savedTask.getId());
+        projectRealtimeService.publish(projectId, realtimeEventType, savedTask.getId());
         return mapTaskResponse(savedTask, loadCommentCounts(projectId), Collections.emptyMap());
     }
 

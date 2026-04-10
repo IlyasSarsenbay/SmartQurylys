@@ -4,23 +4,18 @@
     width: 420px;
     border: 1px solid #cfcfcf;
     border-radius: 18px;
-    overflow: hidden;
+    overflow: visible;
     font-family: Arial, sans-serif;
     color: #2f2f2f;
+    background: #fff;
 }
 
 .info-row {
     display: grid;
-    grid-template-columns: 150px 1fr;
+    grid-template-columns: 130px 1fr;
     align-items: center;
     min-height: 40px;
     padding: 0 18px;
-}
-
-.info-row.align-top {
-    align-items: start;
-    padding-top: 8px;
-    padding-bottom: 8px;
 }
 
 .label {
@@ -33,11 +28,6 @@
     font-size: 14px;
     color: #3a3a3a;
 }
-
-.muted {
-    color: #7d7d7d;
-}
-
 
 .status-draft {
     background-color: #f5f5f5;
@@ -73,6 +63,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    padding-left: 10px;
 }
 
 .avatar {
@@ -85,14 +76,12 @@
     object-fit: contain;
 }
 
-.highlighted {
-    background: #e9e9e9;
-}
-
-
-.status-dropdown-wrapper {
+.status-dropdown-wrapper,
+.date-dropdown-wrapper,
+.city-dropdown-wrapper {
     position: relative;
-    display: inline-block;
+    display: inline-flex;
+    max-width: 100%;
 }
 
 .status-button {
@@ -103,45 +92,135 @@
     font-size: 14px;
     font-weight: 500;
     padding: 4px 10px;
+    border: none;
 }
 
-.status-button:hover {
-    filter: brightness(0.9);
-    transition: filter ease 0.3s;
+.editable-value-button,
+.editable-inline-button {
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 10px;
+    min-height: 34px;
+    padding: 6px 10px;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    max-width: 100%;
 }
 
-.arrow {
-    transition: transform 0.2s ease;
+.editable-value-button:hover,
+.editable-inline-button:hover {
+    border-color: rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.02);
 }
 
-.arrow.open {
-    transform: rotate(180deg);
+.editable-inline-button {
+    white-space: normal;
 }
 
-.status-dropdown {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    min-width: 180px;
-    background: white;
-    border: 1px solid rgba(0,0,0,0.15);
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    padding: 0px;
-    z-index: 1000;
+.inline-edit-input {
+    width: 100%;
+    min-height: 34px;
+    border: 1px solid #cfd4dc;
+    border-radius: 10px;
+    padding: 6px 10px;
+    font: inherit;
+    color: inherit;
+    outline: none;
 }
 
-.status-option {
+.inline-edit-input:focus {
+    border-color: #7ca6ff;
+    box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.12);
+}
+
+.project-card-overlay {
+    position: fixed;
+    z-index: 1400;
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
+    padding: 8px;
+}
+
+.status-overlay,
+.city-overlay {
+    min-width: 220px;
+    max-width: 280px;
+}
+
+.city-overlay {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.date-overlay {
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.overlay-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.overlay-date-input {
+    width: 100%;
+    border: 1px solid #cfd4dc;
+    border-radius: 10px;
+    padding: 8px 10px;
+    font: inherit;
+    outline: none;
+}
+
+.overlay-date-input:focus {
+    border-color: #7ca6ff;
+    box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.12);
+}
+
+.overlay-option {
     width: 100%;
     border: none;
-    background: white;
+    background: transparent;
     text-align: left;
-    padding: 8px 12px;
-    /* border-radius: 8px; */
+    padding: 10px 12px;
+    border-radius: 10px;
     cursor: pointer;
-    font-size: 14px;
+    font: inherit;
+    color: #334155;
 }
 
-.status-option:hover {
-    filter: brightness(0.9);
+.overlay-option:hover {
+    background: #f8fafc;
+}
+
+.overlay-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.overlay-secondary-button,
+.overlay-primary-button {
+    border-radius: 10px;
+    padding: 8px 12px;
+    font: inherit;
+    cursor: pointer;
+}
+
+.overlay-secondary-button {
+    border: 1px solid #d7dee8;
+    background: #fff;
+    color: #516275;
+}
+
+.overlay-primary-button {
+    border: 1px solid #2f6fed;
+    background: #2f6fed;
+    color: #fff;
 }

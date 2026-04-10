@@ -2,56 +2,78 @@
     <div class="info-row">
         <div class="label">Статус</div>
         <div class="value">
-            <div class="status-dropdown-wrapper">
-                <button class="status-button" (click)="toggleStatusMenu()" [ngClass]="{
+            @if (canManageProject) {
+                <div class="status-dropdown-wrapper">
+                    <button
+                        type="button"
+                        class="status-button"
+                        (click)="toggleStatusMenu($any($event.currentTarget).getBoundingClientRect())"
+                        [ngClass]="{
+                            'status-draft': project.status === 'DRAFT',
+                            'status-active': project.status === 'ACTIVE',
+                            'status-waiting': project.status === 'WAITING',
+                            'status-pause': project.status === 'ON_PAUSE',
+                            'status-completed': project.status === 'COMPLETED',
+                            'status-cancelled': project.status === 'CANCELLED'
+                        }"
+                    >
+                        {{ PROJECT_STATUS_RU[project.status] }}
+                    </button>
+                </div>
+            } @else {
+                <span
+                    class="status-button"
+                    [ngClass]="{
                         'status-draft': project.status === 'DRAFT',
                         'status-active': project.status === 'ACTIVE',
                         'status-waiting': project.status === 'WAITING',
                         'status-pause': project.status === 'ON_PAUSE',
                         'status-completed': project.status === 'COMPLETED',
                         'status-cancelled': project.status === 'CANCELLED'
-                        }">{{ PROJECT_STATUS_RU[project.status] }}
-                </button>
-
-                @if (isStatusMenuOpen) {
-                <div class="status-dropdown">
-                    <button class="status-option" (click)="changeStatus('DRAFT')">
-                        {{ PROJECT_STATUS_RU['DRAFT'] }}
-                    </button>
-
-                    <button class="status-option" (click)="changeStatus('WAITING')">
-                        {{ PROJECT_STATUS_RU['WAITING'] }}
-                    </button>
-
-                    <button class="status-option" (click)="changeStatus('ACTIVE')">
-                        {{ PROJECT_STATUS_RU['ACTIVE'] }}
-                    </button>
-
-                    <button class="status-option" (click)="changeStatus('ON_PAUSE')">
-                        {{ PROJECT_STATUS_RU['ON_PAUSE'] }}
-                    </button>
-
-                    <button class="status-option" (click)="changeStatus('COMPLETED')">
-                        {{ PROJECT_STATUS_RU['COMPLETED'] }}
-                    </button>
-
-                    <button class="status-option" (click)="changeStatus('CANCELLED')">
-                        {{ PROJECT_STATUS_RU['CANCELLED'] }}
-                    </button>
-                </div>
-                }
-            </div>
+                    }"
+                >
+                    {{ PROJECT_STATUS_RU[project.status] }}
+                </span>
+            }
         </div>
     </div>
 
     <div class="info-row">
         <div class="label">Дата начала</div>
-        <div class="value"> {{ project.startDate | date:'d MMMM y':'':'ru' }} </div>
+        <div class="value">
+            @if (canManageProject) {
+                <div class="date-dropdown-wrapper">
+                    <button
+                        type="button"
+                        class="editable-value-button"
+                        (click)="openDateMenu('startDate', $any($event.currentTarget).getBoundingClientRect())"
+                    >
+                        {{ project.startDate | date:'d MMMM y':'':'ru' }}
+                    </button>
+                </div>
+            } @else {
+                {{ project.startDate | date:'d MMMM y':'':'ru' }}
+            }
+        </div>
     </div>
 
     <div class="info-row">
         <div class="label">Дедлайн</div>
-        <div class="value">{{ project.endDate | date:'d MMMM y':'':'ru' }}</div>
+        <div class="value">
+            @if (canManageProject) {
+                <div class="date-dropdown-wrapper">
+                    <button
+                        type="button"
+                        class="editable-value-button"
+                        (click)="openDateMenu('endDate', $any($event.currentTarget).getBoundingClientRect())"
+                    >
+                        {{ project.endDate | date:'d MMMM y':'':'ru' }}
+                    </button>
+                </div>
+            } @else {
+                {{ project.endDate | date:'d MMMM y':'':'ru' }}
+            }
+        </div>
     </div>
 
     <div class="info-row">
@@ -64,11 +86,73 @@
 
     <div class="info-row">
         <div class="label">Тип проекта</div>
-        <div class="value"> {{ project.type }} </div>
+        <div class="value">
+            @if (canManageProject && isTypeEditing) {
+                <input
+                    id="project-type-input"
+                    type="text"
+                    class="inline-edit-input"
+                    [(ngModel)]="typeDraft"
+                    (blur)="saveTypeEdit()"
+                    (keydown)="onTypeKeydown($event)"
+                />
+            } @else if (canManageProject) {
+                <button type="button" class="editable-inline-button" (click)="startTypeEdit()">
+                    {{ project.type }}
+                </button>
+            } @else {
+                {{ project.type }}
+            }
+        </div>
     </div>
 
     <div class="info-row">
         <div class="label">Город</div>
-        <div class="value">{{ project.cityName }} </div>
+        <div class="value">
+            @if (canManageProject) {
+                <div class="city-dropdown-wrapper">
+                    <button
+                        type="button"
+                        class="editable-value-button"
+                        (click)="toggleCityMenu($any($event.currentTarget).getBoundingClientRect())"
+                    >
+                        {{ project.cityName }}
+                    </button>
+                </div>
+            } @else {
+                {{ project.cityName }}
+            }
+        </div>
     </div>
 </div>
+
+@if (isStatusMenuOpen) {
+    <div class="project-card-overlay status-overlay" [style.top.px]="statusMenuTop" [style.left.px]="statusMenuLeft">
+        @for (status of statusOptions; track status) {
+            <button type="button" class="overlay-option" (click)="changeStatus(status)">
+                {{ PROJECT_STATUS_RU[status] }}
+            </button>
+        }
+    </div>
+}
+
+@if (activeDateField) {
+    <div class="project-card-overlay date-overlay" [style.top.px]="dateMenuTop" [style.left.px]="dateMenuLeft">
+        <label class="overlay-label">{{ activeDateField === 'startDate' ? 'Дата начала' : 'Дедлайн' }}</label>
+        <input type="date" class="overlay-date-input" [(ngModel)]="activeDateValue" />
+        <div class="overlay-actions">
+            <button type="button" class="overlay-secondary-button" (click)="cancelDateField()">Отмена</button>
+            <button type="button" class="overlay-primary-button" (click)="saveDateField()">Сохранить</button>
+        </div>
+    </div>
+}
+
+@if (isCityMenuOpen) {
+    <div class="project-card-overlay city-overlay" [style.top.px]="cityMenuTop" [style.left.px]="cityMenuLeft">
+        @for (city of cities; track city.id) {
+            <button type="button" class="overlay-option" (click)="selectCity(city)">
+                {{ city.name }}
+            </button>
+        }
+    </div>
+}
