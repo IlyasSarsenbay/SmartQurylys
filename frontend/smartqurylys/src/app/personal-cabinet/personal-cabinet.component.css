@@ -82,6 +82,14 @@ h3 {
     background-color: #0056b3;
 }
 
+.logout-btn {
+    background-color: #dc3545;
+}
+
+.logout-btn:hover {
+    background-color: #b02a37;
+}
+
 .status-toggle-item {
     display: flex;
     align-items: center;

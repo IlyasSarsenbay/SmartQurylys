@@ -16,6 +16,7 @@ import { OrganisationResponse } from '../core/models/organisation';
 import { LicenseResponse } from '../core/models/license';
 import { RepresentativeDocumentResponse } from '../core/models/representative-document';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-personal-cabinet',
@@ -74,7 +75,8 @@ export class PersonalCabinetComponent implements OnInit {
     private userService: UserService,
     private projectService: ProjectService,
     private router: Router,
-    private organisationService: OrganisationService // Injected
+    private organisationService: OrganisationService, // Injected
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
@@ -404,6 +406,11 @@ export class PersonalCabinetComponent implements OnInit {
 
   addNewProject(): void {
     this.router.navigate(['/create-project']);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 
   openEditModal(): void {
