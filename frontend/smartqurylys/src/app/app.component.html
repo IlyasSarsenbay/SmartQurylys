@@ -1,5 +1,7 @@
 <main>
+  @if (!hideSideMenu) {
   <app-new-side-menu class="side-menu"></app-new-side-menu>
+  }
   <section class="fragment">
     <router-outlet></router-outlet>
   </section>
