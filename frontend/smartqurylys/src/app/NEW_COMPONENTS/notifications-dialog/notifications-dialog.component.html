@@ -1,0 +1,47 @@
+<div class="notifications-overlay" (click)="close()">
+  <div class="notifications-dialog" (click)="$event.stopPropagation()">
+    <div class="notifications-header">
+      <h2>Уведомления</h2>
+      <button type="button" class="close-button" (click)="close()">×</button>
+    </div>
+
+    @if (loading) {
+    <div class="notifications-state">Загрузка...</div>
+    } @else if (notifications.length === 0) {
+    <div class="notifications-state">У вас нет новых уведомлений.</div>
+    } @else {
+    <div class="notifications-list">
+      @for (notification of notifications; track notification.id) {
+      <div class="notification-item"
+        [class.clickable]="notification.type === 'MENTION'"
+        (click)="notification.type === 'MENTION' ? onNotificationClick(notification) : null">
+        <div class="notification-body">
+          <div class="notification-message">{{ notification.message }}</div>
+          <div class="notification-meta">
+            {{ notification.createdAt | date:'d MMM y, HH:mm':'':'ru' }}
+          </div>
+        </div>
+
+        @if (notification.type === 'INVITATION') {
+        <div class="notification-actions">
+          <button type="button" class="action-button accept"
+            (click)="$event.stopPropagation(); acceptInvitation(notification.relatedEntityId)">
+            Принять
+          </button>
+          <button type="button" class="action-button decline"
+            (click)="$event.stopPropagation(); declineInvitation(notification.relatedEntityId)">
+            Отклонить
+          </button>
+        </div>
+        } @else {
+        <button type="button" class="remove-button"
+          (click)="$event.stopPropagation(); deleteNotification(notification.id)">
+          Удалить
+        </button>
+        }
+      </div>
+      }
+    </div>
+    }
+  </div>
+</div>

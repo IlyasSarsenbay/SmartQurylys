@@ -1,0 +1,145 @@
+.notifications-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.36);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 2000;
+}
+
+.notifications-dialog {
+  width: min(720px, 100%);
+  max-height: min(80vh, 760px);
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.notifications-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid #edf1f7;
+}
+
+.notifications-header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #172033;
+}
+
+.close-button {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.notifications-state {
+  padding: 32px 24px;
+  color: #6b7280;
+  font-size: 15px;
+}
+
+.notifications-list {
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #f2f4f7;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item.clickable {
+  cursor: pointer;
+}
+
+.notification-item.clickable:hover {
+  background: #f8fbff;
+}
+
+.notification-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.notification-message {
+  color: #172033;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.notification-meta {
+  margin-top: 6px;
+  color: #8a94a7;
+  font-size: 13px;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.action-button,
+.remove-button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.action-button.accept {
+  background: #e8f5eb;
+  color: #1d7a35;
+}
+
+.action-button.accept:hover {
+  background: #d8eedc;
+}
+
+.action-button.decline,
+.remove-button {
+  background: #fef2f2;
+  color: #d92d20;
+}
+
+.action-button.decline:hover,
+.remove-button:hover {
+  background: #fee4e2;
+}
+
+@media (max-width: 640px) {
+  .notifications-overlay {
+    padding: 16px;
+  }
+
+  .notification-item {
+    flex-direction: column;
+  }
+
+  .notification-actions {
+    width: 100%;
+  }
+}

@@ -33,7 +33,7 @@
         </menu>
 
         <menu class="bot-menu">
-            <button routerLink="/notifications" (click)="togglePanel(activePanel)" >
+            <button (click)="openNotificationsDialog()">
                 <img class="icon" src="assets/icon_notification.png">
                 <span>Уведомления</span>
             </button>
@@ -63,5 +63,9 @@
             </div>
         </ng-container>
     </section>
+
+    @if (isNotificationsDialogOpen) {
+    <app-notifications-dialog (closeDialog)="closeNotificationsDialog()"></app-notifications-dialog>
+    }
 
 </main>
