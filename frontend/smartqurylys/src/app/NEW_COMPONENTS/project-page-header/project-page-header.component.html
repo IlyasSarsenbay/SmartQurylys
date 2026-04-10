@@ -40,6 +40,14 @@
             </div>
         </section>
 
+        @if (statusBannerText) {
+            <section class="header-status-row">
+                <div [class]="statusBannerClass">
+                    {{ statusBannerText }}
+                </div>
+            </section>
+        }
+
         <section class="header-bot">
             <div class="tabs">
                 <a class="tab" [routerLink]="['/projects', project.id]" routerLinkActive="active"

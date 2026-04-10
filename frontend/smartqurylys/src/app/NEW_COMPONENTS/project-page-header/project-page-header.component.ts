@@ -79,6 +79,42 @@ export class ProjectPageHeader implements OnInit {
     project.favorite = !project.favorite
   }
 
+  get statusBannerText(): string | null {
+    if (!this.project) {
+      return null;
+    }
+
+    switch (this.project.status) {
+      case 'DRAFT':
+      case 'WAITING':
+        return 'Проект в черновике. Доступ есть только у владельца.';
+      case 'ON_PAUSE':
+        return 'Проект приостановлен. Действия заблокированы.';
+      case 'COMPLETED':
+        return 'Проект завершен. Доступен только режим просмотра.';
+      case 'CANCELLED':
+        return 'Проект отменен. Доступен только режим просмотра.';
+      default:
+        return null;
+    }
+  }
+
+  get statusBannerClass(): string {
+    switch (this.project?.status) {
+      case 'DRAFT':
+      case 'WAITING':
+        return 'project-status-banner project-status-banner-draft';
+      case 'ON_PAUSE':
+        return 'project-status-banner project-status-banner-pause';
+      case 'COMPLETED':
+        return 'project-status-banner project-status-banner-completed';
+      case 'CANCELLED':
+        return 'project-status-banner project-status-banner-cancelled';
+      default:
+        return 'project-status-banner';
+    }
+  }
+
   get canEditProjectTitle(): boolean {
     return !!this.project && !!this.currentUserIinBin && this.project.ownerIinBin === this.currentUserIinBin;
   }

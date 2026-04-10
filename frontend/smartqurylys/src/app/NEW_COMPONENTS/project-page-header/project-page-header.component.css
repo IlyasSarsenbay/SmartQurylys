@@ -172,6 +172,43 @@ header {
     display: flex;
 }
 
+.header-status-row {
+    padding: 8px 36px 0;
+}
+
+.project-status-banner {
+    width: 100%;
+    min-height: 38px;
+    border-radius: 10px;
+    padding: 9px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.project-status-banner-draft {
+    background: #fff7e6;
+    color: #ad6800;
+}
+
+.project-status-banner-pause {
+    background: #f5b700;
+    color: #ffffff;
+}
+
+.project-status-banner-completed {
+    background: #e8f7e7;
+    color: #2f8f2f;
+}
+
+.project-status-banner-cancelled {
+    background: #fff1f0;
+    color: #cf1322;
+}
+
 .tabs {
     width: 100%;
     display: flex;
