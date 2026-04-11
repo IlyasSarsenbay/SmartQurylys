@@ -18,8 +18,16 @@ export class DashboardComponent implements OnInit {
   constructor(public router: Router, private authService: AuthService) { } // Changed to public
 
   ngOnInit(): void {
-    const role = this.authService.getUserRole();
-    this.isAdmin = role === 'ADMIN' || role === 'ROLE_ADMIN';
+    this.authService.getCurrentUser().subscribe({
+      next: (user: { role?: string } | null | undefined) => {
+        const role = user?.role ?? null;
+        this.isAdmin = role === 'ADMIN' || role === 'ROLE_ADMIN';
+      },
+      error: () => {
+        this.isAdmin = this.authService.isAdmin();
+      }
+    });
+
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {

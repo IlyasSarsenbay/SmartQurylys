@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthResponse, LoginRequest, RegisterRequest, ForgotPasswordRequest, PasswordResetRequest, OrganisationRegisterRequest } from '../core/models/auth';
@@ -9,7 +9,7 @@ import { jwtDecode } from 'jwt-decode'; // Corrected import for jwt-decode
 // Helper interface for the decoded JWT token payload
 interface DecodedToken {
   sub: string; // Subject (username)
-  roles: string[]; // Roles array
+  roles?: string[] | string; // Roles array or single role
   exp: number; // Expiration time
   iat: number; // Issued at time
   // Add other properties if your token contains them
@@ -98,24 +98,35 @@ export class AuthService {
   }
 
   getUserRole(): string | null {
+    const roles = this.getUserRoles();
+    return roles.length > 0 ? roles[0] : null;
+  }
+
+  getUserRoles(): string[] {
     const token = this.getToken();
     if (!token) {
-      // console.log('getUserRole: No token found.'); // Removed log
-      return null;
+      return [];
     }
 
     try {
       const decoded = jwtDecode<DecodedToken>(token);
-      // console.log('getUserRole: Decoded token:', decoded); // Removed log
-      // Assuming 'roles' is an array of strings like ['ROLE_USER', 'ROLE_ADMIN']
-      // We return the first role or null if not found
-      const role = decoded.roles && decoded.roles.length > 0 ? decoded.roles[0] : null;
-      // console.log('getUserRole: Extracted role:', role); // Removed log
-      return role;
+      if (Array.isArray(decoded.roles)) {
+        return decoded.roles.filter((role): role is string => typeof role === 'string' && role.trim().length > 0);
+      }
+
+      if (typeof decoded.roles === 'string' && decoded.roles.trim().length > 0) {
+        return [decoded.roles];
+      }
+
+      return [];
     } catch (error) {
-      console.error('getUserRole: Error decoding token:', error);
-      return null;
+      console.error('getUserRoles: Error decoding token:', error);
+      return [];
     }
+  }
+
+  isAdmin(): boolean {
+    return this.getUserRoles().some(role => role === 'ADMIN' || role === 'ROLE_ADMIN');
   }
 
   getUserId(): number | null {
@@ -130,7 +141,9 @@ export class AuthService {
   }
 
   getCurrentUser(): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/users/me`);
+    const token = this.getToken();
+    const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
+    return this.http.get(`${environment.apiUrl}/users/me`, { headers });
   }
 
   logout(): void {

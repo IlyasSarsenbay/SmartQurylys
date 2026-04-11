@@ -1,25 +1,22 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { CanActivateFn, Router } from '@angular/router';
+import { inject } from '@angular/core';
 import { AuthService } from './auth.service';
+import { catchError, map, of } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class AdminGuard implements CanActivate {
+export const adminGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
 
-  constructor(private authService: AuthService, private router: Router) {}
-
-  canActivate(
-    route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    
-    const userRole = this.authService.getUserRole();
-
-    if (userRole === 'ADMIN') {
-      return true;
-    } else {
-      return this.router.createUrlTree(['/home']); // or '/login'
-    }
+  if (!authService.isAuthenticated()) {
+    return router.createUrlTree(['/login']);
   }
-}
+
+  return authService.getCurrentUser().pipe(
+    map((user: { role?: string } | null | undefined) => {
+      const role = user?.role ?? null;
+      const isAdmin = role === 'ADMIN' || role === 'ROLE_ADMIN';
+      return isAdmin ? true : router.createUrlTree(['/projects']);
+    }),
+    catchError(() => of(authService.isAdmin() ? true : router.createUrlTree(['/projects'])))
+  );
+};

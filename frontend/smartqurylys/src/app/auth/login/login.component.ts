@@ -46,8 +46,7 @@ export class LoginComponent implements OnInit {
    */
   ngOnInit(): void {
     if (this.authService.isAuthenticated()) {
-      const userRole = this.authService.getUserRole();
-      if (userRole === 'ADMIN') {
+      if (this.authService.isAdmin()) {
         this.router.navigate(['/admin']);
       } else {
         this.router.navigate(['/home']);
@@ -86,8 +85,7 @@ export class LoginComponent implements OnInit {
    * @private
    */
   private redirectBasedOnRole(): void {
-    const userRole = this.authService.getUserRole();
-    if (userRole === 'ADMIN') {
+    if (this.authService.isAdmin()) {
       this.router.navigate(['/admin']);
     } else {
       this.router.navigate(['/home']);

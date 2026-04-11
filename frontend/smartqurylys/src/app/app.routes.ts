@@ -5,6 +5,7 @@ import { RegisterComponent } from '././auth/register/register.component';
 import { RegisterCommonComponent } from '././auth/register/regCommon/registerCommon.component';
 import { RegisterOrgComponent } from '././auth/register/registerOrg/registerOrg.component';
 import { authGuard } from './auth/auth.guard';
+import { adminGuard } from './auth/admin.guard';
 import { CreateProjectComponent } from './projects/create-project/create-project.component';
 import { NewProjectDetailsComponent } from './NEW_COMPONENTS/project-details/new-project-details.component';
 import { MyProjectsComponent } from './projects/my-projects/my-projects.component';
@@ -40,7 +41,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: AdminDashboardComponent,
-    canActivate: [authGuard],
+    canActivate: [adminGuard],
     children: [
       { path: '', component: AdminUserManagementComponent, pathMatch: 'full' },
       { path: 'users', component: AdminUserManagementComponent },

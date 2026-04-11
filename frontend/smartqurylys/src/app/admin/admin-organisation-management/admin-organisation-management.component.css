@@ -1,13 +1,14 @@
-/* ===== ОСНОВНОЙ КОНТЕЙНЕР ===== */
 .admin-management-container {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 20px;
+  margin: 0;
   background-color: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  margin: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* ===== ЗАГОЛОВОК ===== */
 h2 {
   font-size: 1.8rem;
   color: #2c3e50;
@@ -16,8 +17,9 @@ h2 {
   padding-bottom: 15px;
 }
 
-/* ===== СОСТОЯНИЯ ЗАГРУЗКИ/ОШИБОК ===== */
-.loading-message, .error-message, .no-results {
+.loading-message,
+.error-message,
+.no-results {
   text-align: center;
   padding: 30px;
   font-size: 1rem;
@@ -31,22 +33,25 @@ h2 {
   border-radius: 5px;
 }
 
-/* ===== КОНТЕЙНЕР ТАБЛИЦЫ ===== */
 .table-container {
-  overflow-x: auto;  /* Горизонтальная прокрутка на мобильных */
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
 }
 
-/* ===== ТАБЛИЦА ===== */
 .data-table {
   width: 100%;
+  min-width: 1200px;
   border-collapse: collapse;
   margin-top: 20px;
 }
 
-.data-table th, .data-table td {
+.data-table th,
+.data-table td {
   padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #ddd;
+  white-space: nowrap;
 }
 
 .data-table th {
@@ -58,10 +63,9 @@ h2 {
 }
 
 .data-table tr:hover {
-  background-color: #f4f4f4;  /* Подсветка строки при наведении */
+  background-color: #f4f4f4;
 }
 
-/* ===== КНОПКИ ДЕЙСТВИЙ ===== */
 .action-button {
   padding: 8px 12px;
   margin-right: 5px;
@@ -97,4 +101,11 @@ h2 {
 
 .delete-button:hover {
   background-color: #c82333;
+}
+
+@media (max-width: 768px) {
+  .admin-management-container {
+    padding: 16px;
+    border-radius: 0;
+  }
 }

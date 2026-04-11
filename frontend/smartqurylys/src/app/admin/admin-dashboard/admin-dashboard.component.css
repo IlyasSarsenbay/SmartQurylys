@@ -1,20 +1,18 @@
-/* ===== ОСНОВНОЙ ЛЕЙАУТ ===== */
 .dashboard-layout {
   display: flex;
-  /* Высота: 100vh минус высота хедера и его нижней линии */
   min-height: calc(100vh - var(--header-height, 60px) - var(--header-bottom-line-height, 2px));
+  min-width: 0;
 }
 
-/* ===== БОКОВАЯ ПАНЕЛЬ ===== */
 .sidebar {
   width: 250px;
+  flex: 0 0 250px;
   background-color: var(--color-background-light);
   padding: 20px 0;
   display: flex;
   flex-direction: column;
 }
 
-/* ===== ЭЛЕМЕНТЫ МЕНЮ ===== */
 .sidebar-item {
   display: flex;
   align-items: center;
@@ -27,47 +25,41 @@
   text-decoration: none;
   font-size: 0.95rem;
   font-weight: 500;
-  /* Легкая тень для всех элементов */
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Состояния элементов меню */
 .sidebar-item:hover {
-  background-color: #DDE5EC;
+  background-color: #dde5ec;
 }
 
-/* Активный элемент (текущий маршрут) */
 .sidebar-item.active {
   background-color: #283693;
   color: white;
   font-weight: 600;
-  /* Более выраженная тень для активного состояния */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-item.active i {
   color: white;
 }
 
-/* Иконки */
 .sidebar-item i {
   margin-right: 10px;
   font-size: 1.2rem;
   color: var(--color-primary-dark);
 }
 
-/* ===== ОСНОВНАЯ ОБЛАСТЬ КОНТЕНТА ===== */
 .main-content {
-  flex-grow: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   padding: 20px;
   background-color: #f5f5f5;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  overflow-y: auto;
+  justify-content: stretch;
+  align-items: stretch;
+  overflow: auto;
 }
 
-/* ===== АДАПТИВНОСТЬ (МОБИЛЬНЫЕ УСТРОЙСТВА) ===== */
 @media (max-width: 768px) {
   .dashboard-layout {
     flex-direction: column;
@@ -75,9 +67,10 @@
 
   .sidebar {
     width: 100%;
+    flex: 0 0 auto;
     flex-direction: row;
     justify-content: space-around;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     padding: 10px 0;
   }
 
