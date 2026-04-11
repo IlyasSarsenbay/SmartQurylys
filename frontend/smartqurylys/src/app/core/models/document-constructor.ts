@@ -1,4 +1,4 @@
-export type ConstructorFieldType = 'text' | 'date' | 'money' | 'select' | 'boolean';
+export type ConstructorFieldType = 'text' | 'textarea' | 'date' | 'money' | 'select' | 'boolean';
 
 export interface ConstructorTemplateSummary {
   id: number;

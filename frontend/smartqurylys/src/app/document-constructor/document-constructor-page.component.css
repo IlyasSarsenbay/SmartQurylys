@@ -175,7 +175,8 @@
 
 .editor-title-card input,
 .field-card input,
-.field-card select {
+.field-card select,
+.field-card textarea {
   width: 100%;
   border-radius: 14px;
   border: 1px solid #d0d7de;
@@ -183,6 +184,12 @@
   padding: 12px 14px;
   font: inherit;
   color: #243746;
+}
+
+.field-card textarea {
+  min-height: 132px;
+  resize: vertical;
+  line-height: 1.6;
 }
 
 .field-grid {
@@ -198,6 +205,10 @@
   border-radius: 18px;
   background: #fff;
   border: 1px solid #dde3e8;
+}
+
+.field-card--textarea {
+  grid-column: 1 / -1;
 }
 
 .field-card--toggle {
