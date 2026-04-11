@@ -17,7 +17,7 @@ import { AdminOrganisationManagementComponent } from './admin/admin-organisation
 import { AdminOrganisationDetailComponent } from './admin/admin-organisation-management/admin-organisation-detail/admin-organisation-detail.component';
 import { AdminProjectManagementComponent } from './admin/admin-project-management/admin-project-management.component';
 import { AdminProjectDetailComponent } from './admin/admin-project-management/admin-project-detail/admin-project-detail.component';
-import { ProjectDashboardComponent } from './project-dashboard/project-dashboard.component'
+import { ProjectDashboardComponent } from './project-dashboard/project-dashboard.component';
 import { ChatComponent } from './chat/chat.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { ProjectDetailsComponent } from './projects/project-details/project-details.component';
@@ -26,19 +26,20 @@ import { ProjectParticipantsComponent } from './NEW_COMPONENTS/project-participa
 import { ProjectDocumentsComponent } from './NEW_COMPONENTS/project-documents/project-documents.component';
 import { ProjectTasksPageComponent } from './NEW_COMPONENTS/project-tasks-page/project-tasks-page.component';
 import { ProjectLayoutComponent } from './NEW_COMPONENTS/project-layout/project-layout.component';
-// Определение маршрутов приложения Angular.
+import { DocumentConstructorPageComponent } from './document-constructor/document-constructor-page.component';
+
 export const routes: Routes = [
-  { path: '', component: HomeComponent }, // Главная страница.
-  { path: 'login', component: LoginComponent }, // Страница входа.
+  { path: '', component: HomeComponent },
+  { path: 'login', component: LoginComponent },
   { path: 'chat', component: ChatComponent, canActivate: [authGuard] },
-  { path: 'register', component: RegisterCommonComponent }, // Страница регистрации.
+  { path: 'register', component: RegisterCommonComponent },
   { path: 'registerOrg', component: RegisterOrgComponent },
   { path: 'registerUser', component: RegisterComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   {
     path: 'admin',
     component: AdminDashboardComponent,
-    canActivate: [authGuard], // Assuming authGuard is sufficient or AdminGuard
+    canActivate: [authGuard],
     children: [
       { path: '', component: AdminUserManagementComponent, pathMatch: 'full' },
       { path: 'users', component: AdminUserManagementComponent },
@@ -50,10 +51,9 @@ export const routes: Routes = [
       { path: '**', redirectTo: 'users' }
     ]
   },
-  { path: 'personal-cabinet', component: PersonalCabinetComponent, canActivate: [authGuard] }, // Личный кабинет, требует аутентификации.
-  { path: 'projects', component: MyProjectsComponent, canActivate: [authGuard] }, // Список моих проектов, требует аутентификации.
-  { path: 'projects/create', component: CreateProjectComponent, canActivate: [authGuard] }, // Создание нового проекта, требует аутентификации.
-
+  { path: 'personal-cabinet', component: PersonalCabinetComponent, canActivate: [authGuard] },
+  { path: 'projects', component: MyProjectsComponent, canActivate: [authGuard] },
+  { path: 'projects/create', component: CreateProjectComponent, canActivate: [authGuard] },
   {
     path: 'projects/:id',
     component: ProjectLayoutComponent,
@@ -65,14 +65,10 @@ export const routes: Routes = [
       { path: 'participants', component: ProjectParticipantsComponent }
     ]
   },
-  { path: 'contractor-registry', component: ContractorRegistryComponent, canActivate: [authGuard] }, // Реестр подрядчиков, требует аутентификации.
-  
-  //  old front
-   { path: 'legacy/project/:id', component: ProjectDetailsComponent, canActivate: [authGuard] },
-   { path: 'legacy/projects/:id', component: ProjectDashboardComponent, canActivate: [authGuard] },
-   { path: 'notifications', component: NotificationModalComponent, canActivate: [authGuard] },
-  
-
-  { path: '**', redirectTo: '' } // Перенаправление на главную страницу для всех неизвестных маршрутов.
-
+  { path: 'contractor-registry', component: ContractorRegistryComponent, canActivate: [authGuard] },
+  { path: 'constructor', component: DocumentConstructorPageComponent, canActivate: [authGuard] },
+  { path: 'legacy/project/:id', component: ProjectDetailsComponent, canActivate: [authGuard] },
+  { path: 'legacy/projects/:id', component: ProjectDashboardComponent, canActivate: [authGuard] },
+  { path: 'notifications', component: NotificationModalComponent, canActivate: [authGuard] },
+  { path: '**', redirectTo: '' }
 ];

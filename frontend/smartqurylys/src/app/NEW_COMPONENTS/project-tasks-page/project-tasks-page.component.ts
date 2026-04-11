@@ -45,7 +45,7 @@ interface TaskStage {
   id: number;
   title: string;
   expanded: boolean;
-  sortColumn: SortColumn;
+  sortColumn: SortColumn | null;
   sortDirection: SortDirection;
   tasks: TodoItem[];
 }
@@ -1010,7 +1010,7 @@ export class ProjectTasksPageComponent implements OnInit {
           id: stage.id,
           title: stage.name,
           expanded: previousStage?.expanded ?? true,
-          sortColumn: previousStage?.sortColumn ?? 'subject',
+          sortColumn: previousStage?.sortColumn ?? null,
           sortDirection: previousStage?.sortDirection ?? 'asc',
           tasks: this.mapBoardTasks(stage.tasks, itemState)
         };
@@ -1142,7 +1142,7 @@ export class ProjectTasksPageComponent implements OnInit {
       .filter((item): item is TodoItem => item !== null);
 
     const stage = this.stages.find((item) => item.tasks === tasks);
-    return this.sortItems(filteredItems, stage?.sortColumn ?? 'subject', stage?.sortDirection ?? 'asc');
+    return this.sortItems(filteredItems, stage?.sortColumn ?? null, stage?.sortDirection ?? 'asc');
   }
 
   private filterItem(item: TodoItem): TodoItem | null {
@@ -1182,7 +1182,14 @@ export class ProjectTasksPageComponent implements OnInit {
     ].some((value) => value.toLowerCase().includes(query));
   }
 
-  private sortItems(items: TodoItem[], sortColumn: SortColumn, sortDirection: SortDirection): TodoItem[] {
+  private sortItems(items: TodoItem[], sortColumn: SortColumn | null, sortDirection: SortDirection): TodoItem[] {
+    if (sortColumn === null) {
+      return [...items].map((item) => ({
+        ...item,
+        subtasks: item.subtasks?.length ? this.sortItems(item.subtasks, null, sortDirection) : item.subtasks
+      }));
+    }
+
     const directionFactor = sortDirection === 'asc' ? 1 : -1;
 
     return [...items]

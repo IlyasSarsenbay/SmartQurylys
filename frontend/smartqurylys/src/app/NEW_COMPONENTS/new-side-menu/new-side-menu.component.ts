@@ -1,15 +1,15 @@
 import { NgSwitch, NgSwitchCase } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { RouterLink } from "@angular/router";
+import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 import { NotificationRealtimeService } from '../../core/notification-realtime.service';
 import { NotificationService } from '../../core/notification.service';
-import { MyProjectsComponent } from "../../projects/my-projects/my-projects.component";
-import { ProjectsPanelComponent } from "../projects-panel/projects-panel.component";
-import { NotificationsDialogComponent } from "../notifications-dialog/notifications-dialog.component";
+import { MyProjectsComponent } from '../../projects/my-projects/my-projects.component';
+import { ProjectsPanelComponent } from '../projects-panel/projects-panel.component';
+import { NotificationsDialogComponent } from '../notifications-dialog/notifications-dialog.component';
 
-type Panel = 'projects' | 'tasks' | 'contractors' | 'chats' | null
+type Panel = 'projects' | 'tasks' | 'contractors' | 'chats' | 'constructor' | null;
 
 @Component({
   selector: 'app-new-side-menu',
@@ -57,29 +57,28 @@ export class NewSideMenuComponent implements OnInit, OnDestroy {
     this.notificationRealtimeService.disconnect();
   }
 
-  togglePanel(panel: Panel) {
+  togglePanel(panel: Panel): void {
     if (this.activePanel === panel) {
       this.activePanel = null;
       return;
     }
     this.activePanel = panel;
-    console.log(panel)
   }
 
-  closePanel() {
+  closePanel(): void {
     this.activePanel = null;
   }
 
-  openNotificationsDialog() {
+  openNotificationsDialog(): void {
     this.activePanel = null;
     this.isNotificationsDialogOpen = true;
   }
 
-  closeNotificationsDialog() {
+  closeNotificationsDialog(): void {
     this.isNotificationsDialogOpen = false;
   }
 
-  isPanelOpen() {
-    return this.activePanel == 'projects' || this.activePanel == 'tasks'
+  isPanelOpen(): boolean {
+    return this.activePanel === 'projects' || this.activePanel === 'tasks';
   }
 }

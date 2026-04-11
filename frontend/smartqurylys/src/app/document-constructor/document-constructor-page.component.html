@@ -1,0 +1,173 @@
+<section class="constructor-page">
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Конструктор документов</p>
+      <h1>Деловые документы на основе шаблонов</h1>
+      <p class="subtitle">
+        Выберите шаблон, заполните короткую структурированную форму, проверьте живое превью, сохраните черновик и экспортируйте PDF без тяжёлого редактора.
+      </p>
+    </div>
+    @if (statusMessage) {
+      <p class="status-message">{{ statusMessage }}</p>
+    }
+  </header>
+
+  @if (isLoading) {
+    <div class="loading-card">Загрузка конструктора...</div>
+  } @else {
+    <div class="workspace-grid">
+      <aside class="workspace-sidebar">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Шаблоны</h2>
+            <span>{{ templates.length }} готово</span>
+          </div>
+
+          <div class="template-list">
+            @for (template of templates; track trackByTemplate($index, template)) {
+              <button
+                type="button"
+                class="template-card"
+                [class.active]="isSelectedTemplate(template)"
+                (click)="openTemplate(template)">
+                <span class="template-category">{{ template.category }}</span>
+                <strong>{{ template.name }}</strong>
+                <p>{{ template.description }}</p>
+              </button>
+            }
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Сохранённые черновики</h2>
+            <span>{{ documents.length }} всего</span>
+          </div>
+
+          <div class="draft-list">
+            @if (documents.length === 0) {
+              <div class="empty-card">После первого сохранения здесь появятся черновики.</div>
+            } @else {
+              @for (document of documents; track trackByDocument($index, document)) {
+                <button
+                  type="button"
+                  class="draft-card"
+                  [class.active]="isSelectedDocument(document)"
+                  (click)="reopenDocument(document)">
+                  <div class="draft-card__meta">
+                    <strong>{{ document.title }}</strong>
+                    <span class="draft-status" [class.validated]="document.status === 'VALIDATED'">
+                      {{ document.status === 'VALIDATED' ? 'Проверен' : 'Черновик' }}
+                    </span>
+                  </div>
+                  <p>{{ document.templateName }}</p>
+                  <small>Обновлён {{ formatDate(document.updatedAt) }}</small>
+                  <span class="draft-duplicate" (click)="duplicateDocument(document, $event)">Дублировать</span>
+                </button>
+              }
+            }
+          </div>
+        </section>
+      </aside>
+
+      <div class="workspace-main">
+        @if (selectedTemplate) {
+          <div class="editor-grid">
+            <section class="editor-panel">
+              <form [formGroup]="form" class="editor-form">
+                <div class="editor-title-card">
+                  <label for="constructor-title">Название черновика</label>
+                  <input id="constructor-title" type="text" formControlName="title" placeholder="Название документа" />
+                </div>
+
+                @for (section of selectedTemplate.sections; track section.key) {
+                  <article class="form-section">
+                    <div class="form-section__header">
+                      <div>
+                        <h3>{{ section.title }}</h3>
+                        @if (section.description) {
+                          <p class="section-description">{{ section.description }}</p>
+                        }
+                      </div>
+                      <span>{{ getVisibleFields(section).length }} полей</span>
+                    </div>
+
+                    <div class="field-grid">
+                      @for (field of getVisibleFields(section); track trackByField($index, field)) {
+                        <label class="field-card" [class.field-card--toggle]="field.type === 'boolean'" [class.has-error]="hasFieldError(field.key)">
+                          <span class="field-label">
+                            {{ field.label }}
+                            @if (field.required) {
+                              <em>*</em>
+                            }
+                          </span>
+                          @if (field.helperText) {
+                            <span class="field-helper">{{ field.helperText }}</span>
+                          }
+
+                          @switch (field.type) {
+                            @case ('text') {
+                              <input type="text" [formControlName]="field.key" [placeholder]="field.placeholder || field.label" />
+                            }
+                            @case ('date') {
+                              <input type="date" [formControlName]="field.key" />
+                            }
+                            @case ('money') {
+                              <input type="number" min="0" step="0.01" [formControlName]="field.key" [placeholder]="field.placeholder || '0.00'" />
+                            }
+                            @case ('select') {
+                              <select [formControlName]="field.key">
+                                <option value="">Выберите...</option>
+                                @for (option of field.options ?? []; track option.value) {
+                                  <option [value]="option.value">{{ option.label }}</option>
+                                }
+                              </select>
+                            }
+                            @case ('boolean') {
+                              <span class="toggle-row">
+                                <input type="checkbox" [formControlName]="field.key" />
+                                <span>Включить</span>
+                              </span>
+                            }
+                          }
+
+                          @if (hasFieldError(field.key)) {
+                            <span class="field-error">{{ getFieldErrors(field.key).join(' ') }}</span>
+                          }
+                        </label>
+                      }
+                    </div>
+                  </article>
+                }
+              </form>
+
+              <div class="sticky-actions">
+                <button type="button" class="secondary" (click)="saveDraft()" [disabled]="isBusy">Сохранить черновик</button>
+                <button type="button" class="secondary" (click)="validate()" [disabled]="isBusy">Проверить</button>
+                <button type="button" class="primary" (click)="generatePdf()" [disabled]="isBusy">Сформировать PDF</button>
+              </div>
+            </section>
+
+            <section class="preview-panel">
+              <div class="preview-panel__header">
+                <div>
+                  <p class="eyebrow">Предпросмотр</p>
+                  <h2>{{ selectedTemplate.name }}</h2>
+                </div>
+                @if (selectedDocument) {
+                  <span class="preview-badge">{{ selectedDocument.status === 'VALIDATED' ? 'Проверенный черновик' : 'Черновик в работе' }}</span>
+                }
+              </div>
+
+              <div class="preview-shell">
+                <app-document-constructor-preview [html]="previewHtml"></app-document-constructor-preview>
+              </div>
+            </section>
+          </div>
+        } @else {
+          <div class="empty-card large">Выберите шаблон, чтобы начать создание документа.</div>
+        }
+      </div>
+    </div>
+  }
+</section>

@@ -12,35 +12,40 @@
         <menu class="top-menu">
             <button (click)="togglePanel('projects')" [class.active]="activePanel==='projects'">
                 <img class="icon" src="assets/icon_projects.png">
-                <span>Проекты</span>
+                <span>Projects</span>
             </button>
 
             <button routerLink="/contractor-registry" (click)="togglePanel('contractors')"
                 [class.active]="activePanel==='contractors'">
                 <img class="icon" src="assets/Icon_Contractors.png">
-                <span>Подрядчики</span>
+                <span>Contractors</span>
             </button>
 
             <button routerLink="/chat" (click)="togglePanel('chats')" [class.active]="activePanel==='chats'">
                 <img class="icon" src="assets/Icon_Chat.png">
-                <span>Чат</span>
+                <span>Chat</span>
+            </button>
+
+            <button routerLink="/constructor" (click)="togglePanel('constructor')" [class.active]="activePanel==='constructor'">
+                <img class="icon" src="assets/edit-text.png">
+                <span>Constructor</span>
             </button>
         </menu>
 
         <menu class="bot-menu">
             <button (click)="openNotificationsDialog()">
                 <img class="icon" src="assets/icon_notification.png">
-                <span>Уведомления</span>
+                <span>Notifications</span>
             </button>
 
             <button>
                 <img class="icon" src="assets/icon_settings.png">
-                <span>Настройки</span>
+                <span>Settings</span>
             </button>
 
             <button routerLink="/personal-cabinet" (click)="togglePanel(activePanel)">
                 <img class="icon-profile" src="assets/icon_profile-picture.png">
-                <span>Учетная запись</span>
+                <span>Account</span>
             </button>
         </menu>
     </section>
