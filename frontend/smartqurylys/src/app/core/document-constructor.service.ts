@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   ConstructorDocument,
   ConstructorDocumentSaveRequest,
+  ConstructorPdfRequest,
   ConstructorTemplateDetails,
   ConstructorTemplateSummary,
   ConstructorValidateRequest,
@@ -49,5 +50,12 @@ export class DocumentConstructorService {
 
   validate(payload: ConstructorValidateRequest): Observable<ConstructorValidationResponse> {
     return this.http.post<ConstructorValidationResponse>(`${this.apiUrl}/validate`, payload);
+  }
+
+  generatePdf(payload: ConstructorPdfRequest): Observable<HttpResponse<Blob>> {
+    return this.http.post(`${this.apiUrl}/pdf`, payload, {
+      observe: 'response',
+      responseType: 'blob'
+    });
   }
 }

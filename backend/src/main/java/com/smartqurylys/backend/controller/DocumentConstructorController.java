@@ -4,6 +4,10 @@ import com.smartqurylys.backend.dto.documentconstructor.*;
 import com.smartqurylys.backend.service.documentconstructor.DocumentConstructorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -56,5 +60,16 @@ public class DocumentConstructorController {
     @PostMapping("/validate")
     public ConstructorValidationResponse validate(@Valid @RequestBody ConstructorValidateRequest request) {
         return documentConstructorService.validate(request);
+    }
+
+    @PostMapping("/pdf")
+    public ResponseEntity<byte[]> generatePdf(@Valid @RequestBody ConstructorPdfRequest request) {
+        byte[] pdf = documentConstructorService.generatePdf(request);
+        String filename = documentConstructorService.buildPdfFilename(request.getTitle());
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(filename).build().toString())
+                .body(pdf);
     }
 }

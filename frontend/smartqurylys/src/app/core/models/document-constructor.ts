@@ -97,3 +97,9 @@ export interface ConstructorValidateRequest {
   templateId: number;
   formData: Record<string, unknown>;
 }
+
+export interface ConstructorPdfRequest {
+  templateId: number;
+  title: string;
+  formData: Record<string, unknown>;
+}

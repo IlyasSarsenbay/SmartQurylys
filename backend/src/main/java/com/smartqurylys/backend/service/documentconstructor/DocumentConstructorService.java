@@ -3,6 +3,7 @@ package com.smartqurylys.backend.service.documentconstructor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.smartqurylys.backend.dto.documentconstructor.*;
 import com.smartqurylys.backend.entity.DocumentConstructorDocument;
 import com.smartqurylys.backend.entity.DocumentConstructorTemplate;
@@ -12,6 +13,9 @@ import com.smartqurylys.backend.repository.documentconstructor.DocumentConstruct
 import com.smartqurylys.backend.shared.enums.documentconstructor.ConstructorDocumentStatus;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -19,7 +23,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.text.DecimalFormat;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -30,6 +38,7 @@ import java.util.regex.Pattern;
 @Service
 @RequiredArgsConstructor
 public class DocumentConstructorService {
+    private static final Logger log = LoggerFactory.getLogger(DocumentConstructorService.class);
     private static final Pattern TOKEN_PATTERN = Pattern.compile("\\{\\{\\s*([a-zA-Z0-9_.-]+)\\s*}}");
     private static final TypeReference<List<Map<String, Object>>> LIST_OF_MAPS = new TypeReference<>() {};
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
@@ -83,18 +92,61 @@ public class DocumentConstructorService {
                 }, templateId);
     }
 
+    @Transactional(readOnly = true)
     public List<ConstructorDocumentResponse> getDocuments() {
         User currentUser = getAuthenticatedUser();
-        return findDocuments(currentUser, null);
+        log.info("Document constructor getDocuments for userId={}, email={}, role={}",
+                currentUser.getId(), currentUser.getEmail(), currentUser.getRole());
+
+        List<DocumentConstructorDocument> documents = "ADMIN".equals(currentUser.getRole())
+                ? documentRepository.findAll(Sort.by(Sort.Direction.DESC, "updatedAt"))
+                : documentRepository.findByOwnerUserIdOrderByUpdatedAtDesc(currentUser.getId());
+
+        log.info("Document constructor repository returned {} document entities", documents.size());
+
+        List<ConstructorDocumentResponse> results = new ArrayList<>();
+        for (DocumentConstructorDocument document : documents) {
+            try {
+                Long ownerUserId = null;
+                try {
+                    ownerUserId = document.getOwnerUser() != null ? document.getOwnerUser().getId() : null;
+                } catch (Exception ownerException) {
+                    log.warn("Document constructor could not resolve owner for documentId={}: {}",
+                            document.getId(), ownerException.getMessage());
+                }
+
+                log.info("Document constructor mapping documentId={}, templateId={}, ownerUserId={}, title={}",
+                        document.getId(),
+                        document.getTemplate() != null ? document.getTemplate().getId() : null,
+                        ownerUserId,
+                        document.getTitle());
+                results.add(mapDocumentResponse(document, document.getTemplate().getCode()));
+            } catch (Exception exception) {
+                log.error("Document constructor failed to map documentId={}: {}",
+                        document.getId(), exception.getMessage(), exception);
+            }
+        }
+        log.info("Document constructor returning {} mapped documents", results.size());
+        return results;
     }
 
+    @Transactional(readOnly = true)
     public ConstructorDocumentResponse getDocument(Long documentId) {
         User currentUser = getAuthenticatedUser();
-        List<ConstructorDocumentResponse> documents = findDocuments(currentUser, documentId);
-        if (documents.isEmpty()) {
+        DocumentConstructorDocument document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new IllegalArgumentException("Document not found"));
+
+        boolean isOwner = Objects.equals(document.getOwnerUser().getId(), currentUser.getId());
+        boolean isAdmin = "ADMIN".equals(currentUser.getRole());
+        if (!isOwner && !isAdmin) {
+            throw new IllegalArgumentException("You do not have access to this document");
+        }
+
+        try {
+            return mapDocumentResponse(document, document.getTemplate().getCode());
+        } catch (Exception exception) {
             throw new IllegalArgumentException("Document not found");
         }
-        return documents.get(0);
     }
 
     public ConstructorValidationResponse validate(ConstructorValidateRequest request) {
@@ -144,7 +196,7 @@ public class DocumentConstructorService {
                 .build();
 
         DocumentConstructorDocument saved = documentRepository.save(duplicate);
-        return getDocument(saved.getId());
+        return mapDocumentResponse(saved, saved.getTemplate().getCode());
     }
 
     private ConstructorDocumentResponse persistDocument(
@@ -172,7 +224,68 @@ public class DocumentConstructorService {
         document.setUpdatedAt(now);
 
         DocumentConstructorDocument saved = documentRepository.save(document);
-        return getDocument(saved.getId());
+        return mapDocumentResponse(saved, template.code());
+    }
+
+    private ConstructorDocumentResponse mapDocumentResponse(
+            DocumentConstructorDocument document,
+            String templateCode
+    ) {
+        return ConstructorDocumentResponse.builder()
+                .id(document.getId())
+                .templateId(document.getTemplate().getId())
+                .templateCode(templateCode)
+                .templateName(document.getTemplateNameSnapshot())
+                .templateVersion(document.getTemplateVersionSnapshot())
+                .title(document.getTitle())
+                .status(document.getStatus())
+                .formData(safeReadJsonMap(document.getFormDataJson()))
+                .renderedHtml(Optional.ofNullable(document.getRenderedHtml()).orElse(""))
+                .validationErrors(safeReadValidationErrors(document.getValidationErrorsJson()))
+                .createdAt(document.getCreatedAt())
+                .updatedAt(document.getUpdatedAt())
+                .build();
+    }
+
+    public byte[] generatePdf(ConstructorPdfRequest request) {
+        TemplateMeta template = getTemplateMeta(request.getTemplateId());
+        ValidationContext context = buildValidationContext(template, request.getFormData());
+        if (!context.errors.isEmpty()) {
+            throw new IllegalArgumentException("Document contains validation errors and cannot be exported to PDF");
+        }
+
+        String renderedHtml = renderTemplate(template, request.getFormData(), context.fieldDefinitions);
+        String documentHtml = buildPdfDocumentHtml(request.getTitle().trim(), renderedHtml);
+
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            PdfRendererBuilder builder = new PdfRendererBuilder();
+            builder.useFastMode();
+            builder.withHtmlContent(documentHtml, null);
+            registerPdfFonts(builder);
+            builder.toStream(outputStream);
+            builder.run();
+            return outputStream.toByteArray();
+        } catch (Exception exception) {
+            throw new IllegalStateException("Failed to generate PDF", exception);
+        }
+    }
+
+    public String buildPdfFilename(String title) {
+        String baseName = title == null ? "" : title.trim();
+        if (baseName.isBlank()) {
+            baseName = "document";
+        }
+
+        String sanitized = baseName
+                .replaceAll("[\\\\/:*?\"<>|]+", "-")
+                .replaceAll("\\s+", " ")
+                .trim();
+
+        if (sanitized.isBlank()) {
+            sanitized = "document";
+        }
+
+        return sanitized + ".pdf";
     }
 
     private ValidationContext buildValidationContext(TemplateMeta template, Map<String, Object> formData) {
@@ -265,6 +378,109 @@ public class DocumentConstructorService {
 
         html.append("</article>");
         return html.toString();
+    }
+
+    private String buildPdfDocumentHtml(String title, String renderedHtml) {
+        return """
+                <!DOCTYPE html>
+                <html lang="ru">
+                <head>
+                  <meta charset="UTF-8" />
+                  <style>
+                    @page {
+                      size: A4;
+                      margin: 18mm 16mm 18mm 16mm;
+                    }
+                    body {
+                      margin: 0;
+                      font-family: 'Arial', sans-serif;
+                      color: #1f2937;
+                      font-size: 12pt;
+                    }
+                    .pdf-shell {
+                      width: 100%%;
+                    }
+                    .dc-document__header {
+                      margin-bottom: 18px;
+                    }
+                    .dc-document__header h1 {
+                      margin: 0 0 8px 0;
+                      font-size: 22pt;
+                      color: #14213d;
+                    }
+                    .dc-document__eyebrow {
+                      margin: 0 0 8px 0;
+                      font-size: 8.5pt;
+                      letter-spacing: 0.14em;
+                      text-transform: uppercase;
+                      color: #8d6e63;
+                    }
+                    .dc-document__section {
+                      margin-top: 18px;
+                    }
+                    .dc-document__section h2 {
+                      margin: 0 0 10px 0;
+                      font-size: 15pt;
+                      color: #14213d;
+                    }
+                    .dc-document__section h3 {
+                      margin: 0 0 8px 0;
+                      font-size: 13pt;
+                      color: #14213d;
+                    }
+                    .dc-document__section p,
+                    .dc-document__section li {
+                      margin: 0 0 10px 0;
+                      line-height: 1.55;
+                    }
+                    .dc-document__section ul {
+                      margin: 0 0 12px 18px;
+                      padding: 0;
+                    }
+                    .dc-editable {
+                      background: #fdf1e8;
+                      border-radius: 3px;
+                      padding: 0 2px;
+                    }
+                    .dc-editable.is-empty {
+                      color: #991b1b;
+                      background: #fde8e8;
+                    }
+                  </style>
+                  <title>%s</title>
+                </head>
+                <body>
+                  <div class="pdf-shell">%s</div>
+                </body>
+                </html>
+                """.formatted(escapeHtml(title), renderedHtml);
+    }
+
+    private void registerPdfFonts(PdfRendererBuilder builder) {
+        for (String fontPath : getPdfFontCandidates()) {
+            try {
+                Path path = Path.of(fontPath);
+                if (!Files.exists(path)) {
+                    continue;
+                }
+                builder.useFont(path.toFile(), "Arial");
+                log.info("Document constructor registered PDF font from {}", fontPath);
+                return;
+            } catch (Exception exception) {
+                log.warn("Document constructor failed to register PDF font {}: {}", fontPath, exception.getMessage());
+            }
+        }
+
+        log.warn("Document constructor did not find a dedicated PDF font with Cyrillic support. Generated PDF may have limited glyph support.");
+    }
+
+    private List<String> getPdfFontCandidates() {
+        return List.of(
+                "C:\\\\Windows\\\\Fonts\\\\arial.ttf",
+                "C:\\\\Windows\\\\Fonts\\\\ARIAL.TTF",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                "/usr/share/fonts/dejavu/DejaVuSans.ttf"
+        );
     }
 
     private void renderBlock(
@@ -527,6 +743,7 @@ public class DocumentConstructorService {
 
     private User getAuthenticatedUser() {
         String email = getAuthenticatedEmail();
+        log.info("Document constructor resolved authenticated email={}", email);
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
@@ -729,6 +946,24 @@ public class DocumentConstructorService {
 
     private Instant toInstant(java.sql.Timestamp timestamp) {
         return timestamp != null ? timestamp.toInstant() : Instant.now();
+    }
+
+    private Map<String, Object> safeReadJsonMap(String json) {
+        try {
+            return readJsonMap(json);
+        } catch (Exception exception) {
+            log.warn("Document constructor could not parse form_data_json, using empty map instead: {}", exception.getMessage());
+            return Collections.emptyMap();
+        }
+    }
+
+    private List<ConstructorValidationErrorResponse> safeReadValidationErrors(String json) {
+        try {
+            return readValidationErrors(json);
+        } catch (Exception exception) {
+            log.warn("Document constructor could not parse validation_errors_json, using empty list instead: {}", exception.getMessage());
+            return Collections.emptyList();
+        }
     }
 
     private record TemplateMeta(

@@ -1,12 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { of, forkJoin, Subscription } from 'rxjs';
+import { Observable, of, forkJoin, Subscription } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { DocumentConstructorService } from '../core/document-constructor.service';
 import {
   ConstructorDocument,
   ConstructorDocumentSaveRequest,
+  ConstructorPdfRequest,
   ConstructorTemplateDetails,
   ConstructorTemplateField,
   ConstructorTemplateSection,
@@ -57,6 +59,10 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
       templates: this.documentConstructorService.getTemplates(),
       documents: this.documentConstructorService.getDocuments().pipe(
         catchError((error) => {
+          console.error('[DocumentConstructor] GET /documents failed', error);
+          throw error;
+        }),
+        catchError((error) => {
           console.error('Failed to load saved constructor documents', error);
           this.statusMessage = 'Templates are available, but saved drafts could not be loaded.';
           return of([] as ConstructorDocument[]);
@@ -65,10 +71,16 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
       currentUser: this.userService.getCurrentUser()
     }).subscribe({
       next: ({ templates, documents, currentUser }) => {
+        console.log('[DocumentConstructor] Templates loaded:', templates);
+        console.log('[DocumentConstructor] Documents response:', documents);
+        console.log('[DocumentConstructor] Current user:', currentUser);
+
         this.templates = templates;
         this.documents = documents;
         this.currentUser = currentUser;
         this.isLoading = false;
+
+        this.logDocumentsState('after initial load');
 
         if (templates.length > 0) {
           this.openTemplate(templates[0]);
@@ -132,6 +144,7 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
     this.documentConstructorService.duplicateDocument(document.id).subscribe({
       next: (duplicated) => {
         this.documents = [duplicated, ...this.documents.filter((item) => item.id !== duplicated.id)];
+        this.logDocumentsState('after duplicate');
         this.statusMessage = 'Draft duplicated.';
       },
       error: (error) => {
@@ -158,19 +171,10 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
 
     request$.subscribe({
       next: (savedDocument) => {
-        this.isBusy = false;
-        this.selectedDocument = savedDocument;
-        this.previewHtml = savedDocument.renderedHtml;
-        this.validationErrors = this.toErrorMap(savedDocument.validationErrors);
-        this.documents = [savedDocument, ...this.documents.filter((document) => document.id !== savedDocument.id)];
-        this.statusMessage = savedDocument.status === 'VALIDATED'
-          ? 'Draft saved and validated.'
-          : 'Draft saved. Validation issues still need attention.';
+        this.handleSaveSuccess(savedDocument);
       },
       error: (error) => {
-        console.error('Failed to save constructor draft', error);
-        this.isBusy = false;
-        this.statusMessage = 'Draft could not be saved.';
+        this.handleSaveError(error, payload);
       }
     });
   }
@@ -194,7 +198,7 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('Failed to validate constructor draft', error);
         this.isBusy = false;
-        this.statusMessage = 'Validation failed.';
+        this.statusMessage = this.getRequestErrorMessage(error, 'Validation failed.');
       }
     });
   }
@@ -219,13 +223,26 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
         }
 
         const title = String(this.form.get('title')?.value ?? this.selectedTemplate?.name ?? 'Document');
-        this.statusMessage = 'Print dialog opened. Choose "Save as PDF" to export.';
-        this.pdfService.openPrintPreview(title, response.renderedHtml);
-      },
-      error: (error) => {
-        console.error('Failed to generate PDF preview', error);
-        this.isBusy = false;
-        this.statusMessage = 'PDF generation failed.';
+        this.documentConstructorService.generatePdf(this.buildPdfPayload(title)).subscribe({
+          next: (pdfResponse) => {
+            this.isBusy = false;
+            const filename = this.extractFilename(pdfResponse) ?? `${title}.pdf`;
+            if (pdfResponse.body) {
+              this.pdfService.openPreview(title, response.renderedHtml, pdfResponse.body, filename);
+            }
+            this.statusMessage = 'PDF preview opened. Download the file from the preview window.';
+          },
+          error: (error) => {
+            console.error('Failed to download PDF', error);
+            this.isBusy = false;
+            this.statusMessage = this.getRequestErrorMessage(error, 'PDF generation failed.');
+          }
+        });
+        },
+        error: (error) => {
+          console.error('Failed to generate PDF preview', error);
+          this.isBusy = false;
+        this.statusMessage = this.getRequestErrorMessage(error, 'PDF generation failed.');
       }
     });
   }
@@ -312,9 +329,20 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
       return null;
     }
 
+    const resolvedTitle = String(this.form.get('title')?.value ?? '').trim() || `${this.selectedTemplate.name} Draft`;
+    this.form.get('title')?.setValue(resolvedTitle, { emitEvent: false });
+
     return {
       templateId: this.selectedTemplate.id,
-      title: String(this.form.get('title')?.value ?? '').trim(),
+      title: resolvedTitle,
+      formData: this.getFormData()
+    };
+  }
+
+  private buildPdfPayload(title: string): ConstructorPdfRequest {
+    return {
+      templateId: this.selectedTemplate!.id,
+      title,
       formData: this.getFormData()
     };
   }
@@ -400,4 +428,90 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
     const truthy = formData[key] === true || String(formData[key]).toLowerCase() === 'true';
     return inverted ? !truthy : truthy;
   }
+
+  private getRequestErrorMessage(error: unknown, fallback: string): string {
+    if (!(error instanceof HttpErrorResponse) || !error.error) {
+      return fallback;
+    }
+
+    if (typeof error.error === 'string') {
+      return error.error;
+    }
+
+    if (typeof error.error.error === 'string') {
+      return error.error.error;
+    }
+
+    if (typeof error.error === 'object') {
+      const firstMessage = Object.values(error.error).find((value) => typeof value === 'string');
+      if (typeof firstMessage === 'string') {
+        return firstMessage;
+      }
+    }
+
+    return fallback;
+  }
+
+  private handleSaveSuccess(savedDocument: ConstructorDocument): void {
+    this.isBusy = false;
+    this.selectedDocument = savedDocument;
+    this.previewHtml = savedDocument.renderedHtml;
+    this.validationErrors = this.toErrorMap(savedDocument.validationErrors);
+    this.documents = [savedDocument, ...this.documents.filter((document) => document.id !== savedDocument.id)];
+    console.log('[DocumentConstructor] Save response:', savedDocument);
+    this.logDocumentsState('after save');
+    this.statusMessage = savedDocument.status === 'VALIDATED'
+      ? 'Draft saved and validated.'
+      : 'Draft saved. Validation issues still need attention.';
+  }
+
+  private handleSaveError(error: unknown, payload: ConstructorDocumentSaveRequest): void {
+    console.error('Failed to save constructor draft', error);
+
+    if (this.selectedDocument && this.getRequestErrorMessage(error, '') === 'Document not found') {
+      const staleDocumentId = this.selectedDocument.id;
+      this.selectedDocument = null;
+      this.documents = this.documents.filter((document) => document.id !== staleDocumentId);
+
+      this.createFreshDraft(payload).subscribe({
+        next: (savedDocument) => {
+          this.handleSaveSuccess(savedDocument);
+          this.statusMessage = 'Previous draft reference was stale, so the document was saved as a new draft.';
+        },
+        error: (createError) => {
+          console.error('Failed to create a new draft after stale update reference', createError);
+          this.isBusy = false;
+          this.statusMessage = this.getRequestErrorMessage(createError, 'Draft could not be saved.');
+        }
+      });
+      return;
+    }
+
+    this.isBusy = false;
+    this.statusMessage = this.getRequestErrorMessage(error, 'Draft could not be saved.');
+  }
+
+  private createFreshDraft(payload: ConstructorDocumentSaveRequest): Observable<ConstructorDocument> {
+    return this.documentConstructorService.createDocument(payload);
+  }
+
+  private logDocumentsState(context: string): void {
+    console.log(`[DocumentConstructor] Documents state ${context}: count=${this.documents.length}`, this.documents);
+  }
+
+  private extractFilename(response: { headers?: { get(name: string): string | null } }): string | null {
+    const contentDisposition = response.headers?.get('content-disposition');
+    if (!contentDisposition) {
+      return null;
+    }
+
+    const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (utf8Match?.[1]) {
+      return decodeURIComponent(utf8Match[1]);
+    }
+
+    const plainMatch = contentDisposition.match(/filename="?([^"]+)"?/i);
+    return plainMatch?.[1] ?? null;
+  }
+
 }

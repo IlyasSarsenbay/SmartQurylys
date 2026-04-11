@@ -43,11 +43,9 @@ public class DocumentConstructorTemplate {
     @Column(name = "is_system", nullable = false)
     private boolean system;
 
-    @Lob
     @Column(name = "schema_json", nullable = false, columnDefinition = "text")
     private String schemaJson;
 
-    @Lob
     @Column(name = "layout_json", nullable = false, columnDefinition = "text")
     private String layoutJson;
 

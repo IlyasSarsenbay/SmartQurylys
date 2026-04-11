@@ -44,6 +44,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'
 
     implementation 'org.flywaydb:flyway-core:11.20.3'
     implementation 'org.flywaydb:flyway-database-postgresql:11.20.3'

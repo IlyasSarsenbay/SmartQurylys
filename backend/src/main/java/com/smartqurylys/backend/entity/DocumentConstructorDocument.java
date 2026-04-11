@@ -44,15 +44,12 @@ public class DocumentConstructorDocument {
     @Column(name = "template_version_snapshot", nullable = false)
     private Integer templateVersionSnapshot;
 
-    @Lob
     @Column(name = "form_data_json", nullable = false, columnDefinition = "text")
     private String formDataJson;
 
-    @Lob
     @Column(name = "rendered_html", nullable = false, columnDefinition = "text")
     private String renderedHtml;
 
-    @Lob
     @Column(name = "validation_errors_json", nullable = false, columnDefinition = "text")
     private String validationErrorsJson;
 
