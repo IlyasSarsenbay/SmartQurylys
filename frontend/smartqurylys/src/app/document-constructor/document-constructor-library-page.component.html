@@ -1,0 +1,70 @@
+<section class="constructor-library-page">
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Конструктор документов</p>
+      <h1>Шаблоны и сохранённые документы</h1>
+      <p class="subtitle">
+        Выберите готовый шаблон, чтобы создать новый документ, или откройте сохранённый черновик для продолжения работы.
+      </p>
+    </div>
+    @if (statusMessage) {
+      <p class="status-message">{{ statusMessage }}</p>
+    }
+  </header>
+
+  @if (isLoading) {
+    <div class="loading-card">Загрузка библиотеки конструктора...</div>
+  } @else {
+    <div class="library-grid">
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Шаблоны</h2>
+          <span>{{ templates.length }} доступно</span>
+        </div>
+
+        <div class="template-list">
+          @for (template of templates; track trackByTemplate($index, template)) {
+            <button
+              type="button"
+              class="template-card"
+              (click)="openTemplate(template)">
+              <span class="template-category">{{ template.category }}</span>
+              <strong>{{ template.name }}</strong>
+              <p>{{ template.description }}</p>
+            </button>
+          }
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Сохранённые черновики</h2>
+          <span>{{ documents.length }} всего</span>
+        </div>
+
+        <div class="draft-list">
+          @if (documents.length === 0) {
+            <div class="empty-card">После первого сохранения здесь появятся черновики.</div>
+          } @else {
+            @for (document of documents; track trackByDocument($index, document)) {
+              <button
+                type="button"
+                class="draft-card"
+                (click)="openDocument(document)">
+                <div class="draft-card__meta">
+                  <strong>{{ document.title }}</strong>
+                  <span class="draft-status" [class.validated]="document.status === 'VALIDATED'">
+                    {{ document.status === 'VALIDATED' ? 'Проверен' : 'Черновик' }}
+                  </span>
+                </div>
+                <p>{{ document.templateName }}</p>
+                <small>Обновлён {{ formatDate(document.updatedAt) }}</small>
+                <span class="draft-duplicate" (click)="duplicateDocument(document, $event)">Дублировать</span>
+              </button>
+            }
+          }
+        </div>
+      </section>
+    </div>
+  }
+</section>

@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Observable, of, forkJoin, Subscription } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Observable, Subscription, forkJoin } from 'rxjs';
 import { DocumentConstructorService } from '../core/document-constructor.service';
 import {
   ConstructorDocument,
@@ -12,25 +12,22 @@ import {
   ConstructorTemplateDetails,
   ConstructorTemplateField,
   ConstructorTemplateSection,
-  ConstructorTemplateSummary,
   ConstructorValidationError
 } from '../core/models/document-constructor';
-import { UserService } from '../core/user.service';
 import { UserResponse } from '../core/models/user';
-import { DocumentConstructorRendererService } from './document-constructor-renderer.service';
+import { UserService } from '../core/user.service';
 import { DocumentConstructorPdfService } from './document-constructor-pdf.service';
 import { DocumentConstructorPreviewComponent } from './document-constructor-preview.component';
+import { DocumentConstructorRendererService } from './document-constructor-renderer.service';
 
 @Component({
   selector: 'app-document-constructor-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DocumentConstructorPreviewComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, DocumentConstructorPreviewComponent],
   templateUrl: './document-constructor-page.component.html',
   styleUrl: './document-constructor-page.component.css'
 })
 export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
-  templates: ConstructorTemplateSummary[] = [];
-  documents: ConstructorDocument[] = [];
   selectedTemplate: ConstructorTemplateDetails | null = null;
   selectedDocument: ConstructorDocument | null = null;
   currentUser: UserResponse | null = null;
@@ -44,9 +41,12 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
 
   private readonly templateCache = new Map<number, ConstructorTemplateDetails>();
   private formSubscription?: Subscription;
+  private routeSubscription?: Subscription;
 
   constructor(
     private readonly fb: FormBuilder,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
     private readonly documentConstructorService: DocumentConstructorService,
     private readonly userService: UserService,
     private readonly rendererService: DocumentConstructorRendererService,
@@ -54,104 +54,16 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.isLoading = true;
-    forkJoin({
-      templates: this.documentConstructorService.getTemplates(),
-      documents: this.documentConstructorService.getDocuments().pipe(
-        catchError((error) => {
-          console.error('[DocumentConstructor] GET /documents failed', error);
-          throw error;
-        }),
-        catchError((error) => {
-          console.error('Failed to load saved constructor documents', error);
-          this.statusMessage = 'Templates are available, but saved drafts could not be loaded.';
-          return of([] as ConstructorDocument[]);
-        })
-      ),
-      currentUser: this.userService.getCurrentUser()
-    }).subscribe({
-      next: ({ templates, documents, currentUser }) => {
-        console.log('[DocumentConstructor] Templates loaded:', templates);
-        console.log('[DocumentConstructor] Documents response:', documents);
-        console.log('[DocumentConstructor] Current user:', currentUser);
-
-        this.templates = templates;
-        this.documents = documents;
-        this.currentUser = currentUser;
-        this.isLoading = false;
-
-        this.logDocumentsState('after initial load');
-
-        if (templates.length > 0) {
-          this.openTemplate(templates[0]);
-        }
-      },
-      error: (error) => {
-        console.error('Failed to load constructor data', error);
-        this.statusMessage = 'Constructor data could not be loaded.';
-        this.isLoading = false;
-      }
+    this.routeSubscription = this.route.queryParamMap.subscribe((params) => {
+      const templateId = this.parseNumericParam(params.get('templateId'));
+      const documentId = this.parseNumericParam(params.get('documentId'));
+      this.loadEditor(templateId, documentId);
     });
   }
 
   ngOnDestroy(): void {
     this.formSubscription?.unsubscribe();
-  }
-
-  openTemplate(templateSummary: ConstructorTemplateSummary): void {
-    this.statusMessage = '';
-    this.selectedDocument = null;
-
-    const cachedTemplate = this.templateCache.get(templateSummary.id);
-    if (cachedTemplate) {
-      this.activateTemplate(cachedTemplate);
-      return;
-    }
-
-    this.documentConstructorService.getTemplate(templateSummary.id).subscribe({
-      next: (template) => {
-        this.templateCache.set(template.id, template);
-        this.activateTemplate(template);
-      },
-      error: (error) => {
-        console.error('Failed to load template', error);
-        this.statusMessage = 'Template details could not be loaded.';
-      }
-    });
-  }
-
-  reopenDocument(document: ConstructorDocument): void {
-    const cachedTemplate = this.templateCache.get(document.templateId);
-    if (cachedTemplate) {
-      this.activateTemplate(cachedTemplate, document);
-      return;
-    }
-
-    this.documentConstructorService.getTemplate(document.templateId).subscribe({
-      next: (template) => {
-        this.templateCache.set(template.id, template);
-        this.activateTemplate(template, document);
-      },
-      error: (error) => {
-        console.error('Failed to reopen constructor document', error);
-        this.statusMessage = 'Saved draft could not be reopened.';
-      }
-    });
-  }
-
-  duplicateDocument(document: ConstructorDocument, event?: Event): void {
-    event?.stopPropagation();
-    this.documentConstructorService.duplicateDocument(document.id).subscribe({
-      next: (duplicated) => {
-        this.documents = [duplicated, ...this.documents.filter((item) => item.id !== duplicated.id)];
-        this.logDocumentsState('after duplicate');
-        this.statusMessage = 'Draft duplicated.';
-      },
-      error: (error) => {
-        console.error('Failed to duplicate constructor document', error);
-        this.statusMessage = 'Draft duplication failed.';
-      }
-    });
+    this.routeSubscription?.unsubscribe();
   }
 
   saveDraft(): void {
@@ -170,12 +82,8 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
       : this.documentConstructorService.createDocument(payload);
 
     request$.subscribe({
-      next: (savedDocument) => {
-        this.handleSaveSuccess(savedDocument);
-      },
-      error: (error) => {
-        this.handleSaveError(error, payload);
-      }
+      next: (savedDocument) => this.handleSaveSuccess(savedDocument),
+      error: (error) => this.handleSaveError(error, payload)
     });
   }
 
@@ -193,12 +101,14 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
         this.isBusy = false;
         this.previewHtml = response.renderedHtml;
         this.validationErrors = this.toErrorMap(response.errors);
-        this.statusMessage = response.valid ? 'Validation passed.' : 'Validation highlighted the fields that still need attention.';
+        this.statusMessage = response.valid
+          ? 'Проверка пройдена.'
+          : 'Проверка подсветила поля, которые ещё требуют внимания.';
       },
       error: (error) => {
         console.error('Failed to validate constructor draft', error);
         this.isBusy = false;
-        this.statusMessage = this.getRequestErrorMessage(error, 'Validation failed.');
+        this.statusMessage = this.getRequestErrorMessage(error, 'Не удалось выполнить проверку.');
       }
     });
   }
@@ -214,15 +124,16 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
       formData: this.getFormData()
     }).subscribe({
       next: (response) => {
-        this.isBusy = false;
         this.previewHtml = response.renderedHtml;
         this.validationErrors = this.toErrorMap(response.errors);
+
         if (!response.valid) {
-          this.statusMessage = 'Please fix validation issues before generating the PDF.';
+          this.isBusy = false;
+          this.statusMessage = 'Исправьте ошибки валидации перед формированием PDF.';
           return;
         }
 
-        const title = String(this.form.get('title')?.value ?? this.selectedTemplate?.name ?? 'Document');
+        const title = String(this.form.get('title')?.value ?? this.selectedTemplate?.name ?? 'Документ');
         this.documentConstructorService.generatePdf(this.buildPdfPayload(title)).subscribe({
           next: (pdfResponse) => {
             this.isBusy = false;
@@ -230,19 +141,19 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
             if (pdfResponse.body) {
               this.pdfService.openPreview(title, response.renderedHtml, pdfResponse.body, filename);
             }
-            this.statusMessage = 'PDF preview opened. Download the file from the preview window.';
+            this.statusMessage = 'Предпросмотр PDF открыт. Скачайте файл из нового окна.';
           },
           error: (error) => {
             console.error('Failed to download PDF', error);
             this.isBusy = false;
-            this.statusMessage = this.getRequestErrorMessage(error, 'PDF generation failed.');
+            this.statusMessage = this.getRequestErrorMessage(error, 'Не удалось сформировать PDF.');
           }
         });
-        },
-        error: (error) => {
-          console.error('Failed to generate PDF preview', error);
-          this.isBusy = false;
-        this.statusMessage = this.getRequestErrorMessage(error, 'PDF generation failed.');
+      },
+      error: (error) => {
+        console.error('Failed to generate PDF preview', error);
+        this.isBusy = false;
+        this.statusMessage = this.getRequestErrorMessage(error, 'Не удалось сформировать PDF.');
       }
     });
   }
@@ -260,29 +171,94 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
     return this.validationErrors[fieldKey] ?? [];
   }
 
-  trackByTemplate(index: number, template: ConstructorTemplateSummary): number {
-    return template.id;
-  }
-
-  trackByDocument(index: number, document: ConstructorDocument): number {
-    return document.id;
-  }
-
   trackByField(index: number, field: ConstructorTemplateField): string {
     return field.key;
   }
 
-  formatDate(value: string): string {
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+  private loadEditor(templateId: number | null, documentId: number | null): void {
+    this.isLoading = true;
+    this.statusMessage = '';
+
+    if (!templateId && !documentId) {
+      this.selectedTemplate = null;
+      this.selectedDocument = null;
+      this.previewHtml = '';
+      this.validationErrors = {};
+      this.isLoading = false;
+      this.statusMessage = 'Выберите шаблон или черновик на странице конструктора.';
+      return;
+    }
+
+    forkJoin({
+      currentUser: this.userService.getCurrentUser()
+    }).subscribe({
+      next: ({ currentUser }) => {
+        this.currentUser = currentUser;
+
+        if (documentId) {
+          this.loadDocument(documentId);
+          return;
+        }
+
+        if (templateId) {
+          this.loadTemplate(templateId);
+        }
+      },
+      error: (error) => {
+        console.error('Failed to load constructor user context', error);
+        this.statusMessage = 'Не удалось загрузить данные пользователя для конструктора.';
+        this.isLoading = false;
+      }
+    });
   }
 
-  isSelectedTemplate(template: ConstructorTemplateSummary): boolean {
-    return this.selectedTemplate?.id === template.id;
+  private loadTemplate(templateId: number): void {
+    const cachedTemplate = this.templateCache.get(templateId);
+    if (cachedTemplate) {
+      this.activateTemplate(cachedTemplate);
+      return;
+    }
+
+    this.documentConstructorService.getTemplate(templateId).subscribe({
+      next: (template) => {
+        this.templateCache.set(template.id, template);
+        this.activateTemplate(template);
+      },
+      error: (error) => {
+        console.error('Failed to load template', error);
+        this.statusMessage = 'Не удалось загрузить шаблон.';
+        this.isLoading = false;
+      }
+    });
   }
 
-  isSelectedDocument(document: ConstructorDocument): boolean {
-    return this.selectedDocument?.id === document.id;
+  private loadDocument(documentId: number): void {
+    this.documentConstructorService.getDocument(documentId).subscribe({
+      next: (document) => {
+        const cachedTemplate = this.templateCache.get(document.templateId);
+        if (cachedTemplate) {
+          this.activateTemplate(cachedTemplate, document);
+          return;
+        }
+
+        this.documentConstructorService.getTemplate(document.templateId).subscribe({
+          next: (template) => {
+            this.templateCache.set(template.id, template);
+            this.activateTemplate(template, document);
+          },
+          error: (error) => {
+            console.error('Failed to load template for saved document', error);
+            this.statusMessage = 'Не удалось загрузить шаблон для черновика.';
+            this.isLoading = false;
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Failed to load constructor document', error);
+        this.statusMessage = 'Не удалось открыть сохранённый черновик.';
+        this.isLoading = false;
+      }
+    });
   }
 
   private activateTemplate(template: ConstructorTemplateDetails, document?: ConstructorDocument): void {
@@ -295,6 +271,7 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
 
     this.rebuildForm(template, title, initialData);
     this.previewHtml = document?.renderedHtml ?? this.rendererService.render(template, initialData);
+    this.isLoading = false;
   }
 
   private rebuildForm(
@@ -457,46 +434,38 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
     this.selectedDocument = savedDocument;
     this.previewHtml = savedDocument.renderedHtml;
     this.validationErrors = this.toErrorMap(savedDocument.validationErrors);
-    this.documents = [savedDocument, ...this.documents.filter((document) => document.id !== savedDocument.id)];
-    console.log('[DocumentConstructor] Save response:', savedDocument);
-    this.logDocumentsState('after save');
+    this.router.navigate(['/constructor/editor'], { queryParams: { documentId: savedDocument.id } });
     this.statusMessage = savedDocument.status === 'VALIDATED'
-      ? 'Draft saved and validated.'
-      : 'Draft saved. Validation issues still need attention.';
+      ? 'Черновик сохранён и проверен.'
+      : 'Черновик сохранён. Остались замечания валидации.';
   }
 
   private handleSaveError(error: unknown, payload: ConstructorDocumentSaveRequest): void {
     console.error('Failed to save constructor draft', error);
 
     if (this.selectedDocument && this.getRequestErrorMessage(error, '') === 'Document not found') {
-      const staleDocumentId = this.selectedDocument.id;
       this.selectedDocument = null;
-      this.documents = this.documents.filter((document) => document.id !== staleDocumentId);
 
       this.createFreshDraft(payload).subscribe({
         next: (savedDocument) => {
           this.handleSaveSuccess(savedDocument);
-          this.statusMessage = 'Previous draft reference was stale, so the document was saved as a new draft.';
+          this.statusMessage = 'Старая ссылка на черновик устарела, поэтому документ сохранён как новый.';
         },
         error: (createError) => {
           console.error('Failed to create a new draft after stale update reference', createError);
           this.isBusy = false;
-          this.statusMessage = this.getRequestErrorMessage(createError, 'Draft could not be saved.');
+          this.statusMessage = this.getRequestErrorMessage(createError, 'Не удалось сохранить черновик.');
         }
       });
       return;
     }
 
     this.isBusy = false;
-    this.statusMessage = this.getRequestErrorMessage(error, 'Draft could not be saved.');
+    this.statusMessage = this.getRequestErrorMessage(error, 'Не удалось сохранить черновик.');
   }
 
   private createFreshDraft(payload: ConstructorDocumentSaveRequest): Observable<ConstructorDocument> {
     return this.documentConstructorService.createDocument(payload);
-  }
-
-  private logDocumentsState(context: string): void {
-    console.log(`[DocumentConstructor] Documents state ${context}: count=${this.documents.length}`, this.documents);
   }
 
   private extractFilename(response: { headers?: { get(name: string): string | null } }): string | null {
@@ -514,4 +483,11 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
     return plainMatch?.[1] ?? null;
   }
 
+  private parseNumericParam(rawValue: string | null): number | null {
+    if (!rawValue) {
+      return null;
+    }
+    const parsed = Number(rawValue);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
 }

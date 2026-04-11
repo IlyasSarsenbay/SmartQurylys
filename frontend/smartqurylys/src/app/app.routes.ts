@@ -27,6 +27,7 @@ import { ProjectDocumentsComponent } from './NEW_COMPONENTS/project-documents/pr
 import { ProjectTasksPageComponent } from './NEW_COMPONENTS/project-tasks-page/project-tasks-page.component';
 import { ProjectLayoutComponent } from './NEW_COMPONENTS/project-layout/project-layout.component';
 import { DocumentConstructorPageComponent } from './document-constructor/document-constructor-page.component';
+import { DocumentConstructorLibraryPageComponent } from './document-constructor/document-constructor-library-page.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -66,7 +67,8 @@ export const routes: Routes = [
     ]
   },
   { path: 'contractor-registry', component: ContractorRegistryComponent, canActivate: [authGuard] },
-  { path: 'constructor', component: DocumentConstructorPageComponent, canActivate: [authGuard] },
+  { path: 'constructor', component: DocumentConstructorLibraryPageComponent, canActivate: [authGuard] },
+  { path: 'constructor/editor', component: DocumentConstructorPageComponent, canActivate: [authGuard] },
   { path: 'legacy/project/:id', component: ProjectDetailsComponent, canActivate: [authGuard] },
   { path: 'legacy/projects/:id', component: ProjectDashboardComponent, canActivate: [authGuard] },
   { path: 'notifications', component: NotificationModalComponent, canActivate: [authGuard] },
