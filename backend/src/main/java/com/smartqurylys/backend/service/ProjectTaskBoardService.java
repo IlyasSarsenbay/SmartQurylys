@@ -13,7 +13,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,6 +32,7 @@ public class ProjectTaskBoardService {
     private final ProjectTaskCommentRepository commentRepository;
     private final ProjectRealtimeService projectRealtimeService;
     private final NotificationService notificationService;
+    private final FileService fileService;
 
     @Transactional(readOnly = true)
     public ProjectTaskBoardResponse getBoard(Long projectId) {
@@ -269,7 +272,7 @@ public class ProjectTaskBoardService {
     }
 
     @Transactional
-    public ProjectTaskBoardTaskResponse requestCompletion(Long projectId, Long taskId) {
+    public ProjectTaskBoardTaskResponse requestCompletion(Long projectId, Long taskId, List<MultipartFile> attachments) throws IOException {
         Project project = requireProjectAccess(projectId);
         requireProjectWritable(project);
         ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
@@ -296,6 +299,17 @@ public class ProjectTaskBoardService {
         task.setCompletionReviewReason(null);
         task.setUpdatedAt(LocalDateTime.now());
 
+        if (attachments != null) {
+            for (MultipartFile attachment : attachments) {
+                if (attachment == null || attachment.isEmpty()) {
+                    continue;
+                }
+
+                File savedAttachment = fileService.prepareFile(attachment, currentUser);
+                task.getFiles().add(savedAttachment);
+            }
+        }
+
         ProjectTaskBoardTask savedTask = taskRepository.save(task);
         if (!Objects.equals(project.getOwner().getId(), currentUser.getId())) {
             notificationService.createTaskReviewRequestedNotification(
@@ -308,6 +322,13 @@ public class ProjectTaskBoardService {
         }
         projectRealtimeService.publish(projectId, "TASK_COMPLETION_REQUESTED", savedTask.getId());
         return mapTaskResponse(savedTask, loadCommentCounts(projectId), Collections.emptyMap());
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.smartqurylys.backend.dto.project.FileResponse> getTaskAttachments(Long projectId, Long taskId) {
+        requireProjectAccess(projectId);
+        ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
+        return FileService.mapToFileResponseList(task.getFiles());
     }
 
     @Transactional
@@ -493,6 +514,7 @@ public class ProjectTaskBoardService {
                 .createdAt(task.getCreatedAt())
                 .updatedAt(task.getUpdatedAt())
                 .commentCount(commentCounts.getOrDefault(task.getId(), 0L))
+                .attachments(FileService.mapToFileResponseList(task.getFiles()))
                 .subtasks(subtasks)
                 .build();
     }

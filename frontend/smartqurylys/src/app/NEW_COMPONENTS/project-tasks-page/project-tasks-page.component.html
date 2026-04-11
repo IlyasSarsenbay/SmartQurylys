@@ -303,13 +303,38 @@
                 }
               </div>
 
-              @if (canRequestActiveTaskCompletion) {
-                <div class="approval-actions">
-                  <button type="button" class="approval-button request" (click)="onRequestTaskCompletion()">
-                    Запросить подтверждение
-                  </button>
-                </div>
-              }
+                @if (canRequestActiveTaskCompletion) {
+                  <div class="approval-upload">
+                    <input
+                      #completionAttachmentInput
+                      type="file"
+                      multiple
+                      hidden
+                      (change)="onCompletionAttachmentSelected($event)"
+                    />
+                    <div class="approval-upload-row">
+                      <button type="button" class="approval-attach-button" (click)="completionAttachmentInput.click()">
+                        Прикрепить файлы
+                      </button>
+                      @if (completionAttachments.length) {
+                        <div class="approval-selected-files">
+                          @for (attachment of completionAttachments; track attachment.name + '-' + $index) {
+                            <div class="approval-selected-file">
+                              <span>{{ attachment.name }}</span>
+                              <button type="button" (click)="removeCompletionAttachment($index)">Удалить</button>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="approval-actions">
+                    <button type="button" class="approval-button request" (click)="onRequestTaskCompletion()">
+                      Запросить подтверждение
+                    </button>
+                  </div>
+                }
 
               @if (canReviewActiveTaskCompletion) {
                 <div class="approval-review-form">
@@ -345,9 +370,30 @@
                   </div>
                 </div>
               }
-            </section>
+              </section>
 
-            <section class="details-section comments-section">
+              <section class="details-section" *ngIf="(activeCommentsTask.attachments?.length ?? 0) > 0">
+                <div class="details-section-header">
+                  <h3>Вложения задачи</h3>
+                  <span>{{ activeCommentsTask.attachments?.length }}</span>
+                </div>
+
+                <div class="task-attachments-list">
+                  @for (attachment of activeCommentsTask.attachments ?? []; track attachment.id) {
+                    <button type="button" class="task-attachment-card" (click)="downloadTaskAttachment(attachment)">
+                      <div class="task-attachment-meta">
+                        <strong>{{ attachment.name }}</strong>
+                        <span>
+                          {{ attachment.createdAt | date:'d MMM y, HH:mm':'':'ru' }}
+                        </span>
+                      </div>
+                      <span class="task-attachment-action">Скачать</span>
+                    </button>
+                  }
+                </div>
+              </section>
+
+              <section class="details-section comments-section">
               <div class="details-section-header">
                 <h3>Комментарии</h3>
                 <span>{{ activeComments.length }}</span>

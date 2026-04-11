@@ -103,4 +103,9 @@ public class ProjectTaskBoardTask {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ProjectTaskComment> comments = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "project_task_board_task_id")
+    @Builder.Default
+    private List<File> files = new ArrayList<>();
 }

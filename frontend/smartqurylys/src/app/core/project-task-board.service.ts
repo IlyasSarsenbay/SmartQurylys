@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
@@ -74,10 +74,16 @@ export class ProjectTaskBoardService {
     return this.http.post<void>(`${environment.apiUrl}/projects/${projectId}/task-board/tasks/bulk-delete`, request);
   }
 
-  requestCompletion(projectId: number, taskId: number): Observable<ProjectTaskBoardTaskResponse> {
+  requestCompletion(projectId: number, taskId: number, attachments: File[] = []): Observable<ProjectTaskBoardTaskResponse> {
+    const formData = new FormData();
+
+    for (const attachment of attachments) {
+      formData.append('attachments', attachment);
+    }
+
     return this.http.post<ProjectTaskBoardTaskResponse>(
       `${environment.apiUrl}/projects/${projectId}/task-board/tasks/${taskId}/request-completion`,
-      {}
+      formData
     );
   }
 
@@ -125,5 +131,12 @@ export class ProjectTaskBoardService {
       `${environment.apiUrl}/projects/${projectId}/task-board/tasks/${taskId}/comments`,
       request
     );
+  }
+
+  downloadAttachment(fileId: number): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${environment.apiUrl}/files/download/${fileId}`, {
+      responseType: 'blob',
+      observe: 'response'
+    });
   }
 }

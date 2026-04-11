@@ -889,6 +889,67 @@
   margin-top: 1rem;
 }
 
+.approval-upload {
+  margin-top: 1rem;
+}
+
+.approval-upload-row {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.approval-selected-files {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.approval-attach-button {
+  justify-self: start;
+  border: 1px solid #d7dde6;
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  background: #ffffff;
+  color: #374151;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.approval-attach-button:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.approval-selected-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #d7dde6;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #374151;
+  font-size: 0.88rem;
+}
+
+.approval-selected-file span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.approval-selected-file button {
+  border: none;
+  background: transparent;
+  color: #b91c1c;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .approval-review-textarea {
   width: 100%;
   resize: vertical;
@@ -941,6 +1002,61 @@
 
 .approval-button.reject:hover {
   background: #fecaca;
+}
+
+.task-attachments-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.task-attachment-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #111827;
+  text-align: left;
+  cursor: pointer;
+}
+
+.task-attachment-card:hover {
+  border-color: #93c5fd;
+  background: #f8fbff;
+}
+
+.task-attachment-meta {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.task-attachment-meta strong,
+.task-attachment-meta span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-attachment-meta strong {
+  font-size: 0.9rem;
+}
+
+.task-attachment-meta span {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.task-attachment-action {
+  flex: 0 0 auto;
+  color: #2563eb;
+  font-size: 0.84rem;
+  font-weight: 700;
 }
 
 @media (max-width: 1080px) {

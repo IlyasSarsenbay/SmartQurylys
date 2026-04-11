@@ -1,3 +1,5 @@
+import { FileResponse } from '../../core/models/file';
+
 export type TodoItemType = 'task' | 'group';
 
 export type TodoStatus =
@@ -37,6 +39,7 @@ export interface TodoItem {
   completionReviewedAt?: string;
   completionReviewReason?: string;
   commentsCount: number;
+  attachments?: FileResponse[];
   selected?: boolean;
   expanded?: boolean;
   subtasks?: TodoItem[];

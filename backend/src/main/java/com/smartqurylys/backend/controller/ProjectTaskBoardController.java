@@ -6,8 +6,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -85,12 +88,21 @@ public class ProjectTaskBoardController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/tasks/{taskId}/request-completion")
+    @PostMapping(value = "/tasks/{taskId}/request-completion", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProjectTaskBoardTaskResponse> requestCompletion(
+            @PathVariable Long projectId,
+            @PathVariable Long taskId,
+            @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
+    ) throws IOException {
+        return ResponseEntity.ok(projectTaskBoardService.requestCompletion(projectId, taskId, attachments));
+    }
+
+    @GetMapping("/tasks/{taskId}/attachments")
+    public ResponseEntity<List<com.smartqurylys.backend.dto.project.FileResponse>> getTaskAttachments(
             @PathVariable Long projectId,
             @PathVariable Long taskId
     ) {
-        return ResponseEntity.ok(projectTaskBoardService.requestCompletion(projectId, taskId));
+        return ResponseEntity.ok(projectTaskBoardService.getTaskAttachments(projectId, taskId));
     }
 
     @PostMapping("/tasks/{taskId}/start")

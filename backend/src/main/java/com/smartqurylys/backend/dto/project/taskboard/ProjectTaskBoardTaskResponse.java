@@ -1,5 +1,6 @@
 package com.smartqurylys.backend.dto.project.taskboard;
 
+import com.smartqurylys.backend.dto.project.FileResponse;
 import com.smartqurylys.backend.shared.enums.ProjectTaskBoardPriority;
 import com.smartqurylys.backend.shared.enums.ProjectTaskBoardCompletionStatus;
 import com.smartqurylys.backend.shared.enums.ProjectTaskBoardStatus;
@@ -33,5 +34,6 @@ public class ProjectTaskBoardTaskResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private long commentCount;
+    private List<FileResponse> attachments;
     private List<ProjectTaskBoardTaskResponse> subtasks;
 }

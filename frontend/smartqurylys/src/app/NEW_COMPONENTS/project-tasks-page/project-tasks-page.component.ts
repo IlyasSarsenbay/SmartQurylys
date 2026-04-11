@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { auditTime, filter } from 'rxjs';
 import { Participant } from '../../core/models/participant';
 import { Project } from '../../core/models/project';
+import { FileResponse } from '../../core/models/file';
 import {
   ProjectTaskBoardCompletionStatus,
   ProjectTaskBoardPriority,
@@ -77,6 +78,7 @@ export class ProjectTasksPageComponent implements OnInit {
   commentsTaskId: number | null = null;
   commentDraft = '';
   completionReviewDraft = '';
+  completionAttachments: File[] = [];
   priorityMenuTop = 0;
   priorityMenuLeft = 0;
   dateMenuTop = 0;
@@ -729,6 +731,7 @@ export class ProjectTasksPageComponent implements OnInit {
     this.commentsTaskId = itemId;
     this.commentDraft = '';
     this.completionReviewDraft = '';
+    this.completionAttachments = [];
     this.loadComments(itemId);
   }
 
@@ -736,6 +739,7 @@ export class ProjectTasksPageComponent implements OnInit {
     this.commentsTaskId = null;
     this.commentDraft = '';
     this.completionReviewDraft = '';
+    this.completionAttachments = [];
   }
 
   onRequestTaskCompletion(): void {
@@ -744,14 +748,57 @@ export class ProjectTasksPageComponent implements OnInit {
     }
 
     const taskId = this.commentsTaskId;
-    this.projectTaskBoardService.requestCompletion(this.projectId, taskId)
+    this.projectTaskBoardService.requestCompletion(this.projectId, taskId, this.completionAttachments)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
+          this.completionAttachments = [];
           this.loadBoard();
         },
         error: (error) => {
           console.error('Failed to request task completion:', error);
+        }
+      });
+  }
+
+  onCompletionAttachmentSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const selectedFiles = input.files ? Array.from(input.files) : [];
+    if (selectedFiles.length) {
+      this.completionAttachments = [...this.completionAttachments, ...selectedFiles];
+    }
+    input.value = '';
+  }
+
+  removeCompletionAttachment(index: number): void {
+    this.completionAttachments = this.completionAttachments.filter((_, currentIndex) => currentIndex !== index);
+  }
+
+  downloadTaskAttachment(file: FileResponse): void {
+    this.projectTaskBoardService.downloadAttachment(file.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const blob = response.body;
+          if (!blob) {
+            return;
+          }
+
+          const contentDisposition = response.headers.get('Content-Disposition');
+          const fileName = this.extractFileName(contentDisposition) || file.name || 'attachment';
+          const url = window.URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+
+          anchor.href = url;
+          anchor.download = fileName;
+          document.body.appendChild(anchor);
+          anchor.click();
+
+          document.body.removeChild(anchor);
+          window.URL.revokeObjectURL(url);
+        },
+        error: (error) => {
+          console.error('Failed to download task attachment:', error);
         }
       });
   }
@@ -1091,6 +1138,7 @@ export class ProjectTasksPageComponent implements OnInit {
             : '',
           completionReviewReason: task.completionReviewReason ?? '',
           commentsCount: task.commentCount,
+          attachments: task.attachments ?? [],
           selected: previousState?.selected ?? false,
           expanded: previousState?.expanded ?? true,
           subtasks: mappedSubtasks
@@ -1452,6 +1500,15 @@ export class ProjectTasksPageComponent implements OnInit {
       hour: '2-digit',
       minute: '2-digit'
     }).format(date);
+  }
+
+  private extractFileName(contentDisposition: string | null): string | null {
+    if (!contentDisposition) {
+      return null;
+    }
+
+    const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)["']?/i);
+    return match ? decodeURIComponent(match[1]) : null;
   }
 
   private toIsoDate(date: Date): string {

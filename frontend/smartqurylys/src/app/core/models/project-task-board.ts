@@ -1,3 +1,5 @@
+import { FileResponse } from './file';
+
 export type ProjectTaskBoardStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'RETURNED' | 'DONE' | 'BLOCKED';
 
 export type ProjectTaskBoardPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -46,6 +48,7 @@ export interface ProjectTaskBoardTaskResponse {
   createdAt: string;
   updatedAt: string;
   commentCount: number;
+  attachments: FileResponse[];
   subtasks: ProjectTaskBoardTaskResponse[];
 }
 
