@@ -7,7 +7,6 @@
         <div class="header-cell actions">
             @if (canManageFiles) {
             <button class="icon-btn" (click)="fileInput.click()">+</button>
-            <button class="icon-btn">...</button>
             <input #fileInput type="file" multiple hidden (change)="onFilesSelected($event)" />
             }
         </div>

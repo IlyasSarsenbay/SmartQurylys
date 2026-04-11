@@ -62,26 +62,6 @@ main {
     transition: background ease 0.3s;
 }
 
-.section-3 {
-    display: flex;
-    align-items: center;
-    height: 100%;
-    margin-right: 16px;
-    border-left: 1px solid rgba(0, 0, 0, 0.15);
-}
-
-.more-btn {
-    padding: 8px;
-    margin-left: 10px;
-}
-
-.more-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background ease 0.3s;
-}
-
 .divider {
     padding: 0 8px;
 }
