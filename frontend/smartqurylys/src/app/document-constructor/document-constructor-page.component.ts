@@ -42,6 +42,7 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
   private readonly templateCache = new Map<number, ConstructorTemplateDetails>();
   private formSubscription?: Subscription;
   private routeSubscription?: Subscription;
+  private statusTimeoutId?: number;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -64,6 +65,7 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.formSubscription?.unsubscribe();
     this.routeSubscription?.unsubscribe();
+    this.clearStatusTimer();
   }
 
   saveDraft(): void {
@@ -101,14 +103,16 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
         this.isBusy = false;
         this.previewHtml = response.renderedHtml;
         this.validationErrors = this.toErrorMap(response.errors);
-        this.statusMessage = response.valid
-          ? 'Проверка пройдена.'
-          : 'Проверка подсветила поля, которые ещё требуют внимания.';
+        this.showStatus(
+          response.valid
+            ? 'Проверка пройдена.'
+            : 'Проверка подсветила поля, которые ещё требуют внимания.'
+        );
       },
       error: (error) => {
         console.error('Failed to validate constructor draft', error);
         this.isBusy = false;
-        this.statusMessage = this.getRequestErrorMessage(error, 'Не удалось выполнить проверку.');
+        this.showStatus(this.getRequestErrorMessage(error, 'Не удалось выполнить проверку.'));
       }
     });
   }
@@ -129,7 +133,7 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
 
         if (!response.valid) {
           this.isBusy = false;
-          this.statusMessage = 'Исправьте ошибки валидации перед формированием PDF.';
+          this.showStatus('Исправьте ошибки валидации перед формированием PDF.');
           return;
         }
 
@@ -141,19 +145,19 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
             if (pdfResponse.body) {
               this.pdfService.openPreview(title, response.renderedHtml, pdfResponse.body, filename);
             }
-            this.statusMessage = 'Предпросмотр PDF открыт. Скачайте файл из нового окна.';
+            this.showStatus('Предпросмотр PDF открыт. Скачайте файл из нового окна.');
           },
           error: (error) => {
             console.error('Failed to download PDF', error);
             this.isBusy = false;
-            this.statusMessage = this.getRequestErrorMessage(error, 'Не удалось сформировать PDF.');
+            this.showStatus(this.getRequestErrorMessage(error, 'Не удалось сформировать PDF.'));
           }
         });
       },
       error: (error) => {
         console.error('Failed to generate PDF preview', error);
         this.isBusy = false;
-        this.statusMessage = this.getRequestErrorMessage(error, 'Не удалось сформировать PDF.');
+        this.showStatus(this.getRequestErrorMessage(error, 'Не удалось сформировать PDF.'));
       }
     });
   }
@@ -177,7 +181,7 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
 
   private loadEditor(templateId: number | null, documentId: number | null): void {
     this.isLoading = true;
-    this.statusMessage = '';
+    this.clearStatus();
 
     if (!templateId && !documentId) {
       this.selectedTemplate = null;
@@ -185,7 +189,7 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
       this.previewHtml = '';
       this.validationErrors = {};
       this.isLoading = false;
-      this.statusMessage = 'Выберите шаблон или черновик на странице конструктора.';
+      this.showStatus('Выберите шаблон или черновик на странице конструктора.');
       return;
     }
 
@@ -206,7 +210,7 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Failed to load constructor user context', error);
-        this.statusMessage = 'Не удалось загрузить данные пользователя для конструктора.';
+        this.showStatus('Не удалось загрузить данные пользователя для конструктора.');
         this.isLoading = false;
       }
     });
@@ -226,7 +230,7 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Failed to load template', error);
-        this.statusMessage = 'Не удалось загрузить шаблон.';
+        this.showStatus('Не удалось загрузить шаблон.');
         this.isLoading = false;
       }
     });
@@ -248,14 +252,14 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
           },
           error: (error) => {
             console.error('Failed to load template for saved document', error);
-            this.statusMessage = 'Не удалось загрузить шаблон для черновика.';
+            this.showStatus('Не удалось загрузить шаблон для черновика.');
             this.isLoading = false;
           }
         });
       },
       error: (error) => {
         console.error('Failed to load constructor document', error);
-        this.statusMessage = 'Не удалось открыть сохранённый черновик.';
+        this.showStatus('Не удалось открыть сохранённый черновик.');
         this.isLoading = false;
       }
     });
@@ -435,9 +439,11 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
     this.previewHtml = savedDocument.renderedHtml;
     this.validationErrors = this.toErrorMap(savedDocument.validationErrors);
     this.router.navigate(['/constructor/editor'], { queryParams: { documentId: savedDocument.id } });
-    this.statusMessage = savedDocument.status === 'VALIDATED'
-      ? 'Черновик сохранён и проверен.'
-      : 'Черновик сохранён. Остались замечания валидации.';
+    this.showStatus(
+      savedDocument.status === 'VALIDATED'
+        ? 'Черновик сохранён и проверен.'
+        : 'Черновик сохранён. Остались замечания валидации.'
+    );
   }
 
   private handleSaveError(error: unknown, payload: ConstructorDocumentSaveRequest): void {
@@ -449,19 +455,19 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
       this.createFreshDraft(payload).subscribe({
         next: (savedDocument) => {
           this.handleSaveSuccess(savedDocument);
-          this.statusMessage = 'Старая ссылка на черновик устарела, поэтому документ сохранён как новый.';
+          this.showStatus('Старая ссылка на черновик устарела, поэтому документ сохранён как новый.');
         },
         error: (createError) => {
           console.error('Failed to create a new draft after stale update reference', createError);
           this.isBusy = false;
-          this.statusMessage = this.getRequestErrorMessage(createError, 'Не удалось сохранить черновик.');
+          this.showStatus(this.getRequestErrorMessage(createError, 'Не удалось сохранить черновик.'));
         }
       });
       return;
     }
 
     this.isBusy = false;
-    this.statusMessage = this.getRequestErrorMessage(error, 'Не удалось сохранить черновик.');
+    this.showStatus(this.getRequestErrorMessage(error, 'Не удалось сохранить черновик.'));
   }
 
   private createFreshDraft(payload: ConstructorDocumentSaveRequest): Observable<ConstructorDocument> {
@@ -489,5 +495,26 @@ export class DocumentConstructorPageComponent implements OnInit, OnDestroy {
     }
     const parsed = Number(rawValue);
     return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private showStatus(message: string, durationMs = 4500): void {
+    this.statusMessage = message;
+    this.clearStatusTimer();
+    this.statusTimeoutId = window.setTimeout(() => {
+      this.statusMessage = '';
+      this.statusTimeoutId = undefined;
+    }, durationMs);
+  }
+
+  private clearStatus(): void {
+    this.statusMessage = '';
+    this.clearStatusTimer();
+  }
+
+  private clearStatusTimer(): void {
+    if (this.statusTimeoutId !== undefined) {
+      window.clearTimeout(this.statusTimeoutId);
+      this.statusTimeoutId = undefined;
+    }
   }
 }

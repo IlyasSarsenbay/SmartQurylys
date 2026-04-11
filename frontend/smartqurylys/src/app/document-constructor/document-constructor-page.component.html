@@ -86,29 +86,31 @@
                 </article>
               }
             </form>
+          </section>
 
+          <div class="preview-column">
             <div class="sticky-actions">
               <button type="button" class="secondary" (click)="saveDraft()" [disabled]="isBusy">Сохранить черновик</button>
               <button type="button" class="secondary" (click)="validate()" [disabled]="isBusy">Проверить</button>
               <button type="button" class="primary" (click)="generatePdf()" [disabled]="isBusy">Сформировать PDF</button>
             </div>
-          </section>
 
-          <section class="preview-panel">
-            <div class="preview-panel__header">
-              <div>
-                <p class="eyebrow">Предпросмотр</p>
-                <h2>{{ selectedTemplate.name }}</h2>
+            <section class="preview-panel">
+              <div class="preview-panel__header">
+                <div>
+                  <p class="eyebrow">Предпросмотр</p>
+                  <h2>{{ selectedTemplate.name }}</h2>
+                </div>
+                @if (selectedDocument) {
+                  <span class="preview-badge">{{ selectedDocument.status === 'VALIDATED' ? 'Проверенный черновик' : 'Черновик в работе' }}</span>
+                }
               </div>
-              @if (selectedDocument) {
-                <span class="preview-badge">{{ selectedDocument.status === 'VALIDATED' ? 'Проверенный черновик' : 'Черновик в работе' }}</span>
-              }
-            </div>
 
-            <div class="preview-shell">
-              <app-document-constructor-preview [html]="previewHtml"></app-document-constructor-preview>
-            </div>
-          </section>
+              <div class="preview-shell">
+                <app-document-constructor-preview [html]="previewHtml"></app-document-constructor-preview>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     } @else {

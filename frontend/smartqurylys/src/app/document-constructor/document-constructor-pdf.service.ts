@@ -6,32 +6,32 @@ import { Injectable } from '@angular/core';
 export class DocumentConstructorPdfService {
   openPreview(title: string, renderedHtml: string, pdfBlob: Blob, filename: string): void {
     const pdfUrl = URL.createObjectURL(pdfBlob);
-    const html = this.buildPrintHtml(title, renderedHtml);
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const blobUrl = URL.createObjectURL(blob);
-    const printWindow = window.open(blobUrl, '_blank', 'width=1200,height=900');
+    const html = this.buildPreviewHtml(title, renderedHtml);
+    const htmlBlob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const htmlUrl = URL.createObjectURL(htmlBlob);
+    const previewWindow = window.open(htmlUrl, '_blank', 'width=1200,height=900');
 
-    if (!printWindow) {
-      URL.revokeObjectURL(blobUrl);
+    if (!previewWindow) {
+      URL.revokeObjectURL(htmlUrl);
       URL.revokeObjectURL(pdfUrl);
       return;
     }
 
-    printWindow.addEventListener('load', () => {
-      const downloadLink = printWindow.document.getElementById('pdf-download-link') as HTMLAnchorElement | null;
+    previewWindow.addEventListener('load', () => {
+      const downloadLink = previewWindow.document.getElementById('pdf-download-link') as HTMLAnchorElement | null;
       if (downloadLink) {
         downloadLink.href = pdfUrl;
         downloadLink.download = filename;
       }
     }, { once: true });
 
-    printWindow.addEventListener('beforeunload', () => {
-      URL.revokeObjectURL(blobUrl);
+    previewWindow.addEventListener('beforeunload', () => {
+      URL.revokeObjectURL(htmlUrl);
       URL.revokeObjectURL(pdfUrl);
     }, { once: true });
   }
 
-  private buildPrintHtml(title: string, renderedHtml: string): string {
+  private buildPreviewHtml(title: string, renderedHtml: string): string {
     return `
       <!DOCTYPE html>
       <html lang="ru">
@@ -43,9 +43,9 @@ export class DocumentConstructorPdfService {
           body {
             margin: 0;
             padding: 0;
-            background: #f5f1e8;
+            background: #f9fcff;
             font-family: "Segoe UI", Arial, sans-serif;
-            color: #1f2937;
+            color: #1f3547;
           }
           .preview-toolbar {
             position: sticky;
@@ -56,9 +56,10 @@ export class DocumentConstructorPdfService {
             justify-content: space-between;
             gap: 16px;
             padding: 16px 24px;
-            background: rgba(20, 33, 61, 0.96);
-            color: #fff;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+            background: rgba(255, 255, 255, 0.97);
+            color: #24445e;
+            border-bottom: 1px solid rgba(207, 226, 241, 0.95);
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.06);
           }
           .preview-toolbar__meta {
             display: flex;
@@ -71,13 +72,17 @@ export class DocumentConstructorPdfService {
           }
           .preview-toolbar__hint {
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.74);
+            color: #69839a;
           }
           .preview-toolbar__actions {
             display: flex;
             gap: 12px;
           }
           .preview-toolbar__button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
             border: none;
             border-radius: 999px;
             padding: 10px 16px;
@@ -86,12 +91,14 @@ export class DocumentConstructorPdfService {
             cursor: pointer;
           }
           .preview-toolbar__button--primary {
-            background: #f4a261;
-            color: #14213d;
+            background: #ffffff;
+            color: #24445e;
+            box-shadow: inset 0 0 0 1px rgba(186, 213, 234, 0.95);
           }
           .preview-toolbar__button--secondary {
-            background: rgba(255, 255, 255, 0.12);
-            color: #fff;
+            background: #f8fcff;
+            color: #57758f;
+            box-shadow: inset 0 0 0 1px rgba(207, 226, 241, 0.95);
           }
           .preview-shell {
             padding: 32px;
@@ -99,20 +106,29 @@ export class DocumentConstructorPdfService {
           .print-shell {
             max-width: 900px;
             margin: 0 auto;
-            background: #fff;
+            background: #ffffff;
             padding: 48px 56px;
-            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+            box-shadow: 0 18px 42px rgba(37, 99, 235, 0.06);
+          }
+          .dc-document {
+            color: #172b3d;
+          }
+          .dc-document__header {
+            border-bottom: 1px solid rgba(207, 226, 241, 0.95);
+            padding-bottom: 18px;
+            margin-bottom: 24px;
           }
           .dc-document__header h1,
           .dc-document__section h2,
           .dc-document__section h3 {
-            color: #14213d;
+            color: #1f3c53;
           }
           .dc-document__eyebrow {
+            margin: 0 0 8px;
             letter-spacing: 0.16em;
             text-transform: uppercase;
             font-size: 11px;
-            color: #8d6e63;
+            color: #6f8aa1;
           }
           .dc-document__section {
             margin-top: 24px;
@@ -122,18 +138,25 @@ export class DocumentConstructorPdfService {
             line-height: 1.7;
             font-size: 14px;
           }
+          .dc-document__section ul {
+            margin: 0;
+            padding-left: 20px;
+          }
           .dc-editable {
+            display: inline-block;
             padding: 0 3px;
             border-radius: 4px;
-            background: rgba(244, 162, 97, 0.18);
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: inset 0 0 0 1px rgba(186, 213, 234, 0.92);
           }
           .dc-editable.is-empty {
-            background: rgba(220, 38, 38, 0.1);
+            background: rgba(255, 245, 245, 0.96);
             color: #991b1b;
+            box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.18);
           }
           @media print {
             body {
-              background: #fff;
+              background: #ffffff;
               padding: 0;
             }
             .preview-toolbar {
@@ -154,7 +177,7 @@ export class DocumentConstructorPdfService {
         <div class="preview-toolbar">
           <div class="preview-toolbar__meta">
             <div class="preview-toolbar__title">${this.escapeHtml(title)}</div>
-            <div class="preview-toolbar__hint">Проверьте документ и нажмите "Скачать PDF", чтобы сохранить его через системный PDF-диалог.</div>
+            <div class="preview-toolbar__hint">Проверьте документ и нажмите "Скачать PDF", чтобы сохранить готовый файл.</div>
           </div>
           <div class="preview-toolbar__actions">
             <button class="preview-toolbar__button preview-toolbar__button--secondary" type="button" onclick="window.close()">Закрыть</button>
