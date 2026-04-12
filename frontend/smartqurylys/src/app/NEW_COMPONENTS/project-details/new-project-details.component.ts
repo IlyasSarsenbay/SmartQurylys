@@ -223,4 +223,11 @@ export class NewProjectDetailsComponent implements OnInit, AfterViewInit {
         return '';
     }
   }
+  shouldShowEntityName(log: ActivityLogResponse): boolean {
+    if (!log.entityName) {
+      return false;
+    }
+
+    return log.actionType !== ActivityActionType.PARTICIPANT_JOINED;
+  }
 }
