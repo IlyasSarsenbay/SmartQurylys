@@ -199,6 +199,12 @@ public class DocumentConstructorService {
         return mapDocumentResponse(saved, saved.getTemplate().getCode());
     }
 
+    @Transactional
+    public void deleteDocument(Long documentId) {
+        getOwnedDocumentMeta(documentId);
+        documentRepository.deleteById(documentId);
+    }
+
     private ConstructorDocumentResponse persistDocument(
             DocumentConstructorDocument document,
             Long templateId,

@@ -48,6 +48,10 @@ export class DocumentConstructorService {
     return this.http.post<ConstructorDocument>(`${this.apiUrl}/documents/${documentId}/duplicate`, {});
   }
 
+  deleteDocument(documentId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/documents/${documentId}`);
+  }
+
   validate(payload: ConstructorValidateRequest): Observable<ConstructorValidationResponse> {
     return this.http.post<ConstructorValidationResponse>(`${this.apiUrl}/validate`, payload);
   }

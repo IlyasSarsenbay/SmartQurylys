@@ -71,6 +71,11 @@ export class PersonalCabinetComponent implements OnInit {
     return this.user?.userType === 'ORGANISATION';
   }
 
+  get isAdmin(): boolean {
+    const userRole = this.user?.role ?? null;
+    return userRole === 'ADMIN' || userRole === 'ROLE_ADMIN' || this.authService.isAdmin();
+  }
+
   constructor(
     private userService: UserService,
     private projectService: ProjectService,
@@ -406,6 +411,10 @@ export class PersonalCabinetComponent implements OnInit {
 
   addNewProject(): void {
     this.router.navigate(['/projects/create']);
+  }
+
+  openAdminPanel(): void {
+    this.router.navigate(['/admin']);
   }
 
   logout(): void {

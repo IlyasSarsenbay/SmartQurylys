@@ -38,10 +38,21 @@
           {{ isUpdatingStatus ? 'Обновление...' : 'Изменить статус' }}
         </button>
       </div>
-      <button class="edit-profile-btn" (click)="openEditModal()">Обновить данные</button>
-      <button class="edit-profile-btn" (click)="openEditEmailModal()">Изменить Email</button>
-      <button class="edit-profile-btn" (click)="openEditPasswordModal()">Изменить пароль</button>
-      <button class="edit-profile-btn logout-btn" (click)="logout()">Выйти из аккаунта</button>
+
+      <div *ngIf="isAdmin" class="admin-shortcut">
+        <div class="admin-shortcut__content">
+          <span class="admin-shortcut__label">Админ-панель</span>
+          <p class="admin-shortcut__text">Открыть панель администратора</p>
+        </div>
+        <button class="admin-shortcut__button" (click)="openAdminPanel()">Открыть</button>
+      </div>
+
+      <div class="profile-actions">
+        <button class="edit-profile-btn" (click)="openEditModal()">Обновить данные</button>
+        <button class="edit-profile-btn" (click)="openEditEmailModal()">Изменить Email</button>
+        <button class="edit-profile-btn" (click)="openEditPasswordModal()">Изменить пароль</button>
+        <button class="edit-profile-btn logout-btn" (click)="logout()">Выйти из аккаунта</button>
+      </div>
     </div>
 
     <hr>

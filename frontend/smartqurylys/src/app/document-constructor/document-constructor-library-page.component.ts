@@ -20,6 +20,7 @@ export class DocumentConstructorLibraryPageComponent implements OnInit {
   documents: ConstructorDocument[] = [];
   statusMessage = '';
   isLoading = true;
+  deletingDocumentId: number | null = null;
 
   constructor(
     private readonly documentConstructorService: DocumentConstructorService,
@@ -69,6 +70,28 @@ export class DocumentConstructorLibraryPageComponent implements OnInit {
       error: (error) => {
         console.error('Failed to duplicate constructor document', error);
         this.statusMessage = 'Не удалось продублировать черновик.';
+      }
+    });
+  }
+
+  deleteDocument(document: ConstructorDocument, event?: Event): void {
+    event?.stopPropagation();
+
+    if (!window.confirm(`Удалить черновик "${document.title}"?`)) {
+      return;
+    }
+
+    this.deletingDocumentId = document.id;
+    this.documentConstructorService.deleteDocument(document.id).subscribe({
+      next: () => {
+        this.documents = this.documents.filter((item) => item.id !== document.id);
+        this.deletingDocumentId = null;
+        this.statusMessage = 'Черновик удалён.';
+      },
+      error: (error) => {
+        console.error('Failed to delete constructor document', error);
+        this.deletingDocumentId = null;
+        this.statusMessage = 'Не удалось удалить черновик.';
       }
     });
   }

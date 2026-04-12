@@ -57,6 +57,12 @@ public class DocumentConstructorController {
         return documentConstructorService.duplicateDocument(documentId);
     }
 
+    @DeleteMapping("/documents/{documentId}")
+    public ResponseEntity<Void> deleteDocument(@PathVariable Long documentId) {
+        documentConstructorService.deleteDocument(documentId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/validate")
     public ConstructorValidationResponse validate(@Valid @RequestBody ConstructorValidateRequest request) {
         return documentConstructorService.validate(request);

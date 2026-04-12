@@ -47,20 +47,36 @@
             <div class="empty-card">После первого сохранения здесь появятся черновики.</div>
           } @else {
             @for (document of documents; track trackByDocument($index, document)) {
-              <button
-                type="button"
-                class="draft-card"
-                (click)="openDocument(document)">
-                <div class="draft-card__meta">
-                  <strong>{{ document.title }}</strong>
-                  <span class="draft-status" [class.validated]="document.status === 'VALIDATED'">
-                    {{ document.status === 'VALIDATED' ? 'Проверен' : 'Черновик' }}
-                  </span>
+              <article class="draft-card">
+                <button
+                  type="button"
+                  class="draft-card__content"
+                  (click)="openDocument(document)">
+                  <div class="draft-card__meta">
+                    <strong>{{ document.title }}</strong>
+                    <span class="draft-status" [class.validated]="document.status === 'VALIDATED'">
+                      {{ document.status === 'VALIDATED' ? 'Проверен' : 'Черновик' }}
+                    </span>
+                  </div>
+                  <p>{{ document.templateName }}</p>
+                  <small>Обновлён {{ formatDate(document.updatedAt) }}</small>
+                </button>
+                <div class="draft-card__actions">
+                  <button
+                    type="button"
+                    class="draft-action draft-action--duplicate"
+                    (click)="duplicateDocument(document, $event)">
+                    Дублировать
+                  </button>
+                  <button
+                    type="button"
+                    class="draft-action draft-action--delete"
+                    (click)="deleteDocument(document, $event)"
+                    [disabled]="deletingDocumentId === document.id">
+                    {{ deletingDocumentId === document.id ? 'Удаление...' : 'Удалить' }}
+                  </button>
                 </div>
-                <p>{{ document.templateName }}</p>
-                <small>Обновлён {{ formatDate(document.updatedAt) }}</small>
-                <span class="draft-duplicate" (click)="duplicateDocument(document, $event)">Дублировать</span>
-              </button>
+              </article>
             }
           }
         </div>
