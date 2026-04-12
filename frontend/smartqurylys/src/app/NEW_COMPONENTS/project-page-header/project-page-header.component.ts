@@ -1,7 +1,7 @@
-import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
 import { Project } from '../../core/models/project';
 import { ProjectService } from '../../core/project.service';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ParticipantService } from '../../core/participant.service';
 import { Participant } from '../../core/models/participant';
@@ -21,6 +21,7 @@ export class ProjectPageHeader implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   project!: Project
   isAccessDialogOpen = false;
+  isProjectMenuOpen = false;
   currentUserIinBin: string | null = null;
 
   participants: Participant[] = []
@@ -29,7 +30,8 @@ export class ProjectPageHeader implements OnInit {
     private projectService: ProjectService,
     private participantService: ParticipantService,
     private projectRealtimeService: ProjectRealtimeService,
-    private userService: UserService
+    private userService: UserService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -119,6 +121,15 @@ export class ProjectPageHeader implements OnInit {
     return !!this.project && !!this.currentUserIinBin && this.project.ownerIinBin === this.currentUserIinBin;
   }
 
+  get canDeleteProject(): boolean {
+    return this.canEditProjectTitle;
+  }
+
+  @HostListener('document:click')
+  closeProjectMenu(): void {
+    this.isProjectMenuOpen = false;
+  }
+
   onTitleBlur(event: FocusEvent) {
     if (!this.canEditProjectTitle) {
       return;
@@ -156,5 +167,36 @@ export class ProjectPageHeader implements OnInit {
 
   saveAccess(): void {
     this.closeDialog();
+  }
+
+  toggleProjectMenu(event: MouseEvent): void {
+    event.stopPropagation();
+    this.isProjectMenuOpen = !this.isProjectMenuOpen;
+  }
+
+  onProjectMenuClick(event: MouseEvent): void {
+    event.stopPropagation();
+  }
+
+  deleteProject(): void {
+    if (!this.project?.id || !this.canDeleteProject) {
+      return;
+    }
+
+    this.isProjectMenuOpen = false;
+
+    const isConfirmed = window.confirm('Вы уверены, что хотите удалить проект? Это действие нельзя отменить.');
+    if (!isConfirmed) {
+      return;
+    }
+
+    this.projectService.deleteProject(this.project.id).subscribe({
+      next: () => {
+        this.router.navigate(['/projects']);
+      },
+      error: (error) => {
+        console.error('Failed to delete project from header menu:', error);
+      }
+    });
   }
 }

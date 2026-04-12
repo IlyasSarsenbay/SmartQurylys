@@ -13,6 +13,63 @@ main {
     border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 }
 
+.top-bar-menu {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-right: 8px;
+}
+
+.menu-trigger {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #000000d9;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.menu-trigger:hover {
+    background: rgba(0, 0, 0, 0.05);
+    transition: background ease 0.3s;
+}
+
+.project-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 180px;
+    padding: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+    z-index: 20;
+}
+
+.project-menu-item {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.project-menu-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.project-menu-item-delete {
+    color: #cf1322;
+    font-weight: 600;
+}
+
 .section-1 {
     display: flex;
     align-items: center;
@@ -393,4 +450,19 @@ header {
 
 .save-btn:hover {
   opacity: 0.95;
+}
+
+@media (max-width: 768px) {
+  .top-bar {
+    padding-left: 12px;
+  }
+
+  .top-bar-menu {
+    margin-right: 4px;
+  }
+
+  .project-menu-dropdown {
+    right: 0;
+    min-width: 164px;
+  }
 }

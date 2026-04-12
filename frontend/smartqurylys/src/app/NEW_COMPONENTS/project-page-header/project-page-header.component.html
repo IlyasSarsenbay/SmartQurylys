@@ -14,6 +14,32 @@
         </div>
 
         <div class="section-2">
+            <div class="top-bar-menu" (click)="onProjectMenuClick($event)">
+                <button
+                    type="button"
+                    class="menu-trigger"
+                    aria-label="Действия проекта"
+                    aria-haspopup="menu"
+                    [attr.aria-expanded]="isProjectMenuOpen"
+                    (click)="toggleProjectMenu($event)">
+                    ...
+                </button>
+
+                @if (isProjectMenuOpen) {
+                    <div class="project-menu-dropdown" role="menu">
+                        @if (canDeleteProject) {
+                            <button
+                                type="button"
+                                class="project-menu-item project-menu-item-delete"
+                                role="menuitem"
+                                (click)="deleteProject()">
+                                Удалить проект
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+
             <!-- <button class="access-btn" (click)="openDialog()">
                 <img src="assets/lock.png">
                 <span>Управление доступом</span>
@@ -48,8 +74,6 @@
             <div class="tabs">
                 <a class="tab" [routerLink]="['/projects', project.id]" routerLinkActive="active"
                     [routerLinkActiveOptions]="{ exact: true }">О проекте</a>
-                <!-- <a class="tab" [routerLink]="['/projects', project.id, 'tasks']" routerLinkActive="active">Список
-                    задач</a> -->
                 <a class="tab" [routerLink]="['/projects', project.id, 'tasks']" routerLinkActive="active">График
                     работ</a>
                 <a class="tab" [routerLink]="['/projects', project.id, 'documents']"
