@@ -141,4 +141,12 @@ public class ConversationService {
                 .lastMessageTimestamp(conversation.getLastMessageTimestamp())
                 .build();
     }
+    @Transactional
+    public void syncProjectChatName(Project project) {
+        conversationRepository.findByTypeAndProjectId(ConversationType.PROJECT_CHAT, project.getId())
+                .ifPresent(conversation -> {
+                    conversation.setName("Чат проекта: " + project.getName());
+                    conversationRepository.save(conversation);
+                });
+    }
 }

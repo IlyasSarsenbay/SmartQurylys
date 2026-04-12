@@ -218,6 +218,7 @@ public class ProjectService {
                 project.getName());
 
         Project updated = projectRepository.save(project);
+        conversationService.syncProjectChatName(updated);
         log.info("Updated project " + updated);
         projectRealtimeService.publish(updated.getId(), "PROJECT_UPDATED", updated.getId());
         return mapToResponse(updated);
