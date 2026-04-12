@@ -40,6 +40,7 @@ public class ProjectService {
     private final com.smartqurylys.backend.repository.ParticipantRepository participantRepository;
     private final com.smartqurylys.backend.repository.ProjectNoteRepository projectNoteRepository;
     private final ProjectRealtimeService projectRealtimeService;
+    private final ConversationService conversationService;
 
 
     // Создает новый проект. Только организации или администраторы могут создавать
@@ -80,6 +81,7 @@ public class ProjectService {
                 .canSendNotifications(true)
                 .build();
         participantRepository.save(ownerParticipant);
+        conversationService.getOrCreateProjectChat(saved.getId());
 
         return mapToResponse(saved);
     }
