@@ -97,6 +97,9 @@ export class ProjectDetailsComponent implements OnInit {
       canUploadDocuments: [false],
       canSendNotifications: [false]
     });
+    this.invitationForm.get('iinBin')?.valueChanges.subscribe(() => {
+      this.clearInvitationIinBinNotFoundError();
+    });
 
     this.uploadFileForm = this.fb.group({
       file: [null, Validators.required]
@@ -294,6 +297,7 @@ export class ProjectDetailsComponent implements OnInit {
   inviteParticipant(): void {
     this.invitationErrorMessage = '';
     this.invitationSuccessMessage = '';
+    this.clearInvitationIinBinNotFoundError();
 
     if (!this.projectId) {
       this.invitationErrorMessage = 'ID проекта не найден.';
@@ -314,7 +318,12 @@ export class ProjectDetailsComponent implements OnInit {
         },
         error: (err: HttpErrorResponse) => {
           console.error('Error inviting participant:', err);
-          this.invitationErrorMessage = this.extractErrorMessage(err, 'Ошибка при отправке приглашения.');
+          const errorMessage = this.extractErrorMessage(err, 'Ошибка при отправке приглашения.');
+          if (this.isInvitationUserNotFoundError(errorMessage)) {
+            this.setInvitationIinBinNotFoundError(errorMessage);
+            return;
+          }
+          this.invitationErrorMessage = errorMessage;
         }
       });
     } else {
@@ -505,6 +514,35 @@ export class ProjectDetailsComponent implements OnInit {
     if (this.confirmAction) {
       this.confirmAction();
     }
+  }
+
+  private isInvitationUserNotFoundError(message: string): boolean {
+    const normalizedMessage = message.toLowerCase();
+    return normalizedMessage.includes('не найден') && normalizedMessage.includes('иин/бин');
+  }
+
+  private setInvitationIinBinNotFoundError(message: string): void {
+    const iinBinControl = this.invitationForm.get('iinBin');
+    if (!iinBinControl) {
+      this.invitationErrorMessage = message;
+      return;
+    }
+
+    iinBinControl.setErrors({
+      ...(iinBinControl.errors ?? {}),
+      userNotFound: message
+    });
+    iinBinControl.markAsTouched();
+  }
+
+  private clearInvitationIinBinNotFoundError(): void {
+    const iinBinControl = this.invitationForm.get('iinBin');
+    if (!iinBinControl?.errors?.['userNotFound']) {
+      return;
+    }
+
+    const { userNotFound, ...remainingErrors } = iinBinControl.errors;
+    iinBinControl.setErrors(Object.keys(remainingErrors).length ? remainingErrors : null);
   }
 
   private extractErrorMessage(err: HttpErrorResponse, defaultMessage: string): string {

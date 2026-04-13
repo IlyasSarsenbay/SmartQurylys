@@ -157,6 +157,13 @@
   background: #2458be;
 }
 
+.invite-btn:disabled,
+.secondary-btn:disabled,
+.close-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .secondary-btn {
   background: #f2f2f2;
   color: #333;
@@ -340,6 +347,12 @@
 
 .form-group input:focus {
   border-color: #2f6fed;
+}
+
+.invite-error-message {
+  margin-top: 6px;
+  color: #d92d20;
+  font-size: 13px;
 }
 
 .permissions-section {

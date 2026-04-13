@@ -246,6 +246,10 @@
   margin-top: 0.25rem;
 }
 
+.field-error-red {
+  color: #dc2626;
+}
+
 .form-button {
   width: 100%;
   display: flex;

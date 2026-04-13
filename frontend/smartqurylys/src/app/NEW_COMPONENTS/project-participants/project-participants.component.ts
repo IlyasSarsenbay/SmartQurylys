@@ -4,6 +4,7 @@ import { Project } from '../../core/models/project';
 import { ParticipantService } from '../../core/participant.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ProjectService } from '../../core/project.service';
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin, auditTime, filter } from 'rxjs';
@@ -42,6 +43,9 @@ export class ProjectParticipantsComponent implements OnInit {
   currentUserIinBin: string | null = null;
 
   isInviteModalOpen = false;
+  isInviting = false;
+  inviteIinBinErrorMessage = '';
+  inviteRoleErrorMessage = '';
   searchTerm = '';
   openParticipantMenuId: number | null = null;
   participantMenuPosition: { top: number; left: number } | null = null;
@@ -152,6 +156,9 @@ export class ProjectParticipantsComponent implements OnInit {
   }
 
   closeInviteModal(): void {
+    if (this.isInviting) {
+      return;
+    }
     this.isInviteModalOpen = false;
     this.resetInviteForm();
   }
@@ -230,19 +237,48 @@ export class ProjectParticipantsComponent implements OnInit {
   }
 
   inviteParticipant(): void {
-    if (!this.canInviteParticipants) {
+    if (!this.canInviteParticipants || this.isInviting) {
       return;
     }
 
+    this.clearInviteFieldErrors();
+    const normalizedIinBin = this.inviteForm.iinBin.trim();
+    const normalizedRole = this.inviteForm.role.trim();
+
+    let hasValidationError = false;
+
+    if (!normalizedIinBin) {
+      this.inviteIinBinErrorMessage = 'Заполните ИИН/БИН.';
+      hasValidationError = true;
+    }
+
+    if (!normalizedRole) {
+      this.inviteRoleErrorMessage = 'Заполните роль.';
+      hasValidationError = true;
+    }
+
+    if (hasValidationError) {
+      return;
+    }
+
+    this.isInviting = true;
+
     this.projectService.inviteParticipant(this.project.id, {
-      iinBin: this.inviteForm.iinBin,
-      role: this.inviteForm.role,
+      iinBin: normalizedIinBin,
+      role: normalizedRole,
       canSendNotifications: this.inviteForm.canSendNotifications,
       canUploadDocuments: this.inviteForm.canUploadDocuments
     })
-      .subscribe()
-
-    this.closeInviteModal();
+      .subscribe({
+        next: () => {
+          this.isInviting = false;
+          this.closeInviteModal();
+        },
+        error: (error: HttpErrorResponse) => {
+          this.isInviting = false;
+          this.inviteIinBinErrorMessage = this.extractErrorMessage(error, 'Ошибка при отправке приглашения.');
+        }
+      });
   }
 
   resetInviteForm(): void {
@@ -252,6 +288,33 @@ export class ProjectParticipantsComponent implements OnInit {
       canUploadDocuments: false,
       canSendNotifications: false
     };
+    this.clearInviteFieldErrors();
+  }
+
+  onInviteIinBinChange(): void {
+    this.inviteIinBinErrorMessage = '';
+  }
+
+  onInviteRoleChange(): void {
+    this.inviteRoleErrorMessage = '';
+  }
+
+  private clearInviteFieldErrors(): void {
+    this.inviteIinBinErrorMessage = '';
+    this.inviteRoleErrorMessage = '';
+  }
+
+  private extractErrorMessage(err: HttpErrorResponse, defaultMessage: string): string {
+    if (typeof err.error === 'string' && err.error) {
+      return err.error;
+    }
+    if (err.error && typeof err.error === 'object' && typeof err.error.error === 'string') {
+      return err.error.error;
+    }
+    if (err.error && typeof err.error === 'object' && typeof err.error.message === 'string') {
+      return err.error.message;
+    }
+    return defaultMessage;
   }
 
   mapParticipantResponseToParticipantItem(

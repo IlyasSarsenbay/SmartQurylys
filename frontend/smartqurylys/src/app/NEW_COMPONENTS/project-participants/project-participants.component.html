@@ -134,12 +134,18 @@
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label>ИИН/БИН</label>
-                            <input type="text" [(ngModel)]="inviteForm.iinBin" />
+                            <input type="text" [(ngModel)]="inviteForm.iinBin" (ngModelChange)="onInviteIinBinChange()" />
+                            @if (inviteIinBinErrorMessage) {
+                            <div class="invite-error-message">{{ inviteIinBinErrorMessage }}</div>
+                            }
                         </div>
                         <div class="form-group full-width">
                             <label>Роль</label>
-                            <input type="text" [(ngModel)]="inviteForm.role"
+                            <input type="text" [(ngModel)]="inviteForm.role" (ngModelChange)="onInviteRoleChange()"
                                 placeholder="Например, Подрядчик, Тех.надзор" />
+                            @if (inviteRoleErrorMessage) {
+                            <div class="invite-error-message">{{ inviteRoleErrorMessage }}</div>
+                            }
                         </div>
                     </div>
 
@@ -157,8 +163,10 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button class="secondary-btn" (click)="closeInviteModal()">Отменить</button>
-                    <button class="invite-btn" (click)="inviteParticipant()">Отправить приглашение</button>
+                    <button class="secondary-btn" (click)="closeInviteModal()" [disabled]="isInviting">Отменить</button>
+                    <button class="invite-btn" (click)="inviteParticipant()" [disabled]="isInviting">
+                        {{ isInviting ? 'Отправляем...' : 'Отправить приглашение' }}
+                    </button>
                 </div>
             </div>
         </div>
