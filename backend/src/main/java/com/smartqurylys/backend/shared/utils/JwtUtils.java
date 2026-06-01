@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.util.Collection; // Added import for Collection
+import java.util.Collection;
 import java.util.Date;
 
 // Класс-утилита для работы с JWT (JSON Web Token).
@@ -24,10 +24,10 @@ public class JwtUtils {
     }
 
     // Генерирует новый JWT-токен для указанного пользователя и его ролей.
-    public String generateToken(String username, Collection<String> roles) { // Modified to accept roles
+    public String generateToken(String username, Collection<String> roles) {
         return Jwts.builder()
                 .setSubject(username)
-                .claim("roles", roles) // Add roles as a claim
+                .claim("roles", roles)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpiration()))
                 .signWith(secretKey, SignatureAlgorithm.HS256)

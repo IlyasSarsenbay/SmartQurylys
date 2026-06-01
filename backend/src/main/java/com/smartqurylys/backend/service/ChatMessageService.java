@@ -46,7 +46,7 @@ public class ChatMessageService {
     private final UserService userService;
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
-    private final NotificationService notificationService; // Added NotificationService
+    private final NotificationService notificationService;
 
     // Отправляет новое сообщение в указанную беседу.
     @Transactional
@@ -75,7 +75,6 @@ public class ChatMessageService {
             if (mentionedUsers.size() != request.getMentionedUserIds().size()) {
                 throw new IllegalArgumentException("Один или несколько отмеченных пользователей не найдены.");
             }
-            // Create notifications for mentioned users
             for (User mentionedUser : mentionedUsers) {
                 if (!mentionedUser.equals(sender)) {
                     notificationService.createMentionNotification(sender, mentionedUser, conversation);
