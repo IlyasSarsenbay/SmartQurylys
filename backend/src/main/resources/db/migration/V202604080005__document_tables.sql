@@ -20,8 +20,6 @@ CREATE TABLE IF NOT EXISTS public.documents (
     -- TODO: FOREIGN KEY (uploaded_by_user_id) REFERENCES public,users(id)
 );
 
-ALTER TABLE public.documents OWNER TO postgres;
-
 INSERT INTO public.documents (id, project_id, file_path, name, status, upload_date) VALUES 
 (1, NULL, 'uploads/doc1.pdf', 'Документ №1', 'WAITING', '2025-06-29 19:17:42.81')
 ON CONFLICT DO NOTHING;
@@ -38,9 +36,6 @@ CREATE TABLE IF NOT EXISTS public.document_signed (
     FOREIGN KEY (participant_id) REFERENCES public.participants(id) ON DELETE CASCADE,
     PRIMARY KEY (document_id, participant_id)
 );
-
-ALTER TABLE public.document_signed OWNER TO postgres;
-
 
 CREATE TABLE IF NOT EXISTS public.document_have_to_sign (
     document_id integer,
@@ -65,4 +60,3 @@ CREATE TABLE IF NOT EXISTS public.comment (
 
 
 
-ALTER TABLE public.comment OWNER TO postgres;

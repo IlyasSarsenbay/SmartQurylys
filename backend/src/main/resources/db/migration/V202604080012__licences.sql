@@ -14,8 +14,6 @@ CREATE TABLE IF NOT EXISTS public.licenses (
     FOREIGN KEY (organisation_id) REFERENCES public.organisations(id),
     Foreign Key (file_id) REFERENCES public.files(id)
 );
-ALTER TABLE public.licenses OWNER TO postgres;
-
 INSERT INTO public.licenses 
 (file_id, license_category_display, review_status, organisation_id, rejection_reason)
 VALUES

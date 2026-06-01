@@ -21,4 +21,3 @@ CREATE TABLE public.licenses (
     FOREIGN KEY (organisation_id) REFERENCES public.organisations(id)
 );
 
-ALTER TABLE public.licenses OWNER TO postgres;

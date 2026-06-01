@@ -9,9 +9,6 @@ CREATE TABLE IF NOT EXISTS public.participants (
     FOREIGN KEY (project_id) REFERENCES public.projects(id) ON DELETE CASCADE
 );
 
-ALTER TABLE public.participants OWNER TO postgres;
-
-
 INSERT INTO public.participants (id, can_send_notifications, can_upload_documents, role, project_id, user_id)
 VALUES
 (19, true, true, 'Подрядчик', 18, 13)
@@ -37,8 +34,6 @@ CREATE TABLE IF NOT EXISTS public.participant_invitations (
     FOREIGN KEY (user_id) REFERENCES public.users(id),
     FOREIGN KEY (project_id) REFERENCES public.projects(id) ON DELETE CASCADE
 );
-
-ALTER TABLE public.participant_invitations OWNER TO postgres;
 
 INSERT INTO public.participant_invitations 
 (id, accepted, can_send_notifications, can_upload_documents, created_at, expires_at, role, project_id, user_id, sender_id)

@@ -7,4 +7,3 @@ CREATE TABLE IF NOT EXISTS public.representative_documents (
     FOREIGN KEY (organisation_id) REFERENCES public.organisations(id) ON DELETE CASCADE
 );
 
-ALTER TABLE public.representative_documents OWNER TO postgres;

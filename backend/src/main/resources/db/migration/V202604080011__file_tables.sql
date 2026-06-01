@@ -21,8 +21,6 @@ CREATE TABLE IF NOT EXISTS public.files (
     FOREIGN KEY (document_id) REFERENCES public.documents(id)
 );
 
-ALTER TABLE public.files OWNER TO postgres;
-
 INSERT INTO public.files 
 (id, project_id, created_at, filepath, name, size, user_id, schedule_id, task_id, document_id, organisation_id, file_type)
 VALUES
@@ -55,4 +53,3 @@ CREATE TABLE IF NOT EXISTS public.requirements (
     FOREIGN KEY (sample_file_id) REFERENCES public.files(id),
     FOREIGN KEY (task_id) REFERENCES public.tasks(id)
 );
-ALTER TABLE public.requirements OWNER TO postgres;

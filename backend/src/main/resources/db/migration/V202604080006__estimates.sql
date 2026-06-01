@@ -6,11 +6,6 @@ CREATE TABLE IF NOT EXISTS public.estimates (
     transport_amount real NOT NULL,
     FOREIGN KEY (document_id) REFERENCES public.documents(id) ON DELETE CASCADE
 );
-ALTER TABLE public.estimates OWNER TO postgres;
-
-
-
-
 ----------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.estimate_item (
     id bigint NOT NULL,
@@ -21,6 +16,3 @@ CREATE TABLE IF NOT EXISTS public.estimate_item (
     estimate_id integer,
     FOREIGN KEY (estimate_id) REFERENCES public.estimates(id) ON DELETE CASCADE
 );
-ALTER TABLE public.estimate_item OWNER TO postgres;
-
-

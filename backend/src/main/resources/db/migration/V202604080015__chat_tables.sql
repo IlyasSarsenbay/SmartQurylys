@@ -13,8 +13,6 @@ CREATE TABLE IF NOT EXISTS public.conversations (
     FOREIGN KEY (project_id) REFERENCES public.projects(id) ON DELETE CASCADE
 );
 
-ALTER TABLE public.conversations OWNER TO postgres;
-
 INSERT INTO public.conversations (id, last_message_timestamp, name, type, project_id) VALUES
 (2, '2026-01-25 12:55:01.583842', 'Test User & Test User', 'PRIVATE_CHAT', NULL),
 (4, '2026-01-25 12:56:00.673761', 'Гедатсу Зор & admin', 'PRIVATE_CHAT', NULL),
@@ -128,8 +126,6 @@ CREATE TABLE IF NOT EXISTS public.chat_message_mentions (
     FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
 
-ALTER TABLE public.chat_message_mentions OWNER TO postgres;
-
 INSERT INTO public.chat_message_mentions (message_id, user_id) VALUES
 (45, 13),
 (46, 17),
@@ -149,8 +145,6 @@ CREATE TABLE IF NOT EXISTS public.conversation_users (
     FOREIGN KEY (conversation_id) REFERENCES public.conversations(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE
 );
-
-ALTER TABLE public.conversation_users OWNER TO postgres;
 
 INSERT INTO public.conversation_users (conversation_id, user_id)
 VALUES

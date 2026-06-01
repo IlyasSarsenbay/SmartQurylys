@@ -6,8 +6,6 @@ CREATE TABLE IF NOT EXISTS public.schedules (
     FOREIGN KEY (project_id) REFERENCES public.projects(id) ON DELETE CASCADE
 );
 
-ALTER TABLE public.schedules OWNER TO postgres;
-
 INSERT INTO public.schedules 
 (id, created_at, name, project_id)
 VALUES
