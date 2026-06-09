@@ -264,7 +264,13 @@ public class UserService {
         notificationRepository.deleteBySender(user);
 
         // 4. Очистка сообщений чата (отправленных этим пользователем)
+        // Сначала обнуляем ссылки relatedMessage на сообщения этого пользователя,
+        // иначе FK на related_message_id заблокирует удаление.
+        chatMessageRepository.nullifyRelatedMessagesBySender(user);
         chatMessageRepository.deleteBySender(user);
+        // Удаляем упоминания пользователя в чужих сообщениях (join-таблица chat_message_mentions),
+        // иначе FK на user_id заблокирует удаление пользователя.
+        chatMessageRepository.deleteUserMentions(userId);
 
         // 5. Очистка логов активности
         activityLogRepository.deleteByActor(user);
