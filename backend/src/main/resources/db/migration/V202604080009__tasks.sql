@@ -14,9 +14,6 @@ CREATE TABLE IF NOT EXISTS public.tasks (
     FOREIGN KEY (stage_id) REFERENCES public.stages(id) ON DELETE CASCADE
 );
 
-ALTER TABLE public.tasks OWNER TO postgres;
-
-
 INSERT INTO public.tasks 
 (id, description, end_date, executed, execution_requested, info, is_priority, name, start_date, participant_id, stage_id)
 VALUES
@@ -43,8 +40,6 @@ CREATE TABLE IF NOT EXISTS public.task_responsible_persons (
     FOREIGN KEY (task_id) REFERENCES public.tasks(id) ON DELETE CASCADE
 );
 
-ALTER TABLE public.task_responsible_persons OWNER TO postgres;
-
 INSERT INTO public.task_responsible_persons (task_id, participant_id)
 VALUES (60, 19)
 ON CONFLICT DO NOTHING;
@@ -66,8 +61,5 @@ VALUES
 (62, 61),
 (62, 60)
 ON CONFLICT DO NOTHING;
-
-
-ALTER TABLE public.task_dependencies OWNER TO postgres;
 
 

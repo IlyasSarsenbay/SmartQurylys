@@ -21,8 +21,6 @@ CREATE TABLE IF NOT EXISTS public.activity_logs (
     FOREIGN KEY (project_id) REFERENCES public.projects(id)
 );
 
-ALTER TABLE public.activity_logs OWNER TO postgres;
-
 INSERT INTO public.activity_logs
 (id, action_type, actor_full_name, entity_id, entity_name, entity_type, "timestamp", actor_id, project_id)
 VALUES

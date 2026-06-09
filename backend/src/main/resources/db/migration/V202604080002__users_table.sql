@@ -12,9 +12,6 @@ CREATE TABLE IF NOT EXISTS public.users (
     FOREIGN KEY (city_id) REFERENCES public.cities(id)
 );
 
-ALTER TABLE public.users OWNER TO postgres;
-
-
 INSERT INTO public.users 
 (id, email, full_name, iin_bin, organization, password, phone, city_id, user_type, role) VALUES
 (24, 'updated.user@example.com', 'Обновленное Имя Пользователя', '100000000000', NULL, '$2a$10$sXZ4QeiNKb6/kEEsbnbote8CYB5sTCXWzf4s9NqTbeQQX0C7QNwqa', '77778889900', 2, 'USER', 'USER'),

@@ -3,8 +3,6 @@ CREATE TABLE IF NOT EXISTS public.cities (
     name character varying(255) UNIQUE NOT NULL
 );
 
-ALTER TABLE public.cities OWNER TO postgres;
-
 INSERT INTO public.cities (id, name) VALUES
 (1, 'Almaty / Алматы'),
 (2, 'Astana / Астана'),

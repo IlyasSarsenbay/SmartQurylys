@@ -25,6 +25,3 @@ CREATE TABLE IF NOT EXISTS public.notifications (
     FOREIGN KEY (sender_id) REFERENCES public.users(id),
     FOREIGN KEY (project_id) REFERENCES public.projects(id) ON DELETE CASCADE
 );
-ALTER TABLE public.notifications OWNER TO postgres;
-
-

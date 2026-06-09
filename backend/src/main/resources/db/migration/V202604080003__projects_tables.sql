@@ -21,9 +21,6 @@ CREATE TABLE IF NOT EXISTS public.projects (
     FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
 
-ALTER TABLE public.projects OWNER TO postgres;
-
-
 INSERT INTO public.projects (id, description, end_date, name, start_date, status, type, city_id, user_id) VALUES
 (23, 'test', '2026-02-28', 'test', '2026-02-03', 'DRAFT', 'test', 22, 17),
 (18, 'Новое описание', '2025-09-15', 'Обновленное имя', '2025-07-15', 'ACTIVE', 'Реконструкция', 23, 17)
@@ -42,8 +39,6 @@ CREATE TABLE IF NOT EXISTS public.project_notes (
     FOREIGN KEY (author_id) REFERENCES public.users(id),
     FOREIGN KEY (project_id) REFERENCES public.projects(id) ON DELETE CASCADE
 );
-
-ALTER TABLE public.project_notes OWNER TO postgres;
 
 INSERT INTO public.project_notes (id, content, created_at, author_id, project_id) VALUES
 (1, 'тест', '2026-01-28 15:38:08.279339', 17, 18),

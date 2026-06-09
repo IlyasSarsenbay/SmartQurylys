@@ -48,8 +48,6 @@ CREATE TABLE IF NOT EXISTS public.organisations (
     FOREIGN KEY (id) REFERENCES public.users(id)
 );
 
-ALTER TABLE public.organisations OWNER TO postgres;
-
 INSERT INTO public.organisations 
 (id, field, jud_address, "position", type, years_of_experience, status)
 VALUES
@@ -69,8 +67,6 @@ CREATE TABLE IF NOT EXISTS public.organisation_specializations (
     PRIMARY KEY (organisation_id, specialization),
     FOREIGN KEY (organisation_id) REFERENCES public.organisations(id) ON DELETE CASCADE
 );
-
-ALTER TABLE public.organisation_specializations OWNER TO postgres;
 
 INSERT INTO public.organisation_specializations 
 (organisation_id, specialization)

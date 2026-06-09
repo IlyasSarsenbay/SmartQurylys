@@ -19,8 +19,6 @@ CREATE TABLE IF NOT EXISTS public.stages (
 );
 
 
-ALTER TABLE public.stages OWNER TO postgres;
-
 INSERT INTO public.stages 
 (id, contractors, description, end_date, name, resources, start_date, status, schedule_id)
 VALUES
