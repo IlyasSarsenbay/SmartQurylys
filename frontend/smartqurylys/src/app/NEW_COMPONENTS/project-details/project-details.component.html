@@ -47,9 +47,6 @@
                                 <p class="activity-log-text">
                                     <strong>{{ log.actorFullName }}</strong>
                                     <span>{{ getActivityActionText(log.actionType) }}</span>
-                                    @if (log.entityType) {
-                                    <span>{{ getActivityEntityText(log.entityType) }}</span>
-                                    }
                                     @if (shouldShowEntityName(log)) {
                                     <span class="activity-log-badge">{{ log.entityName }}</span>
                                     }

@@ -253,7 +253,9 @@ public class ProjectTaskBoardService {
 
         String taskDetails = taskChanges.isEmpty() ? null : String.join(", ", taskChanges);
         ProjectTaskBoardTask savedTask = taskRepository.save(task);
-        recordBoardTaskActivity(projectId, ActivityActionType.TASK_UPDATED, savedTask, taskDetails);
+        if (!taskChanges.isEmpty()) {
+            recordBoardTaskActivity(projectId, ActivityActionType.TASK_UPDATED, savedTask, taskDetails);
+        }
         projectRealtimeService.publish(projectId, "TASK_UPDATED", savedTask.getId());
         return mapTaskResponse(savedTask, loadCommentCounts(projectId), Collections.emptyMap());
     }

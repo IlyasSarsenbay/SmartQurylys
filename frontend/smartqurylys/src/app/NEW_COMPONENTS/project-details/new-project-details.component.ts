@@ -232,18 +232,7 @@ export class NewProjectDetailsComponent implements OnInit, AfterViewInit {
   }
 
   getActivityEntityText(type: string): string {
-    switch (type as ActivityEntityType) {
-      case ActivityEntityType.STAGE:
-        return 'в этапе';
-      case ActivityEntityType.TASK:
-        return 'в задаче';
-      case ActivityEntityType.PARTICIPANT:
-      case ActivityEntityType.DOCUMENT:
-      case ActivityEntityType.PROJECT:
-      case ActivityEntityType.FILE:
-      default:
-        return '';
-    }
+    return '';
   }
   shouldShowEntityName(log: ActivityLogResponse): boolean {
     if (!log.entityName) {

@@ -64,7 +64,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // Если email получен и пользователь еще не аутентифицирован.
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            UserDetails userDetails;
+            try {
+                userDetails = userDetailsService.loadUserByUsername(email);
+            } catch (Exception e) {
+                // Пользователь не найден в БД (например, после сброса базы данных) —
+                // продолжаем без аутентификации, запрос будет отклонён фильтром безопасности.
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             // Если токен валиден, устанавливаем аутентификацию в контексте безопасности.
             if (jwtUtils.isTokenValid(token, userDetails)) {
