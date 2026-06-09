@@ -53,6 +53,9 @@ public class ActivityLog {
     @Column(nullable = false)
     private String entityName; // Название сущности.
 
+    @Column(columnDefinition = "TEXT")
+    private String details; // Дополнительные сведения о действии (например, что именно изменилось).
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project; // Проект, к которому относится активность.

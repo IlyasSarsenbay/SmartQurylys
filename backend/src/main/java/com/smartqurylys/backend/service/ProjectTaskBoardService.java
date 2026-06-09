@@ -2,8 +2,10 @@ package com.smartqurylys.backend.service;
 
 import com.smartqurylys.backend.dto.project.taskboard.*;
 import com.smartqurylys.backend.entity.*;
-import com.smartqurylys.backend.shared.enums.ProjectTaskBoardCompletionStatus;
 import com.smartqurylys.backend.repository.*;
+import com.smartqurylys.backend.shared.enums.ActivityActionType;
+import com.smartqurylys.backend.shared.enums.ActivityEntityType;
+import com.smartqurylys.backend.shared.enums.ProjectTaskBoardCompletionStatus;
 import com.smartqurylys.backend.shared.enums.ProjectTaskBoardPriority;
 import com.smartqurylys.backend.shared.enums.ProjectTaskBoardStatus;
 import jakarta.persistence.EntityNotFoundException;
@@ -33,6 +35,7 @@ public class ProjectTaskBoardService {
     private final ProjectRealtimeService projectRealtimeService;
     private final NotificationService notificationService;
     private final FileService fileService;
+    private final ActivityLogService activityLogService;
 
     @Transactional(readOnly = true)
     public ProjectTaskBoardResponse getBoard(Long projectId) {
@@ -63,6 +66,7 @@ public class ProjectTaskBoardService {
                 .build();
 
         ProjectTaskBoardStage savedStage = stageRepository.save(stage);
+        recordBoardStageActivity(projectId, ActivityActionType.STAGE_CREATED, savedStage);
         projectRealtimeService.publish(projectId, "STAGE_CREATED", savedStage.getId());
         return mapStageResponse(savedStage, List.of(), Map.of());
     }
@@ -78,7 +82,10 @@ public class ProjectTaskBoardService {
         requireProjectOwnerOrAdmin(project);
         ProjectTaskBoardStage stage = getStageOrThrow(projectId, stageId);
 
-        if (request.getName() != null && !request.getName().trim().isEmpty()) {
+        List<String> stageChanges = new ArrayList<>();
+        if (request.getName() != null && !request.getName().trim().isEmpty()
+                && !request.getName().trim().equals(stage.getName())) {
+            stageChanges.add("название: \"" + stage.getName() + "\" → \"" + request.getName().trim() + "\"");
             stage.setName(request.getName().trim());
         }
         if (request.getPosition() != null) {
@@ -87,6 +94,8 @@ public class ProjectTaskBoardService {
         stage.setUpdatedAt(LocalDateTime.now());
 
         ProjectTaskBoardStage savedStage = stageRepository.save(stage);
+        String stageDetails = stageChanges.isEmpty() ? null : String.join(", ", stageChanges);
+        recordBoardStageActivity(projectId, ActivityActionType.STAGE_UPDATED, savedStage, stageDetails);
         projectRealtimeService.publish(projectId, "STAGE_UPDATED", savedStage.getId());
         List<ProjectTaskBoardTask> stageTasks = taskRepository.findBoardTasksByProjectId(projectId).stream()
                 .filter(task -> Objects.equals(task.getStage().getId(), savedStage.getId()))
@@ -101,6 +110,7 @@ public class ProjectTaskBoardService {
         requireProjectWritable(project);
         requireProjectOwnerOrAdmin(project);
         ProjectTaskBoardStage stage = getStageOrThrow(projectId, stageId);
+        recordBoardStageActivity(projectId, ActivityActionType.STAGE_DELETED, stage);
         stageRepository.delete(stage);
         projectRealtimeService.publish(projectId, "STAGE_DELETED", stageId);
     }
@@ -137,6 +147,7 @@ public class ProjectTaskBoardService {
                 .build();
 
         ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        recordBoardTaskActivity(projectId, ActivityActionType.TASK_CREATED, savedTask);
         projectRealtimeService.publish(projectId, "TASK_CREATED", savedTask.getId());
         return mapTaskResponse(savedTask, Map.of(), Collections.emptyMap());
     }
@@ -152,8 +163,12 @@ public class ProjectTaskBoardService {
         requireProjectOwnerOrAdmin(project);
         ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
 
+        // Capture changes before applying them for the activity log details
+        List<String> taskChanges = new ArrayList<>();
+
         if (request.getStageId() != null && !Objects.equals(request.getStageId(), task.getStage().getId())) {
             ProjectTaskBoardStage nextStage = getStageOrThrow(projectId, request.getStageId());
+            taskChanges.add("перемещено в этап «" + nextStage.getName() + "»");
             task.setStage(nextStage);
             if (task.getParentTask() != null && !Objects.equals(task.getParentTask().getStage().getId(), nextStage.getId())) {
                 task.setParentTask(null);
@@ -170,13 +185,16 @@ public class ProjectTaskBoardService {
             task.setParentTask(parentTask);
         }
 
-        if (request.getTitle() != null && !request.getTitle().trim().isEmpty()) {
+        if (request.getTitle() != null && !request.getTitle().trim().isEmpty()
+                && !request.getTitle().trim().equals(task.getTitle())) {
+            taskChanges.add("название: «" + task.getTitle() + "» → «" + request.getTitle().trim() + "»");
             task.setTitle(request.getTitle().trim());
         }
         if (request.getDescription() != null) {
             task.setDescription(normalizeBlank(request.getDescription()));
         }
-        if (request.getStatus() != null) {
+        if (request.getStatus() != null && request.getStatus() != task.getStatus()) {
+            taskChanges.add("статус: " + translateStatus(task.getStatus()) + " → " + translateStatus(request.getStatus()));
             User currentUser = getAuthenticatedUser();
 
             task.setStatus(request.getStatus());
@@ -200,19 +218,32 @@ public class ProjectTaskBoardService {
                 task.setCompletionReviewedAt(null);
                 task.setCompletionReviewReason(null);
             }
+        } else if (request.getStatus() != null) {
+            task.setStatus(request.getStatus());
         }
-        if (request.getPriority() != null) {
+        if (request.getPriority() != null && request.getPriority() != task.getPriority()) {
+            taskChanges.add("приоритет: " + translatePriority(task.getPriority()) + " → " + translatePriority(request.getPriority()));
+            task.setPriority(request.getPriority());
+        } else if (request.getPriority() != null) {
             task.setPriority(request.getPriority());
         }
         if (Boolean.TRUE.equals(request.getClearDueDate())) {
+            if (task.getDueDate() != null) taskChanges.add("срок выполнения удалён");
             task.setDueDate(null);
         } else if (request.getDueDate() != null) {
+            taskChanges.add("срок выполнения: " + request.getDueDate());
             task.setDueDate(request.getDueDate());
         }
         if (Boolean.TRUE.equals(request.getClearAssignee())) {
+            if (task.getAssigneeParticipant() != null) taskChanges.add("исполнитель снят");
             task.setAssigneeParticipant(null);
         } else if (request.getAssigneeParticipantId() != null) {
-            task.setAssigneeParticipant(resolveAssignee(projectId, request.getAssigneeParticipantId()));
+            Participant newAssignee = resolveAssignee(projectId, request.getAssigneeParticipantId());
+            if (task.getAssigneeParticipant() == null
+                    || !Objects.equals(task.getAssigneeParticipant().getId(), newAssignee.getId())) {
+                taskChanges.add("исполнитель: " + newAssignee.getUser().getFullName());
+            }
+            task.setAssigneeParticipant(newAssignee);
         }
         if (request.getPosition() != null) {
             task.setPosition(Math.max(0, request.getPosition()));
@@ -220,7 +251,9 @@ public class ProjectTaskBoardService {
 
         task.setUpdatedAt(LocalDateTime.now());
 
+        String taskDetails = taskChanges.isEmpty() ? null : String.join(", ", taskChanges);
         ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        recordBoardTaskActivity(projectId, ActivityActionType.TASK_UPDATED, savedTask, taskDetails);
         projectRealtimeService.publish(projectId, "TASK_UPDATED", savedTask.getId());
         return mapTaskResponse(savedTask, loadCommentCounts(projectId), Collections.emptyMap());
     }
@@ -231,6 +264,7 @@ public class ProjectTaskBoardService {
         requireProjectWritable(project);
         requireProjectOwnerOrAdmin(project);
         ProjectTaskBoardTask task = getTaskOrThrow(projectId, taskId);
+        recordBoardTaskActivity(projectId, ActivityActionType.TASK_DELETED, task);
         taskRepository.delete(task);
         projectRealtimeService.publish(projectId, "TASK_DELETED", taskId);
     }
@@ -243,6 +277,9 @@ public class ProjectTaskBoardService {
         List<ProjectTaskBoardTask> tasks = taskRepository.findByIdInAndProjectId(request.getTaskIds(), projectId);
         if (tasks.size() != request.getTaskIds().size()) {
             throw new EntityNotFoundException("One or more board tasks were not found");
+        }
+        for (ProjectTaskBoardTask task : tasks) {
+            recordBoardTaskActivity(projectId, ActivityActionType.TASK_DELETED, task);
         }
         taskRepository.deleteAll(tasks);
         projectRealtimeService.publish(projectId, "TASKS_BULK_DELETED", null);
@@ -267,6 +304,7 @@ public class ProjectTaskBoardService {
         task.setUpdatedAt(LocalDateTime.now());
 
         ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        recordBoardTaskActivity(projectId, ActivityActionType.TASK_STARTED, savedTask);
         projectRealtimeService.publish(projectId, "TASK_STARTED", savedTask.getId());
         return mapTaskResponse(savedTask, loadCommentCounts(projectId), Collections.emptyMap());
     }
@@ -311,6 +349,7 @@ public class ProjectTaskBoardService {
         }
 
         ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        recordBoardTaskActivity(projectId, ActivityActionType.TASK_COMPLETION_REQUESTED, savedTask);
         if (!Objects.equals(project.getOwner().getId(), currentUser.getId())) {
             notificationService.createTaskReviewRequestedNotification(
                     project.getOwner(),
@@ -353,6 +392,8 @@ public class ProjectTaskBoardService {
         task.setUpdatedAt(LocalDateTime.now());
 
         ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        recordBoardTaskActivity(projectId, ActivityActionType.TASK_COMPLETION_APPROVED, savedTask,
+                reason != null && !reason.isBlank() ? reason : null);
         if (savedTask.getAssigneeParticipant() != null) {
             notificationService.createTaskExecutionNotification(
                     savedTask.getAssigneeParticipant().getUser(),
@@ -398,6 +439,14 @@ public class ProjectTaskBoardService {
         task.setUpdatedAt(LocalDateTime.now());
 
         ProjectTaskBoardTask savedTask = taskRepository.save(task);
+        recordBoardTaskActivity(
+                projectId,
+                task.getCompletionStatus() == ProjectTaskBoardCompletionStatus.APPROVED
+                        ? ActivityActionType.TASK_RETURNED_TO_WORK
+                        : ActivityActionType.TASK_COMPLETION_REJECTED,
+                savedTask,
+                reason != null && !reason.isBlank() ? reason : null
+        );
         if (savedTask.getAssigneeParticipant() != null) {
             notificationService.createTaskExecutionNotification(
                     savedTask.getAssigneeParticipant().getUser(),
@@ -442,8 +491,42 @@ public class ProjectTaskBoardService {
                 .build();
 
         ProjectTaskComment savedComment = commentRepository.save(comment);
+        String commentSnippet = savedComment.getMessage().length() > 100
+                ? savedComment.getMessage().substring(0, 100) + "…"
+                : savedComment.getMessage();
+        recordBoardTaskActivity(projectId, ActivityActionType.TASK_COMMENT_ADDED, task, commentSnippet);
         projectRealtimeService.publish(projectId, "TASK_COMMENT_ADDED", taskId);
         return mapCommentResponse(savedComment);
+    }
+
+    private void recordBoardStageActivity(Long projectId, ActivityActionType actionType, ProjectTaskBoardStage stage) {
+        recordBoardStageActivity(projectId, actionType, stage, null);
+    }
+
+    private void recordBoardStageActivity(Long projectId, ActivityActionType actionType, ProjectTaskBoardStage stage, String details) {
+        activityLogService.recordActivity(
+                projectId,
+                actionType,
+                ActivityEntityType.STAGE,
+                stage.getId(),
+                stage.getName(),
+                details
+        );
+    }
+
+    private void recordBoardTaskActivity(Long projectId, ActivityActionType actionType, ProjectTaskBoardTask task) {
+        recordBoardTaskActivity(projectId, actionType, task, null);
+    }
+
+    private void recordBoardTaskActivity(Long projectId, ActivityActionType actionType, ProjectTaskBoardTask task, String details) {
+        activityLogService.recordActivity(
+                projectId,
+                actionType,
+                ActivityEntityType.TASK,
+                task.getId(),
+                task.getTitle(),
+                details
+        );
     }
 
     private List<ProjectTaskBoardStageResponse> buildStageResponses(
@@ -608,6 +691,26 @@ public class ProjectTaskBoardService {
 
     private String normalizeBlank(String value) {
         return value == null || value.trim().isEmpty() ? null : value.trim();
+    }
+
+    private String translateStatus(ProjectTaskBoardStatus status) {
+        return switch (status) {
+            case TODO -> "К выполнению";
+            case IN_PROGRESS -> "В работе";
+            case IN_REVIEW -> "На проверке";
+            case RETURNED -> "Возвращено";
+            case DONE -> "Выполнено";
+            case BLOCKED -> "Заблокировано";
+        };
+    }
+
+    private String translatePriority(ProjectTaskBoardPriority priority) {
+        return switch (priority) {
+            case LOW -> "Низкий";
+            case MEDIUM -> "Средний";
+            case HIGH -> "Высокий";
+            case CRITICAL -> "Критический";
+        };
     }
 
     private boolean isProjectOwnerOrAdmin(Project project, User currentUser) {

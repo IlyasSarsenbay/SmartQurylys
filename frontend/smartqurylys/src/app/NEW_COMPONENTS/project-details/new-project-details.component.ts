@@ -188,10 +188,30 @@ export class NewProjectDetailsComponent implements OnInit, AfterViewInit {
         return 'отклонил выполнение';
       case ActivityActionType.PROJECT_UPDATED:
         return 'обновил проект';
+      case ActivityActionType.STAGE_CREATED:
+        return 'создал этап';
       case ActivityActionType.STAGE_UPDATED:
         return 'обновил этап';
       case ActivityActionType.STAGE_DELETED:
         return 'удалил этап';
+      case ActivityActionType.TASK_CREATED:
+        return 'создал задачу';
+      case ActivityActionType.TASK_UPDATED:
+        return 'обновил задачу';
+      case ActivityActionType.TASK_DELETED:
+        return 'удалил задачу';
+      case ActivityActionType.TASK_STARTED:
+        return 'начал задачу';
+      case ActivityActionType.TASK_COMPLETION_REQUESTED:
+        return 'отправил задачу на проверку';
+      case ActivityActionType.TASK_COMPLETION_APPROVED:
+        return 'подтвердил выполнение задачи';
+      case ActivityActionType.TASK_COMPLETION_REJECTED:
+        return 'отклонил выполнение задачи';
+      case ActivityActionType.TASK_RETURNED_TO_WORK:
+        return 'вернул задачу в работу';
+      case ActivityActionType.TASK_COMMENT_ADDED:
+        return 'добавил комментарий к задаче';
       case ActivityActionType.FILE_ADDED:
         return 'добавил файл';
       case ActivityActionType.FILE_DELETED:
@@ -215,6 +235,8 @@ export class NewProjectDetailsComponent implements OnInit, AfterViewInit {
     switch (type as ActivityEntityType) {
       case ActivityEntityType.STAGE:
         return 'в этапе';
+      case ActivityEntityType.TASK:
+        return 'в задаче';
       case ActivityEntityType.PARTICIPANT:
       case ActivityEntityType.DOCUMENT:
       case ActivityEntityType.PROJECT:

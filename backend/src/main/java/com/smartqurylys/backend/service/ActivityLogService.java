@@ -28,11 +28,19 @@ public class ActivityLogService {
     private final ProjectRepository projectRepository;
     private final com.smartqurylys.backend.repository.UserRepository userRepository;
 
-    // Записывает действие пользователя в журнал активности.
+    // Записывает действие пользователя в журнал активности (без дополнительных сведений).
     @Transactional
     public void recordActivity(Long projectId, ActivityActionType actionType,
                                ActivityEntityType entityType, Long entityId,
                                String entityName) {
+        recordActivity(projectId, actionType, entityType, entityId, entityName, null);
+    }
+
+    // Записывает действие пользователя в журнал активности с дополнительными сведениями.
+    @Transactional
+    public void recordActivity(Long projectId, ActivityActionType actionType,
+                               ActivityEntityType entityType, Long entityId,
+                               String entityName, String details) {
         User actor = userService.getCurrentUserEntity();
         String actorFullNameToLog = actor.getFullName();
 
@@ -57,6 +65,7 @@ public class ActivityLogService {
                 .entityType(entityType)
                 .entityId(entityId)
                 .entityName(entityName)
+                .details(details)
                 .project(project)
                 .build();
 
@@ -83,6 +92,7 @@ public class ActivityLogService {
                 .entityType(log.getEntityType())
                 .entityId(log.getEntityId())
                 .entityName(log.getEntityName())
+                .details(log.getDetails())
                 .projectId(log.getProject().getId())
                 .build();
     }

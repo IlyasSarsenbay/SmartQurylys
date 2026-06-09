@@ -23,6 +23,6 @@ public class ActivityLogResponse {
     private ActivityEntityType entityType; // Тип сущности, над которой совершено действие (например, PROJECT, TASK).
     private Long entityId; // ID сущности.
     private String entityName; // Название сущности.
-//    private String details;
+    private String details; // Дополнительные сведения о действии.
     private Long projectId; // ID проекта, к которому относится активность.
 }

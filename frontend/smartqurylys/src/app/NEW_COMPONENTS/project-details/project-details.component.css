@@ -238,6 +238,13 @@ main {
     color: #7b8190;
 }
 
+.activity-log-details {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+    font-style: italic;
+}
+
 .activity-log-empty {
     padding: 20px 0 4px;
     color: #6b7280;

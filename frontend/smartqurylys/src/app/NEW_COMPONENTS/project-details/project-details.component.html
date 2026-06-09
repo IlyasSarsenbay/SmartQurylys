@@ -56,6 +56,9 @@
                                     <span class="activity-log-separator">·</span>
                                     <span class="activity-log-time">{{ log.timestamp | date:'d MMM, HH:mm':'':'ru' }}</span>
                                 </p>
+                                @if (log.details) {
+                                <p class="activity-log-details">{{ log.details }}</p>
+                                }
                             </div>
                         </article>
                         }

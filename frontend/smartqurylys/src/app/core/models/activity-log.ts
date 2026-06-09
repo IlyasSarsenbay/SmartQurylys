@@ -7,5 +7,6 @@ export interface ActivityLogResponse {
   entityType: string;
   entityId: number;
   entityName: string;
+  details: string | null;
   projectId: number;
 }
