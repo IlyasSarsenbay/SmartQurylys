@@ -12,6 +12,7 @@ import { EmailVerificationService } from '../../../core/email-verification.servi
 import { OrganisationType } from '../../../core/enums/organisation-type.enum';
 import { Specialization } from '../../../core/enums/specialisation.enum';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 /**
  * Компонент для регистрации юридического лица
@@ -25,6 +26,7 @@ import { CommonModule } from '@angular/common';
   imports: [
     ReactiveFormsModule,
     CommonModule,
+    RouterLink,
   ],
   templateUrl: './registerOrg.component.html',
   styleUrls: ['./registerOrg.component.css']
